@@ -189,7 +189,8 @@ tr:hover td{background:#fef9e6}
       <option value="sem_prof">% de escolas sem prof. quilombola</option>
       <option value="sem_mat">% sem materiais culturais</option>
       <option value="consulta_nao">% comunidade NÃO consultada</option>
-      <option value="total">Nº de escolas (tamanho)</option>
+      <option value="total_escolas">Nº de escolas</option>
+      <option value="total_formularios">Nº de formulários</option>
     </select>
   </div>
 </div>
@@ -1731,7 +1732,7 @@ function renderTabela() {
 }
 
 // ══════════════════════════════════════════════════════════════════
-// MAPA – LEaFLET (substituindo o SVG antigo)
+// MAPA – LEaFLET com dados de escolas e formulários corretamente separados
 // ══════════════════════════════════════════════════════════════════
 let map = null;
 let stateLabelsLayer = null;
@@ -1754,18 +1755,29 @@ function atualizarMapa() {
 function updateMap() {
     if (!map) return;
     const indicator = document.getElementById('mapInd').value;
+    // Calcula valor máximo para normalizar as cores
     let maxVal = 1;
     for (const [sigla, nome] of Object.entries(SIGLA_TO_NOME)) {
-        const d = DB.uf_agg[nome];
-        if (!d || !d.total) continue;
+        const esc = DB.esc_por_uf[nome] || 0;
+        const form = DB.form_por_uf[nome] || 0;
+        const ufData = DB.uf_agg[nome];
         let val = 0;
-        if (indicator === 'racismo') val = d.racismo / d.total * 100;
-        else if (indicator === 'sem_prof') val = d.prof_nenhum / d.total * 100;
-        else if (indicator === 'sem_mat') val = d.mat_nao / d.total * 100;
-        else if (indicator === 'consulta_nao') val = d.consulta_nao / d.total * 100;
-        else if (indicator === 'total') val = d.total;
+        if (indicator === 'racismo') {
+            val = ufData ? (ufData.racismo / ufData.total * 100) : 0;
+        } else if (indicator === 'sem_prof') {
+            val = ufData ? (ufData.prof_nenhum / ufData.total * 100) : 0;
+        } else if (indicator === 'sem_mat') {
+            val = ufData ? (ufData.mat_nao / ufData.total * 100) : 0;
+        } else if (indicator === 'consulta_nao') {
+            val = ufData ? (ufData.consulta_nao / ufData.total * 100) : 0;
+        } else if (indicator === 'total_escolas') {
+            val = esc;
+        } else if (indicator === 'total_formularios') {
+            val = form;
+        }
         if (val > maxVal) maxVal = val;
     }
+    if (maxVal === 0) maxVal = 1;
 
     fetch('https://raw.githubusercontent.com/codeforamerica/click_that_hood/master/public/data/brazil-states.geojson')
         .then(res => res.ok ? res.json() : Promise.reject())
@@ -1777,32 +1789,44 @@ function updateMap() {
                 style: (f) => {
                     const sigla = f.properties.sigla;
                     const nome = SIGLA_TO_NOME[sigla];
-                    const d = DB.uf_agg[nome];
-                    const hasData = d && d.total > 0;
+                    const esc = DB.esc_por_uf[nome] || 0;
+                    const form = DB.form_por_uf[nome] || 0;
+                    const ufData = DB.uf_agg[nome];
+                    const hasData = (esc > 0 || form > 0);
                     if (!hasData) {
                         return { fillColor: '#cccccc', weight: 1, opacity: 1, color: 'white', fillOpacity: 0.5 };
                     }
                     let val = 0;
-                    if (indicator === 'racismo') val = d.racismo / d.total * 100;
-                    else if (indicator === 'sem_prof') val = d.prof_nenhum / d.total * 100;
-                    else if (indicator === 'sem_mat') val = d.mat_nao / d.total * 100;
-                    else if (indicator === 'consulta_nao') val = d.consulta_nao / d.total * 100;
-                    else if (indicator === 'total') val = d.total;
-                    const intensity = maxVal > 0 ? 0.2 + (val / maxVal) * 0.7 : 0.5;
+                    if (indicator === 'racismo') {
+                        val = ufData ? (ufData.racismo / ufData.total * 100) : 0;
+                    } else if (indicator === 'sem_prof') {
+                        val = ufData ? (ufData.prof_nenhum / ufData.total * 100) : 0;
+                    } else if (indicator === 'sem_mat') {
+                        val = ufData ? (ufData.mat_nao / ufData.total * 100) : 0;
+                    } else if (indicator === 'consulta_nao') {
+                        val = ufData ? (ufData.consulta_nao / ufData.total * 100) : 0;
+                    } else if (indicator === 'total_escolas') {
+                        val = esc;
+                    } else if (indicator === 'total_formularios') {
+                        val = form;
+                    }
+                    const intensity = 0.2 + (val / maxVal) * 0.7;
                     return { fillColor: '#e67e22', weight: 1, opacity: 1, color: 'white', fillOpacity: intensity };
                 },
                 onEachFeature: (f, l) => {
                     const sigla = f.properties.sigla;
                     const nome = SIGLA_TO_NOME[sigla];
-                    const d = DB.uf_agg[nome] || {};
+                    const esc = DB.esc_por_uf[nome] || 0;
+                    const form = DB.form_por_uf[nome] || 0;
+                    const ufData = DB.uf_agg[nome] || {};
                     let tooltipContent = `<b>${f.properties.nome} (${sigla})</b><br>`;
-                    if (d.total) {
-                        const racP = (d.racismo / d.total * 100).toFixed(1);
-                        const profP = (d.prof_nenhum / d.total * 100).toFixed(1);
-                        const matP = (d.mat_nao / d.total * 100).toFixed(1);
-                        const consP = (d.consulta_nao / d.total * 100).toFixed(1);
-                        tooltipContent += `📋 Formulários: ${d.total}<br>`;
-                        tooltipContent += `🏫 Escolas: ${d.total}<br>`;
+                    if (esc > 0 || form > 0) {
+                        const racP = ufData.total ? (ufData.racismo / ufData.total * 100).toFixed(1) : 0;
+                        const profP = ufData.total ? (ufData.prof_nenhum / ufData.total * 100).toFixed(1) : 0;
+                        const matP = ufData.total ? (ufData.mat_nao / ufData.total * 100).toFixed(1) : 0;
+                        const consP = ufData.total ? (ufData.consulta_nao / ufData.total * 100).toFixed(1) : 0;
+                        tooltipContent += `🏫 Escolas: ${esc}<br>`;
+                        tooltipContent += `📋 Formulários: ${form}<br>`;
                         tooltipContent += `⚠️ Racismo: ${racP}%<br>`;
                         tooltipContent += `👩🏿‍🏫 Sem prof.: ${profP}%<br>`;
                         tooltipContent += `📚 Sem materiais: ${matP}%<br>`;
@@ -1814,6 +1838,7 @@ function updateMap() {
                 }
             }).addTo(map);
 
+            // Labels fixos com siglas
             const stateCentroids = {
                 'AC': [-9.023, -70.811], 'AL': [-9.571, -36.782], 'AP': [1.998, -51.99], 'AM': [-3.465, -62.216],
                 'BA': [-12.579, -41.701], 'CE': [-5.498, -39.321], 'DF': [-15.799, -47.864], 'ES': [-19.183, -40.308],
@@ -1955,31 +1980,26 @@ function buildContext() {
     }).join('; ');
 
     // --- CORRELAÇÕES (para a IA poder responder perguntas complexas) ---
-    // 1. Racismo × Sem professores (scatter) – resumo
     const scatterData = CORR_DATA.rac_prof_scatter;
     const scatterSummary = scatterData
         .sort((a,b) => b.racismo - a.racismo)
         .slice(0,5)
         .map(d => `${d.uf} (racismo ${d.racismo}%, sem prof ${d.sem_prof}%)`)
         .join('; ');
-    // 2. Oferta EM × Evasão – resumo
     const emEvasao = CORR_DATA.em_ev_bars;
     const emEvasaoSummary = emEvasao
         .sort((a,b) => b.evasao - a.evasao)
         .slice(0,5)
         .map(d => `${d.uf} (sem EM ${d.sem_em}%, evasão ${d.evasao}%)`)
         .join('; ');
-    // 3. Consulta comunitária × Racismo por região
     const consRac = CORR_DATA.gestao_rac_reg;
     const consRacSummary = Object.entries(consRac)
         .map(([reg, d]) => `${reg}: sem consulta ${d.consulta_nao}%, racismo ${d.racismo}%`)
         .join('; ');
-    // 4. Professores × Materiais × Racismo – resumo
     const profMatRac = CORR_DATA.prof_mat_rac;
     const profMatRacSummary = Object.entries(profMatRac)
         .map(([cat, d]) => `${cat}: sem materiais ${d.sem_mat}%, com materiais ${d.com_mat}%, parcial ${d.parcial_mat}%`)
         .join('; ');
-    // 5. Infraestrutura precária × Racismo por localização
     const infraRacLoc = CORR_DATA.infra_rac_loc;
     const infraRacLocSummary = Object.entries(infraRacLoc)
         .map(([loc, d]) => `${loc}: infra precária ${d.infra_prec}%, lab precário ${d.lab_prec}%, racismo ${d.racismo}%`)
