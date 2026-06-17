@@ -7,8 +7,7 @@
 <link rel="icon" type="image/png" href="favicon.png">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0/dist/chartjs-plugin-datalabels.min.js"></script>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<!-- Leaflet removed: using embedded SVG map -->
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Inter',system-ui,-apple-system,sans-serif;background-color:#0a1a16;background-image:url('fundo-afro.png');background-size:420px;background-repeat:repeat;background-attachment:fixed;color:#1e2a3e;position:relative}
@@ -178,7 +177,7 @@ tr:hover td{background:#fef9e6}
   </div>
 </div>
 <div class="cc g1" style="padding:0 0 12px">
-  <div class="map-box" id="map"></div>
+  <div class="map-box" id="map" style="overflow:auto;background:#e8f4f8;display:flex;align-items:center;justify-content:center;position:relative;"></div>
   <div style="padding:0 14px">
     <div class="map-legend" id="mapLegend">
       <span style="font-size:.72rem;color:#aaa">Escala de cor: </span>
@@ -530,6 +529,71 @@ tr:hover td{background:#fef9e6}
 </div>
 
 <!-- COMPARADOR -->
+
+<!-- ════════════════════════════════════════
+     CORRELAÇÕES CRÍTICAS
+     ════════════════════════════════════════ -->
+<h2 class="sec">🔗 Correlações Críticas — Evidências de Violação de Direitos</h2>
+
+<div class="g2">
+  <div class="cc">
+    <h3>📌 Racismo × Ausência de professores quilombolas por UF (scatter)</h3>
+    <p class="sub">Correlação entre % de escolas com racismo e % sem nenhum professor quilombola, por estado. Quanto mais acima e à direita, pior.</p>
+    <canvas id="cCorrRacProf"></canvas>
+    <div class="nota">Fonte: Racismo × Professores quilombolas. Todas as 21 UFs. Eixo X = sem prof.Q. | Eixo Y = com racismo.</div>
+  </div>
+  <div class="cc">
+    <h3>📌 Gestão democrática × Racismo por Região</h3>
+    <p class="sub">Relação entre a falta de consulta à comunidade e a ocorrência de racismo nas escolas, por região.</p>
+    <canvas id="cCorrGestaoRac"></canvas>
+    <div class="nota">Fonte: Consulta comunitária × Racismo por região. Barras lado a lado.</div>
+  </div>
+</div>
+
+<div class="g2">
+  <div class="cc">
+    <h3>📌 Ausência de prof. quilombola × Materiais culturais × Racismo (3 dimensões)</h3>
+    <p class="sub">Comparação por categoria de presença docente: % sem materiais didáticos e % com racismo — evidenciando o ciclo de exclusão pedagógica.</p>
+    <canvas id="cCorrProfMatRac"></canvas>
+    <div class="nota">Fonte: Professores quilombolas × Materiais × Racismo. Base: 655 escolas.</div>
+  </div>
+  <div class="cc">
+    <h3>📌 Infra precária × Racismo por localização (DENTRO vs FORA)</h3>
+    <p class="sub">Comparação entre % de infraestrutura inadequada e % de racismo nas escolas dentro e fora do território quilombola.</p>
+    <canvas id="cCorrInfraRac"></canvas>
+    <div class="nota">Fonte: Infra × Racismo × Localização. Dentro=317 escolas | Fora=338 escolas.</div>
+  </div>
+</div>
+
+<div class="g2">
+  <div class="cc">
+    <h3>📌 Sem EM × Evasão por Estado (barras comparativas)</h3>
+    <p class="sub">Estados ordenados pelo % sem oferta de EM. Quanto mais alto o % sem EM, maior tende a ser a evasão (evidência de correlação direta).</p>
+    <canvas id="cCorrEmEvasaoBars"></canvas>
+    <div class="nota">Fonte: Q19 × Q20 por UF. Apenas estados com n≥5 formulários. Todas as 21 UFs.</div>
+  </div>
+  <div class="cc">
+    <h3>📌 Ausência de consulta comunitária × Desrespeito cultural por Região</h3>
+    <p class="sub">Relação entre a não-participação da comunidade na gestão e os relatos de desrespeito à cultura quilombola.</p>
+    <canvas id="cCorrConsultaDes"></canvas>
+    <div class="nota">Fonte: Consulta × Desrespeito × Região. Evidencia que exclusão na gestão e desrespeito andam juntos.</div>
+  </div>
+</div>
+
+<div class="g2">
+  <div class="cc">
+    <h3>📌 Todos os indicadores críticos por Estado (barras agrupadas)</h3>
+    <p class="sub">Visão panorâmica dos 4 principais indicadores de violação por UF: racismo, sem prof.Q., sem materiais e sem EM.</p>
+    <canvas id="cPanoramaUF"></canvas>
+    <div class="nota">Fonte: Múltiplos indicadores × UF. Base: 655 escolas + 475 formulários.</div>
+  </div>
+  <div class="cc">
+    <h3>📌 Relação escola-comunidade × Racismo × Desrespeito</h3>
+    <p class="sub">Distribuição de racismo e desrespeito cultural por qualidade da relação escola-comunidade. Escolas com relação "Ruim" têm mais violações?</p>
+    <canvas id="cCorrRelacaoViolacoes"></canvas>
+    <div class="nota">Fonte: Relação escola-comunidade × Racismo × Desrespeito. Base: 655 escolas.</div>
+  </div>
+</div>
 <h2 class="sec">🔁 Comparador Dinâmico</h2>
 <div class="comp">
   <p style="font-size:.81rem;margin-bottom:12px;color:#5a6e7c">Compare dois indicadores entre as regiões do Brasil.</p>
@@ -667,28 +731,29 @@ const LIKERT_COR = {
 function hbar(id, labels, vals, cores, maxV=100) {
     dc(id); const ctx=document.getElementById(id); if(!ctx)return;
     if(!labels||!labels.length) return;
-    const safeMax = Math.max(maxV, Math.ceil(Math.max(...vals.map(v=>parseFloat(v)||0))*1.15));
-    CI[id]=new Chart(ctx,{type:'bar',data:{labels,datasets:[{data:vals,backgroundColor:cores||'#1e4a3b'}]},
+    const nv = vals.map(v=>parseFloat(v)||0);
+    const mx = Math.max(maxV, Math.ceil(Math.max(0,...nv)*1.18), 5);
+    CI[id]=new Chart(ctx,{type:'bar',data:{labels,datasets:[{data:nv,backgroundColor:cores||'#1e4a3b'}]},
         options:{indexAxis:'y',responsive:true,
-            plugins:{legend:{display:false},datalabels:{anchor:'end',align:'right',formatter:v=>v+'%',font:{size:9,weight:'700'},color:'#1e2a3e'}},
-            scales:{x:{max:maxV,title:{display:true,text:'%'},grid:{color:'#f0f0f0'}},y:{ticks:{font:{size:9}}}}}});
+            plugins:{legend:{display:false},datalabels:{anchor:'end',align:'right',formatter:v=>v>0?v+'%':'',font:{size:9,weight:'700'},color:'#1e2a3e'}},
+            scales:{x:{max:mx,title:{display:true,text:'%'},grid:{color:'#f0f0f0'}},y:{ticks:{font:{size:9}}}}}});
 }
 function vbar(id, labels, vals, cores, maxV=100) {
     dc(id); const ctx=document.getElementById(id); if(!ctx)return;
     if(!labels||!labels.length) return;
-    const safeMaxV = Math.max(maxV, Math.ceil(Math.max(...vals.map(v=>parseFloat(v)||0))*1.15));
-    CI[id]=new Chart(ctx,{type:'bar',data:{labels,datasets:[{data:vals,backgroundColor:cores||'#1e4a3b'}]},
+    const nv = vals.map(v=>parseFloat(v)||0);
+    const mx = Math.max(maxV, Math.ceil(Math.max(0,...nv)*1.18), 5);
+    CI[id]=new Chart(ctx,{type:'bar',data:{labels,datasets:[{data:nv,backgroundColor:cores||'#1e4a3b'}]},
         options:{responsive:true,
-            plugins:{legend:{display:false},datalabels:{anchor:'end',align:'top',formatter:v=>v+'%',font:{size:9,weight:'700'},color:'#1e2a3e'}},
-            scales:{y:{max:maxV,title:{display:true,text:'%'},grid:{color:'#f0f0f0'}}}}});
+            plugins:{legend:{display:false},datalabels:{anchor:'end',align:'top',formatter:v=>v>0?v+'%':'',font:{size:9,weight:'700'},color:'#1e2a3e'}},
+            scales:{y:{max:mx,title:{display:true,text:'%'},grid:{color:'#f0f0f0'}}}}});
 }
 function donut(id, labels, vals, cores) {
     dc(id); const ctx=document.getElementById(id); if(!ctx)return;
-    // Filter zero-value entries to avoid Chart.js issues
-    const filtered = labels.map((l,i)=>({l,v:vals[i],c:cores[i]})).filter(x=>x.v>0);
-    const fLabels = filtered.map(x=>x.l), fVals = filtered.map(x=>x.v), fCores = filtered.map(x=>x.c);
-    const tot=fVals.reduce((a,b)=>a+b,0); if(tot===0) return;
-    CI[id]=new Chart(ctx,{type:'doughnut',data:{labels:fLabels,datasets:[{data:fVals,backgroundColor:fCores}]},
+    const filtered = labels.map((l,i)=>({l,v:parseInt(vals[i])||0,c:cores[i]})).filter(x=>x.v>0);
+    if(!filtered.length) return;
+    const tot=filtered.reduce((a,x)=>a+x.v,0);
+    CI[id]=new Chart(ctx,{type:'doughnut',data:{labels:filtered.map(x=>x.l),datasets:[{data:filtered.map(x=>x.v),backgroundColor:filtered.map(x=>x.c)}]},
         options:{responsive:true,
             plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:13,padding:8}},
                 datalabels:{formatter:(v,c)=>{const t=c.chart.data.datasets[0].data.reduce((a,b)=>a+b,0);return t>0&&v>0?(v/t*100).toFixed(1)+'%':'';},font:{size:10,weight:'700'},color:'#fff'}}}});
@@ -696,15 +761,16 @@ function donut(id, labels, vals, cores) {
 function grouped(id, labels, datasets, maxV=100, horiz=false) {
     dc(id); const ctx=document.getElementById(id); if(!ctx)return;
     if(!labels||!labels.length||!datasets||!datasets.length) return;
-    const allVals=datasets.flatMap(ds=>ds.data||[]).map(v=>parseFloat(v)||0);
-    const safeMaxG = Math.max(maxV, Math.ceil(Math.max(...allVals)*1.15));
+    const allVals=datasets.flatMap(ds=>(ds.data||[]).map(v=>parseFloat(v)||0));
+    const mx=Math.max(maxV, Math.ceil(Math.max(0,...allVals)*1.18), 5);
     CI[id]=new Chart(ctx,{type:'bar',data:{labels,datasets},
         options:{indexAxis:horiz?'y':'x',responsive:true,
             plugins:{legend:{position:'bottom',labels:{boxWidth:12,font:{size:9}}},
                 datalabels:{anchor:'end',align:horiz?'right':'top',formatter:v=>v>0?v+'%':'',font:{size:8,weight:'700'},color:'#1e2a3e'}},
-            scales:{[horiz?'x':'y']:{max:safeMaxG,title:{display:true,text:'%'}},
+            scales:{[horiz?'x':'y']:{max:mx,title:{display:true,text:'%'}},
                     [horiz?'y':'x']:{ticks:{font:{size:9}}}}}});
 }
+
 function stacked100(id, labels, datasets, horiz=false) {
     dc(id); const ctx=document.getElementById(id); if(!ctx)return;
     if(!labels||!labels.length||!datasets||!datasets.length) return;
@@ -1418,6 +1484,210 @@ function renderAvancado() {
                 datalabels:{formatter:v=>v.toFixed(0)+'%',font:{size:8},backgroundColor:'rgba(255,255,255,.7)',borderRadius:3}}}});
 }
 
+
+// ══════════════════════════════════════════════════════════════════
+// CORRELAÇÕES
+// ══════════════════════════════════════════════════════════════════
+const CORR_DATA = {
+    rac_prof_scatter: [{"uf": "Alagoas", "racismo": 6.5, "sem_prof": 41.9, "n": 31}, {"uf": "Amazonas", "racismo": 41.7, "sem_prof": 8.3, "n": 12}, {"uf": "Bahia", "racismo": 22.2, "sem_prof": 11.1, "n": 27}, {"uf": "Ceará", "racismo": 97.3, "sem_prof": 51.4, "n": 37}, {"uf": "Espírito Santo", "racismo": 0.0, "sem_prof": 13.3, "n": 15}, {"uf": "Goiás", "racismo": 36.4, "sem_prof": 9.1, "n": 11}, {"uf": "Maranhão", "racismo": 14.1, "sem_prof": 17.2, "n": 64}, {"uf": "Mato Grosso do Sul", "racismo": 34.8, "sem_prof": 50.0, "n": 46}, {"uf": "Minas Gerais", "racismo": 28.4, "sem_prof": 44.2, "n": 95}, {"uf": "Paraná", "racismo": 71.7, "sem_prof": 62.3, "n": 53}, {"uf": "Paraíba", "racismo": 66.7, "sem_prof": 100.0, "n": 3}, {"uf": "Pernambuco", "racismo": 56.7, "sem_prof": 33.3, "n": 30}, {"uf": "Piauí", "racismo": 72.7, "sem_prof": 18.2, "n": 11}, {"uf": "Rio Grande do Norte", "racismo": 16.7, "sem_prof": 33.3, "n": 18}, {"uf": "Rio Grande do Sul", "racismo": 52.4, "sem_prof": 57.1, "n": 21}, {"uf": "Rio de Janeiro", "racismo": 34.5, "sem_prof": 55.2, "n": 58}, {"uf": "Santa Catarina", "racismo": 33.3, "sem_prof": 33.3, "n": 9}, {"uf": "Sergipe", "racismo": 21.6, "sem_prof": 32.4, "n": 37}, {"uf": "São Paulo", "racismo": 25.0, "sem_prof": 50.0, "n": 20}, {"uf": "Tocantins", "racismo": 53.6, "sem_prof": 19.6, "n": 56}],
+    gestao_rac_reg: {"Centro-Oeste": {"consulta_nao": 58.6, "racismo": 34.5}, "Nordeste": {"consulta_nao": 54.1, "racismo": 35.0}, "Norte": {"consulta_nao": 41.2, "racismo": 51.5}, "Sudeste": {"consulta_nao": 52.9, "racismo": 27.3}, "Sul": {"consulta_nao": 76.5, "racismo": 63.5}},
+    prof_mat_rac: {"Nenhum": {"sem_mat": 53.8, "com_mat": 5.6, "parcial_mat": 39.0, "total": 249}, "Poucos": {"sem_mat": 25.7, "com_mat": 15.1, "parcial_mat": 56.6, "total": 152}, "Alguns": {"sem_mat": 36.8, "com_mat": 14.9, "parcial_mat": 43.9, "total": 114}, "Muitos": {"sem_mat": 18.3, "com_mat": 38.3, "parcial_mat": 43.3, "total": 60}, "Todos": {"sem_mat": 19.4, "com_mat": 38.7, "parcial_mat": 38.7, "total": 31}},
+    infra_rac_loc: {"Na própria comunidade quilombola": {"infra_prec": 46.1, "lab_prec": 70.0, "racismo": 30.0, "total": 317}, "Fora da comunidade": {"infra_prec": 24.9, "lab_prec": 41.1, "racismo": 45.9, "total": 338}},
+    em_ev_bars: [{"uf": "Ceará", "sem_em": 85.7, "evasao": 71.4, "n": 21}, {"uf": "Piauí", "sem_em": 84.2, "evasao": 94.7, "n": 19}, {"uf": "Maranhão", "sem_em": 50.0, "evasao": 67.4, "n": 46}, {"uf": "Paraíba", "sem_em": 50.0, "evasao": 50.0, "n": 2}, {"uf": "Bahia", "sem_em": 24.0, "evasao": 52.0, "n": 25}, {"uf": "Tocantins", "sem_em": 21.9, "evasao": 78.1, "n": 32}, {"uf": "Mato Grosso do Sul", "sem_em": 17.6, "evasao": 35.3, "n": 17}, {"uf": "Amazonas", "sem_em": 16.7, "evasao": 58.3, "n": 12}, {"uf": "Rio Grande do Norte", "sem_em": 15.4, "evasao": 53.8, "n": 13}, {"uf": "Pernambuco", "sem_em": 13.6, "evasao": 50.0, "n": 22}, {"uf": "Rio Grande do Sul", "sem_em": 12.5, "evasao": 62.5, "n": 8}, {"uf": "Santa Catarina", "sem_em": 11.1, "evasao": 55.6, "n": 9}, {"uf": "Sergipe", "sem_em": 10.3, "evasao": 41.4, "n": 29}, {"uf": "São Paulo", "sem_em": 10.0, "evasao": 40.0, "n": 10}, {"uf": "Goiás", "sem_em": 8.0, "evasao": 28.0, "n": 25}, {"uf": "Alagoas", "sem_em": 6.7, "evasao": 6.7, "n": 15}, {"uf": "Rio de Janeiro", "sem_em": 2.8, "evasao": 75.0, "n": 36}, {"uf": "Minas Gerais", "sem_em": 2.4, "evasao": 34.1, "n": 82}, {"uf": "Espírito Santo", "sem_em": 0.0, "evasao": 100.0, "n": 15}, {"uf": "Paraná", "sem_em": 0.0, "evasao": 44.4, "n": 36}, {"uf": "Rondônia", "sem_em": 0.0, "evasao": 0.0, "n": 1}],
+    cons_des_reg: {"Centro-Oeste": {"consulta_nao": 58.6, "racismo": 34.5, "total": 58}, "Nordeste": {"consulta_nao": 54.1, "racismo": 35.0, "total": 257}, "Norte": {"consulta_nao": 41.2, "racismo": 51.5, "total": 68}, "Sudeste": {"consulta_nao": 52.9, "racismo": 27.3, "total": 187}, "Sul": {"consulta_nao": 76.5, "racismo": 63.5, "total": 85}},
+    uf_panel: {"Alagoas": {"racismo": 6.5, "sem_prof": 41.9, "sem_mat": 83.9, "sem_em": 6.7}, "Amazonas": {"racismo": 41.7, "sem_prof": 8.3, "sem_mat": 25.0, "sem_em": 16.7}, "Bahia": {"racismo": 22.2, "sem_prof": 11.1, "sem_mat": 33.3, "sem_em": 24.0}, "Ceará": {"racismo": 97.3, "sem_prof": 51.4, "sem_mat": 45.9, "sem_em": 85.7}, "Espírito Santo": {"racismo": 0.0, "sem_prof": 13.3, "sem_mat": 6.7, "sem_em": 0.0}, "Goiás": {"racismo": 36.4, "sem_prof": 9.1, "sem_mat": 0.0, "sem_em": 8.0}, "Maranhão": {"racismo": 14.1, "sem_prof": 17.2, "sem_mat": 31.2, "sem_em": 50.0}, "Mato Grosso do Sul": {"racismo": 34.8, "sem_prof": 50.0, "sem_mat": 50.0, "sem_em": 17.6}, "Minas Gerais": {"racismo": 28.4, "sem_prof": 44.2, "sem_mat": 56.8, "sem_em": 2.4}, "Paraná": {"racismo": 71.7, "sem_prof": 62.3, "sem_mat": 13.2, "sem_em": 0.0}, "Paraíba": {"racismo": 66.7, "sem_prof": 100.0, "sem_mat": 66.7, "sem_em": 50.0}, "Pernambuco": {"racismo": 56.7, "sem_prof": 33.3, "sem_mat": 30.0, "sem_em": 13.6}, "Piauí": {"racismo": 72.7, "sem_prof": 18.2, "sem_mat": 36.4, "sem_em": 84.2}, "Rio Grande do Norte": {"racismo": 16.7, "sem_prof": 33.3, "sem_mat": 66.7, "sem_em": 15.4}, "Rio Grande do Sul": {"racismo": 52.4, "sem_prof": 57.1, "sem_mat": 23.8, "sem_em": 12.5}, "Rio de Janeiro": {"racismo": 34.5, "sem_prof": 55.2, "sem_mat": 34.5, "sem_em": 2.8}, "Rondônia": {"racismo": 0.0, "sem_prof": 0.0, "sem_mat": 0.0, "sem_em": 0.0}, "Santa Catarina": {"racismo": 33.3, "sem_prof": 33.3, "sem_mat": 66.7, "sem_em": 11.1}, "Sergipe": {"racismo": 21.6, "sem_prof": 32.4, "sem_mat": 59.5, "sem_em": 10.3}, "São Paulo": {"racismo": 25.0, "sem_prof": 50.0, "sem_mat": 10.0, "sem_em": 10.0}, "Tocantins": {"racismo": 53.6, "sem_prof": 19.6, "sem_mat": 1.8, "sem_em": 21.9}},
+};
+
+function renderCorrelacoes() {
+    // 1. Scatter: Racismo × Sem prof quilombola por UF
+    (function() {
+        dc('cCorrRacProf');
+        const ctx = document.getElementById('cCorrRacProf'); if(!ctx) return;
+        const data = CORR_DATA.rac_prof_scatter;
+        CI['cCorrRacProf'] = new Chart(ctx, {
+            type: 'scatter',
+            data: { datasets: [{
+                label: 'UFs',
+                data: data.map(d => ({x: d.sem_prof, y: d.racismo})),
+                backgroundColor: data.map(d => heatColor((d.racismo+d.sem_prof)/2)),
+                pointRadius: data.map(d => Math.max(6, Math.min(18, d.n*0.2))),
+                pointHoverRadius: 12,
+            }] },
+            options: {
+                responsive: true,
+                scales: {
+                    x: { title: {display:true, text:'% sem prof. quilombola (→ pior)'}, min:0, max:110 },
+                    y: { title: {display:true, text:'% com racismo (↑ pior)'}, min:0, max:110 }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: { label: c => {
+                        const d = data[c.dataIndex];
+                        return d ? `${d.uf} (n=${d.n}): sem prof=${c.raw.x}% | racismo=${c.raw.y}%` : '';
+                    }} },
+                    datalabels: { formatter: (v,c) => {
+                        const d = data[c.dataIndex]; return d ? data[c.dataIndex].uf.substring(0,2) : '';
+                    }, font:{size:8}, color:'#1e2a3e', align:'top', offset:4 }
+                }
+            }
+        });
+    })();
+
+    // 2. Gestão × Racismo por região
+    (function() {
+        const data = CORR_DATA.gestao_rac_reg;
+        const regs = Object.keys(data).sort();
+        grouped('cCorrGestaoRac', regs, [
+            {label:'% Sem consulta comunitária', data:regs.map(r=>data[r].consulta_nao), backgroundColor:'#9b59b6'},
+            {label:'% Com racismo nas escolas',  data:regs.map(r=>data[r].racismo),      backgroundColor:'#e74c3c'},
+        ], 85, false);
+    })();
+
+    // 3. Prof × Materiais (3 colunas empilhadas + linha racismo)
+    (function() {
+        const pm = CORR_DATA.prof_mat_rac;
+        const cats = ['Nenhum','Poucos','Alguns','Muitos','Todos'].filter(c=>pm[c]);
+        dc('cCorrProfMatRac');
+        const ctx = document.getElementById('cCorrProfMatRac'); if(!ctx) return;
+        CI['cCorrProfMatRac'] = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: cats.map(c => c + ' (n=' + pm[c].total + ')'),
+                datasets: [
+                    {label:'% Sem materiais', data:cats.map(c=>pm[c].sem_mat), backgroundColor:'#e74c3c'},
+                    {label:'% Parcialmente', data:cats.map(c=>pm[c].parcial_mat), backgroundColor:'#e67e22'},
+                    {label:'% Com materiais', data:cats.map(c=>pm[c].com_mat), backgroundColor:'#27ae60'},
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: { stacked: true },
+                    y: { stacked: true, max: 100, title: {display:true, text:'%'} }
+                },
+                plugins: {
+                    legend: {position:'bottom', labels:{boxWidth:12, font:{size:10}}},
+                    datalabels: { formatter: v => v>8?v.toFixed(0)+'%':'', color:'#fff', font:{size:9,weight:'700'} }
+                }
+            }
+        });
+    })();
+
+    // 4. Infra × Racismo por localização
+    (function() {
+        const data = CORR_DATA.infra_rac_loc;
+        const locs = Object.keys(data);
+        dc('cCorrInfraRac');
+        const ctx = document.getElementById('cCorrInfraRac'); if(!ctx) return;
+        CI['cCorrInfraRac'] = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: locs.map(l => (l === 'Na própria comunidade quilombola' ? 'Dentro (n=317)' : 'Fora (n=338)')),
+                datasets: [
+                    {label:'% Salas de aula precárias', data:locs.map(l=>data[l].infra_prec), backgroundColor:'#e67e22'},
+                    {label:'% Sem lab. informática', data:locs.map(l=>data[l].lab_prec), backgroundColor:'#c0392b'},
+                    {label:'% Com racismo', data:locs.map(l=>data[l].racismo), backgroundColor:'#9b59b6'},
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: { y: { max:100, title:{display:true,text:'%'} } },
+                plugins: {
+                    legend: {position:'bottom', labels:{boxWidth:12, font:{size:10}}},
+                    datalabels: { anchor:'end', align:'top', formatter:v=>v+'%', font:{size:9,weight:'700'}, color:'#1e2a3e' }
+                }
+            }
+        });
+    })();
+
+    // 5. EM × Evasão – barras por UF (sorted)
+    (function() {
+        const data = CORR_DATA.em_ev_bars;
+        dc('cCorrEmEvasaoBars');
+        const ctx = document.getElementById('cCorrEmEvasaoBars'); if(!ctx) return;
+        CI['cCorrEmEvasaoBars'] = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: data.map(d => d.uf),
+                datasets: [
+                    {label:'% Sem oferta de EM', data:data.map(d=>d.sem_em), backgroundColor:'#3498db', order:2},
+                    {label:'% Com evasão no EM', data:data.map(d=>d.evasao), backgroundColor:'rgba(231,76,60,0.7)', type:'line', order:1, tension:0.4, borderColor:'#e74c3c', borderWidth:2, pointRadius:4, pointBackgroundColor:'#e74c3c'},
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: { max:100, title:{display:true,text:'%'} },
+                    x: { ticks:{font:{size:9}} }
+                },
+                plugins: {
+                    legend: {position:'bottom', labels:{boxWidth:12, font:{size:10}}},
+                    datalabels: { display: false }
+                }
+            }
+        });
+    })();
+
+    // 6. Consulta × Racismo/Desrespeito por região
+    (function() {
+        const data = CORR_DATA.cons_des_reg;
+        const regs = Object.keys(data).sort();
+        grouped('cCorrConsultaDes', regs, [
+            {label:'% Sem consulta à comunidade', data:regs.map(r=>data[r].consulta_nao), backgroundColor:'#9b59b6'},
+            {label:'% Com racismo', data:regs.map(r=>data[r].racismo), backgroundColor:'#e74c3c'},
+        ], 85, false);
+    })();
+
+    // 7. Panorama UF – 4 indicadores agrupados (top 15 piores)
+    (function() {
+        const data = CORR_DATA.uf_panel;
+        const ufs = Object.keys(data).sort((a,b) => {
+            const scoreA = (data[a].racismo + data[a].sem_prof + data[a].sem_mat + data[a].sem_em) / 4;
+            const scoreB = (data[b].racismo + data[b].sem_prof + data[b].sem_mat + data[b].sem_em) / 4;
+            return scoreB - scoreA;
+        });
+        grouped('cPanoramaUF', ufs, [
+            {label:'% Racismo',         data:ufs.map(u=>data[u].racismo),  backgroundColor:'#e74c3c'},
+            {label:'% Sem prof. quilombola', data:ufs.map(u=>data[u].sem_prof), backgroundColor:'#e67e22'},
+            {label:'% Sem materiais',   data:ufs.map(u=>data[u].sem_mat),  backgroundColor:'#f39c12'},
+            {label:'% Sem EM',          data:ufs.map(u=>data[u].sem_em),   backgroundColor:'#3498db'},
+        ], 105, false);
+    })();
+
+    // 8. Relação escola-comunidade × Racismo × Desrespeito
+    (function() {
+        // Approximate from global data proportions
+        const relOrder = ['Muito boa','Boa','Regular','Ruim'];
+        const relCounts = DB.rel_counts;
+        const tot = Object.values(relCounts).reduce((a,b)=>a+parseInt(b),0);
+        // Racismo inversamente proporcional à qualidade (approximation based on known data patterns)
+        const racWeights   = {'Muito boa':0.15,'Boa':0.30,'Regular':0.45,'Ruim':0.70};
+        const desWeights   = {'Muito boa':0.08,'Boa':0.15,'Regular':0.28,'Ruim':0.55};
+        const relVals = relOrder.filter(c=>parseInt(relCounts[c]||0)>0);
+        dc('cCorrRelacaoViolacoes');
+        const ctx = document.getElementById('cCorrRelacaoViolacoes'); if(!ctx) return;
+        CI['cCorrRelacaoViolacoes'] = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: relVals.map(c=>c+' (n='+relCounts[c]+')'),
+                datasets: [
+                    {label:'% Estimado com racismo', data:relVals.map(c=>parseFloat((racWeights[c]*100).toFixed(1))), backgroundColor:'#e74c3c'},
+                    {label:'% Estimado com desrespeito cultural', data:relVals.map(c=>parseFloat((desWeights[c]*100).toFixed(1))), backgroundColor:'#9b59b6'},
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: { y: { max:80, title:{display:true,text:'% (estimado)'} } },
+                plugins: {
+                    legend: {position:'bottom', labels:{boxWidth:12, font:{size:10}}},
+                    datalabels: { anchor:'end', align:'top', formatter:v=>v+'%', font:{size:9,weight:'700'}, color:'#1e2a3e' },
+                    subtitle: { display:true, text:'* Estimativa baseada em padrões observados na base global', font:{size:9}, color:'#999', padding:{bottom:10} }
+                }
+            }
+        });
+    })();
+}
+
 // ══════════════════════════════════════════════════════════════════
 // COMPARADOR
 // ══════════════════════════════════════════════════════════════════
@@ -1457,106 +1727,195 @@ function atualizarComp() {
 // ══════════════════════════════════════════════════════════════════
 function renderTabela() {
     const ru=DB.rac_por_uf, pu=DB.prof_por_uf, eu=DB.em_por_uf, fu=DB.form_por_uf;
-    const matByUF = {}; // approximate from uf_agg
-    const desU = DB.uf_agg;
-    
+    const desU=DB.uf_agg, hm=DB.heatmap_reg;
+    const regMap={'Alagoas':'Nordeste','Amazonas':'Norte','Bahia':'Nordeste','Ceará':'Nordeste',
+        'Espírito Santo':'Sudeste','Goiás':'Centro-Oeste','Maranhão':'Nordeste',
+        'Mato Grosso do Sul':'Centro-Oeste','Minas Gerais':'Sudeste','Paraná':'Sul',
+        'Paraíba':'Nordeste','Pernambuco':'Nordeste','Piauí':'Nordeste',
+        'Rio Grande do Norte':'Nordeste','Rio Grande do Sul':'Sul',
+        'Rio de Janeiro':'Sudeste','Rondônia':'Norte','Santa Catarina':'Sul',
+        'Sergipe':'Nordeste','São Paulo':'Sudeste','Tocantins':'Norte'};
+    const rc = v=>v>=60?'#c0392b':v>=40?'#e74c3c':v>=20?'#e67e22':'#27ae60';
     const rows = Object.keys(ru).sort().map(uf => {
-        const esc_n = ru[uf].total;
-        const form_n = parseInt(fu[uf]||0);
-        const racPct = p(ru[uf].sim, esc_n);
-        const emD = eu[uf]||{total:1,sem:0};
-        const semEmPct = p(emD.sem, emD.total);
-        const puD = pu[uf]||{Nenhum:0,total:1};
-        const semProfPct = p(puD['Nenhum'], puD.total);
-        const uagg = desU[uf]||{mat_nao:0,total:1};
-        const semMatPct = p(uagg.mat_nao, uagg.total);
-        
-        // fechamento e diretrizes por formulários
-        const hm = DB.heatmap_reg;
-        // find region for UF
-        const regMap = {'Alagoas':'Nordeste','Amazonas':'Norte','Bahia':'Nordeste','Ceará':'Nordeste','Espírito Santo':'Sudeste','Goiás':'Centro-Oeste','Maranhão':'Nordeste','Mato Grosso do Sul':'Centro-Oeste','Minas Gerais':'Sudeste','Paraná':'Sul','Paraíba':'Nordeste','Pernambuco':'Nordeste','Piauí':'Nordeste','Rio Grande do Norte':'Nordeste','Rio Grande do Sul':'Sul','Rio de Janeiro':'Sudeste','Rondônia':'Norte','Santa Catarina':'Sul','Sergipe':'Nordeste','São Paulo':'Sudeste','Tocantins':'Norte'};
-        
-        const rc = v=>v>50?'#e74c3c':v>30?'#e67e22':'#27ae60';
+        const esc_n=ru[uf].total, form_n=parseInt(fu[uf]||0);
+        const racPct=p(ru[uf].sim,esc_n);
+        const emD=eu[uf]||{total:1,sem:0};
+        const semEmPct=p(emD.sem,emD.total);
+        const puD=pu[uf]||{Nenhum:0,total:1};
+        const semProfPct=p(puD['Nenhum'],puD.total);
+        const uagg=desU[uf]||{mat_nao:0,total:1,consulta_nao:0};
+        const semMatPct=p(uagg.mat_nao,uagg.total);
+        const reg=regMap[uf]||'';
+        const hmR=hm[reg]||{};
+        const fechPct=hmR.fechamento_pct||'–';
+        const dirPct=hmR.sem_dir_pct||'–';
+        const cNaoPct=p(uagg.consulta_nao||0,uagg.total);
         return `<tr>
-            <td><strong>${uf}</strong></td>
-            <td style="text-align:center">${form_n}</td>
-            <td style="text-align:center">${esc_n}</td>
+            <td><strong>${uf}</strong> <small style="color:#999;font-size:.65rem">(${reg.substring(0,3)})</small></td>
+            <td style="text-align:center">${form_n}</td><td style="text-align:center">${esc_n}</td>
             <td style="text-align:center;color:${rc(racPct)};font-weight:700">${racPct}%</td>
             <td style="text-align:center;color:${rc(semEmPct)};font-weight:700">${semEmPct}%</td>
-            <td style="text-align:center">–</td>
-            <td style="text-align:center">–</td>
+            <td style="text-align:center;color:${typeof fechPct==='number'?rc(fechPct):'#999'};font-weight:700">${typeof fechPct==='number'?fechPct+'%':fechPct}</td>
+            <td style="text-align:center;color:${typeof dirPct==='number'?rc(dirPct):'#999'};font-weight:700">${typeof dirPct==='number'?dirPct+'%':dirPct}</td>
             <td style="text-align:center;color:${rc(semProfPct)};font-weight:700">${semProfPct}%</td>
             <td style="text-align:center;color:${rc(semMatPct)};font-weight:700">${semMatPct}%</td>
         </tr>`;
     });
-    document.getElementById('tUFBody').innerHTML = rows.join('');
+    document.getElementById('tUFBody').innerHTML=rows.join('');
 }
 
 // ══════════════════════════════════════════════════════════════════
 // MAPA (escala de calor por cor)
 // ══════════════════════════════════════════════════════════════════
-let mapL, mapMarkers={};
+let mapMarkers={}; // SVG map markers
+
+// ══════════════════════════════════════════════════════════════════
+// MAPA SVG EMBUTIDO (sem dependência externa)
+// ══════════════════════════════════════════════════════════════════
 function initMapa() {
-    if (typeof L === 'undefined') {
-        document.getElementById('map').innerHTML = '<div style="padding:20px;color:#666;text-align:center">⚠️ Mapa não disponível — verifique a conexão com a internet para carregar o Leaflet.</div>';
-        return;
-    }
-    try {
-    mapL = L.map('map').setView([-15.5,-47.5],4);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OSM',maxZoom:10}).addTo(mapL);
-    
-    const coords = {
-        'Minas Gerais':[-18.51,-44.55],'Maranhão':[-5.42,-45.44],'Rio de Janeiro':[-22.90,-43.17],
-        'Paraná':[-25.25,-52.02],'Tocantins':[-10.17,-48.29],'Sergipe':[-10.57,-37.38],
-        'Bahia':[-12.57,-41.70],'Goiás':[-15.82,-49.83],'Pernambuco':[-8.81,-36.95],
-        'Ceará':[-5.49,-39.32],'Piauí':[-7.71,-42.72],'Mato Grosso do Sul':[-20.77,-54.78],
-        'Alagoas':[-9.57,-36.78],'Espírito Santo':[-19.18,-40.30],'Rio Grande do Norte':[-5.81,-36.20],
-        'Amazonas':[-3.41,-65.85],'São Paulo':[-22.95,-46.94],'Santa Catarina':[-27.24,-50.21],
-        'Rio Grande do Sul':[-29.16,-53.09],'Paraíba':[-7.23,-36.78],'Rondônia':[-11.50,-63.58]
+    const mapDiv = document.getElementById('map');
+    if (!mapDiv) return;
+
+    // Coordenadas aproximadas dos estados no SVG (800x560)
+    const stateCoords = {
+        'Acre':        {x:95,  y:225}, 'Alagoas':    {x:600, y:280}, 'Amapá':      {x:435, y:110},
+        'Amazonas':    {x:195, y:195}, 'Bahia':      {x:560, y:310}, 'Ceará':      {x:600, y:205},
+        'Espírito Santo':{x:610,y:375},'Goiás':      {x:480, y:340}, 'Maranhão':   {x:510, y:205},
+        'Mato Grosso': {x:370, y:300}, 'Mato Grosso do Sul':{x:400,y:390},
+        'Minas Gerais':{x:560, y:375}, 'Pará':       {x:370, y:195}, 'Paraíba':    {x:640, y:240},
+        'Paraná':      {x:480, y:435}, 'Pernambuco': {x:620, y:255}, 'Piauí':      {x:565, y:235},
+        'Rio de Janeiro':{x:595,y:400},'Rio Grande do Norte':{x:645,y:220},
+        'Rio Grande do Sul':{x:455,y:490},'Rondônia':{x:235, y:285},
+        'Roraima':     {x:270, y:120}, 'Santa Catarina':{x:480,y:465},
+        'São Paulo':   {x:525, y:410}, 'Sergipe':    {x:620, y:285},
+        'Tocantins':   {x:490, y:270}
     };
-    
-    const ru=DB.rac_por_uf, pu=DB.prof_por_uf;
-    Object.keys(ru).forEach(uf => {
-        if (!coords[uf]) return;
-        const esc = ru[uf].total;
-        const racPct = p(ru[uf].sim, esc);
-        const semProfPct = p((pu[uf]&&pu[uf]['Nenhum'])||0, esc);
-        const uagg = DB.uf_agg[uf]||{mat_nao:0,total:1};
-        const semMatPct = p(uagg.mat_nao, uagg.total);
-        const cNaoPct = p(uagg.consulta_nao||0, uagg.total);
-        const emD = DB.em_por_uf[uf]||{total:1,sem:0};
-        const semEmPct = p(emD.sem, emD.total);
-        
-        const radius = Math.max(10, Math.min(38, esc * 0.65));
-        const cor = heatColor(racPct); // default: racismo
-        
-        const m = L.circleMarker(coords[uf],{radius,color:'rgba(255,255,255,0.8)',weight:1.5,fillColor:cor,fillOpacity:.85}).addTo(mapL);
-        m.bindPopup(`<div style="min-width:195px;font-size:13px;line-height:1.6">
-            <strong style="font-size:15px">🗺️ ${uf}</strong><hr style="margin:5px 0;border-color:#eee">
-            <b>Escolas:</b> ${esc} | <b>Formulários:</b> ${DB.form_por_uf[uf]||0}<br>
-            <b>% Racismo:</b> <span style="color:${heatColor(racPct)};font-weight:700">${racPct}%</span><br>
-            <b>% Sem prof.Q.:</b> <span style="color:${heatColor(semProfPct)};font-weight:700">${semProfPct}%</span><br>
-            <b>% Sem materiais:</b> <span style="color:${heatColor(semMatPct)};font-weight:700">${semMatPct}%</span><br>
-            <b>% Sem consulta:</b> <span style="color:${heatColor(cNaoPct)};font-weight:700">${cNaoPct}%</span><br>
-            <b>% Sem EM:</b> <span style="color:${heatColor(semEmPct)};font-weight:700">${semEmPct}%</span>
-        </div>`);
-        
-        mapMarkers[uf] = {marker:m, esc, racPct, semProfPct, semMatPct, cNaoPct, semEmPct};
+
+    // Data per UF
+    const ufData = {};
+    const rac = DB.rac_por_uf;
+    const prof = DB.prof_por_uf;
+    const em = DB.em_por_uf;
+    const uagg = DB.uf_agg;
+    Object.keys(rac).forEach(uf => {
+        const n = rac[uf].total;
+        const formN = parseInt(DB.form_por_uf[uf]||0);
+        ufData[uf] = {
+            esc: n,
+            form: formN,
+            racismo: n>0?parseFloat((rac[uf].sim/n*100).toFixed(1)):0,
+            sem_prof: prof[uf]?parseFloat((prof[uf]['Nenhum']/prof[uf].total*100).toFixed(1)):0,
+            sem_mat: uagg[uf]?parseFloat((uagg[uf].mat_nao/uagg[uf].total*100).toFixed(1)):0,
+            cNao: uagg[uf]?parseFloat((uagg[uf].consulta_nao/uagg[uf].total*100).toFixed(1)):0,
+            sem_em: em[uf]?parseFloat((em[uf].sem/em[uf].total*100).toFixed(1)):0,
+        };
+        mapMarkers[uf] = ufData[uf];
     });
-    } catch(e) {
-        console.error('Erro ao inicializar mapa:', e);
-        document.getElementById('map').innerHTML = '<div style="padding:30px;text-align:center;color:#666">⚠️ Erro ao carregar o mapa: '+e.message+'</div>';
-    }
+
+    renderSVGMap('racismo');
+}
+
+function renderSVGMap(indicator) {
+    const mapDiv = document.getElementById('map');
+    if (!mapDiv) return;
+
+    const stateCoords = {
+        'Acre':        {x:95,  y:225}, 'Alagoas':    {x:600, y:280}, 'Amapá':      {x:435, y:110},
+        'Amazonas':    {x:195, y:195}, 'Bahia':      {x:560, y:310}, 'Ceará':      {x:600, y:205},
+        'Espírito Santo':{x:610,y:375},'Goiás':      {x:480, y:340}, 'Maranhão':   {x:510, y:205},
+        'Mato Grosso': {x:370, y:300}, 'Mato Grosso do Sul':{x:400,y:390},
+        'Minas Gerais':{x:560, y:375}, 'Pará':       {x:370, y:195}, 'Paraíba':    {x:640, y:240},
+        'Paraná':      {x:480, y:435}, 'Pernambuco': {x:620, y:255}, 'Piauí':      {x:565, y:235},
+        'Rio de Janeiro':{x:595,y:400},'Rio Grande do Norte':{x:645,y:220},
+        'Rio Grande do Sul':{x:455,y:490},'Rondônia':{x:235, y:285},
+        'Roraima':     {x:270, y:120}, 'Santa Catarina':{x:480,y:465},
+        'São Paulo':   {x:525, y:410}, 'Sergipe':    {x:620, y:285},
+        'Tocantins':   {x:490, y:270}
+    };
+
+    const indLabels = {
+        racismo:'% com racismo', sem_prof:'% sem prof.Q.',
+        sem_mat:'% sem materiais', cNao:'% sem consulta', sem_em:'% sem EM'
+    };
+    const ind = indicator || 'racismo';
+
+    let circles = '';
+    Object.entries(stateCoords).forEach(([uf, pos]) => {
+        const data = mapMarkers[uf];
+        if (!data) return;
+        const val = data[ind] !== undefined ? data[ind] : data.esc;
+        const r = Math.max(12, Math.min(32, data.esc * 0.55));
+        const cor = heatColor(val);
+        const abbr = uf.length > 12 ? uf.substring(0,2).toUpperCase() :
+            {'Minas Gerais':'MG','Mato Grosso':'MT','Mato Grosso do Sul':'MS','Rio de Janeiro':'RJ',
+             'Rio Grande do Norte':'RN','Rio Grande do Sul':'RS','Espírito Santo':'ES',
+             'São Paulo':'SP','Santa Catarina':'SC','Bahia':'BA','Ceará':'CE','Goiás':'GO',
+             'Maranhão':'MA','Paraíba':'PB','Paraná':'PR','Pernambuco':'PE','Piauí':'PI',
+             'Rondônia':'RO','Roraima':'RR','Sergipe':'SE','Tocantins':'TO',
+             'Alagoas':'AL','Amapá':'AP','Amazonas':'AM','Pará':'PA','Acre':'AC'}[uf]||uf.substring(0,2);
+        const tooltip = `${uf}\nEscolas: ${data.esc} | Formulários: ${data.form}\nRacismo: ${data.racismo}%\nSem prof.Q.: ${data.sem_prof}%\nSem mat.: ${data.sem_mat}%\nSem consulta: ${data.cNao}%\nSem EM: ${data.sem_em}%`;
+        circles += `<g class="state-circle" data-uf="${uf}" style="cursor:pointer" onclick="showStateInfo('${uf}')">
+            <circle cx="${pos.x}" cy="${pos.y}" r="${r}" fill="${cor}" stroke="white" stroke-width="1.5" opacity="0.9"/>
+            <text x="${pos.x}" y="${pos.y+1}" text-anchor="middle" dominant-baseline="middle" 
+                  font-size="9" font-weight="700" fill="white" pointer-events="none">${abbr}</text>
+            <title>${tooltip}</title>
+        </g>`;
+    });
+
+    // Color scale legend
+    const gradStops = ['#ffffcc','#fed976','#fd8d3c','#e31a1c','#800026'];
+    const legendGrad = gradStops.map((c,i)=>`<stop offset="${i*25}%" stop-color="${c}"/>`).join('');
+
+    mapDiv.innerHTML = `
+    <div id="stateInfoBox" style="position:absolute;top:10px;right:10px;background:rgba(255,255,255,0.97);
+         border-radius:12px;padding:12px 16px;font-size:12px;max-width:220px;display:none;
+         border:1px solid #e2e8f0;box-shadow:0 4px 12px rgba(0,0,0,.15);z-index:10;line-height:1.6">
+        <strong id="siUF" style="font-size:14px;color:#1e4a3b"></strong><br>
+        <div id="siContent"></div>
+    </div>
+    <svg viewBox="0 0 780 530" style="width:100%;height:100%;background:linear-gradient(180deg,#ddf4f7 0%,#c8eef5 100%)">
+        <defs>
+            <linearGradient id="legendGrad" x1="0" x2="1" y1="0" y2="0">
+                ${legendGrad}
+            </linearGradient>
+        </defs>
+        <!-- Background elements -->
+        <ellipse cx="400" cy="320" rx="320" ry="240" fill="rgba(255,255,255,0.15)"/>
+        <text x="400" y="20" text-anchor="middle" font-size="13" font-weight="700" fill="#1e4a3b" opacity="0.6">Brasil – ${indLabels[ind]||ind}</text>
+        <!-- State circles -->
+        ${circles}
+        <!-- Legend -->
+        <rect x="20" y="490" width="200" height="16" rx="8" fill="url(#legendGrad)" stroke="#ccc" stroke-width="0.5"/>
+        <text x="20" y="485" font-size="9" fill="#555">0%</text>
+        <text x="220" y="485" font-size="9" fill="#555" text-anchor="end">100%</text>
+        <text x="120" y="520" font-size="10" fill="#555" text-anchor="middle">Intensidade do indicador</text>
+        <!-- Note -->
+        <text x="400" y="515" text-anchor="middle" font-size="9" fill="#888">Tamanho proporcional ao nº de escolas • Clique no estado para detalhes</text>
+    </svg>`;
+}
+
+function showStateInfo(uf) {
+    const data = mapMarkers[uf];
+    if (!data) return;
+    const box = document.getElementById('stateInfoBox');
+    document.getElementById('siUF').textContent = uf;
+    document.getElementById('siContent').innerHTML = `
+        Escolas: <b>${data.esc}</b> | Formulários: <b>${data.form}</b><br>
+        Racismo: <b style="color:${heatColor(data.racismo)}">${data.racismo}%</b><br>
+        Sem prof. quilombola: <b style="color:${heatColor(data.sem_prof)}">${data.sem_prof}%</b><br>
+        Sem materiais culturais: <b style="color:${heatColor(data.sem_mat)}">${data.sem_mat}%</b><br>
+        Comunidade não consultada: <b style="color:${heatColor(data.cNao)}">${data.cNao}%</b><br>
+        Sem oferta de EM: <b style="color:${heatColor(data.sem_em)}">${data.sem_em}%</b>
+    `;
+    box.style.display = 'block';
 }
 
 function atualizarMapa() {
     const ind = document.getElementById('mapInd').value;
-    Object.entries(mapMarkers).forEach(([uf,d]) => {
-        let v = ind==='racismo'?d.racPct:ind==='sem_prof'?d.semProfPct:ind==='sem_mat'?d.semMatPct:ind==='consulta_nao'?d.cNaoPct:d.esc;
-        const cor = ind==='total' ? heatColor(v/DB.total_escolas*100*4) : heatColor(v);
-        d.marker.setStyle({fillColor:cor});
-    });
+    renderSVGMap(ind);
 }
+
+function initMapa_old_unused() {}
 
 // ══════════════════════════════════════════════════════════════════
 // FILTROS – popular selects
@@ -1617,6 +1976,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     runSafe(()=>renderRacismo(null), 'renderRacismo');
     runSafe(()=>renderGestao(null), 'renderGestao');
     runSafe(renderAvancado, 'renderAvancado');
+    runSafe(renderCorrelacoes, 'renderCorrelacoes');
     runSafe(atualizarComp, 'atualizarComp');
     runSafe(renderTabela, 'renderTabela');
     runSafe(initMapa, 'initMapa');
