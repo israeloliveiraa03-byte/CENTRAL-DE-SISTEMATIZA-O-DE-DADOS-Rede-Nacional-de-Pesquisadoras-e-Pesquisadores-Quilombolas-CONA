@@ -759,24 +759,35 @@ const LIKERT_COR = {
     'Discordo':'#e74c3c','Não sei informar':'#bdc3c7','Não sei':'#bdc3c7','Não se aplica':'#95a5a6'
 };
 
-function hbar(id, labels, vals, cores, maxV=100) {
+// Formata label combinado: "X% (N)" para datalabels de barras
+function fmtBarLabel(pct, abs) {
+    if (!pct || pct <= 0) return '';
+    if (abs != null && abs > 0) return pct + '%\n(' + abs.toLocaleString('pt-BR') + ')';
+    return pct + '%';
+}
+
+function hbar(id, labels, vals, cores, maxV=100, absVals=null) {
     dc(id); const ctx=document.getElementById(id); if(!ctx)return;
     if(!labels||!labels.length) return;
     const nv = vals.map(v=>parseFloat(v)||0);
     const mx = Math.max(maxV, Math.ceil(Math.max(0,...nv)*1.18), 5);
-    CI[id]=new Chart(ctx,{type:'bar',data:{labels,datasets:[{data:nv,backgroundColor:cores||'#1e4a3b'}]},
+    CI[id]=new Chart(ctx,{type:'bar',data:{labels,datasets:[{data:nv,backgroundColor:cores||'#1e4a3b',absData:absVals}]},
         options:{indexAxis:'y',responsive:true,
-            plugins:{legend:{display:false},datalabels:{anchor:'end',align:'right',formatter:v=>v>0?v+'%':'',font:{size:9,weight:'700'},color:'#1e2a3e'}},
+            plugins:{legend:{display:false},datalabels:{anchor:'end',align:'right',
+                formatter:(v,c)=>fmtBarLabel(v>0?v:null, absVals?absVals[c.dataIndex]:null),
+                font:{size:9,weight:'700'},color:'#1e2a3e'}},
             scales:{x:{max:mx,title:{display:true,text:'%'},grid:{color:'#f0f0f0'}},y:{ticks:{font:{size:9}}}}}});
 }
-function vbar(id, labels, vals, cores, maxV=100) {
+function vbar(id, labels, vals, cores, maxV=100, absVals=null) {
     dc(id); const ctx=document.getElementById(id); if(!ctx)return;
     if(!labels||!labels.length) return;
     const nv = vals.map(v=>parseFloat(v)||0);
     const mx = Math.max(maxV, Math.ceil(Math.max(0,...nv)*1.18), 5);
-    CI[id]=new Chart(ctx,{type:'bar',data:{labels,datasets:[{data:nv,backgroundColor:cores||'#1e4a3b'}]},
+    CI[id]=new Chart(ctx,{type:'bar',data:{labels,datasets:[{data:nv,backgroundColor:cores||'#1e4a3b',absData:absVals}]},
         options:{responsive:true,
-            plugins:{legend:{display:false},datalabels:{anchor:'end',align:'top',formatter:v=>v>0?v+'%':'',font:{size:9,weight:'700'},color:'#1e2a3e'}},
+            plugins:{legend:{display:false},datalabels:{anchor:'end',align:'top',
+                formatter:(v,c)=>fmtBarLabel(v>0?v:null, absVals?absVals[c.dataIndex]:null),
+                font:{size:9,weight:'700'},color:'#1e2a3e'}},
             scales:{y:{max:mx,title:{display:true,text:'%'},grid:{color:'#f0f0f0'}}}}});
 }
 function donut(id, labels, vals, cores) {
@@ -784,10 +795,17 @@ function donut(id, labels, vals, cores) {
     const filtered = labels.map((l,i)=>({l,v:parseInt(vals[i])||0,c:cores[i]})).filter(x=>x.v>0);
     if(!filtered.length) return;
     const tot=filtered.reduce((a,x)=>a+x.v,0);
-    CI[id]=new Chart(ctx,{type:'doughnut',data:{labels:filtered.map(x=>x.l),datasets:[{data:filtered.map(x=>x.v),backgroundColor:filtered.map(x=>x.c)}]},
+    // Labels da legenda: "Categoria (X% · N)"
+    const richLabels = filtered.map(x=>{
+        // se label já contém "(X%)" (padrão legado), substituímos para adicionar o absoluto
+        const baseLbl = x.l.replace(/\s*\(\d+\.?\d*%\)/, '');
+        const pct = tot>0 ? (x.v/tot*100).toFixed(1) : '0';
+        return baseLbl + ' (' + pct + '% · ' + x.v.toLocaleString('pt-BR') + ')';
+    });
+    CI[id]=new Chart(ctx,{type:'doughnut',data:{labels:richLabels,datasets:[{data:filtered.map(x=>x.v),backgroundColor:filtered.map(x=>x.c)}]},
         options:{responsive:true,
             plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:13,padding:8}},
-                datalabels:{formatter:(v,c)=>{const t=c.chart.data.datasets[0].data.reduce((a,b)=>a+b,0);return t>0&&v>0?(v/t*100).toFixed(1)+'%':'';},font:{size:10,weight:'700'},color:'#fff'}}}});
+                datalabels:{formatter:(v,c)=>{const t=c.chart.data.datasets[0].data.reduce((a,b)=>a+b,0);return t>0&&v>0?(v/t*100).toFixed(1)+'%\n('+v.toLocaleString('pt-BR')+')':'';},font:{size:10,weight:'700'},color:'#fff'}}}});
 }
 function grouped(id, labels, datasets, maxV=100, horiz=false) {
     dc(id); const ctx=document.getElementById(id); if(!ctx)return;
@@ -797,7 +815,9 @@ function grouped(id, labels, datasets, maxV=100, horiz=false) {
     CI[id]=new Chart(ctx,{type:'bar',data:{labels,datasets},
         options:{indexAxis:horiz?'y':'x',responsive:true,
             plugins:{legend:{position:'bottom',labels:{boxWidth:12,font:{size:9}}},
-                datalabels:{anchor:'end',align:horiz?'right':'top',formatter:v=>v>0?v+'%':'',font:{size:8,weight:'700'},color:'#1e2a3e'}},
+                datalabels:{anchor:'end',align:horiz?'right':'top',
+                    formatter:(v,c)=>fmtBarLabel(v>0?v:null, c.dataset.absData?c.dataset.absData[c.dataIndex]:null),
+                    font:{size:8,weight:'700'},color:'#1e2a3e'}},
             scales:{[horiz?'x':'y']:{max:mx,title:{display:true,text:'%'}},
                     [horiz?'y':'x']:{ticks:{font:{size:9}}}}}});
 }
@@ -810,7 +830,11 @@ function stacked100(id, labels, datasets, horiz=false) {
             scales:{x:{stacked:true,max:horiz?100:undefined,title:{display:horiz,text:'%'}},
                     y:{stacked:true,max:horiz?undefined:100,title:{display:!horiz,text:'%'}}},
             plugins:{legend:{position:'bottom',labels:{boxWidth:12,font:{size:9}}},
-                datalabels:{formatter:v=>v>5?v.toFixed(0)+'%':'',color:'#fff',font:{size:8,weight:'700'}}}}});
+                datalabels:{formatter:(v,c)=>{
+                    if(v<=5) return '';
+                    const abs = c.dataset.absData ? c.dataset.absData[c.dataIndex] : null;
+                    return abs!=null ? v.toFixed(0)+'%\n('+abs.toLocaleString('pt-BR')+')' : v.toFixed(0)+'%';
+                },color:'#fff',font:{size:8,weight:'700'}}}}});
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -948,19 +972,25 @@ function aplicarFiltros() {
     
     const fd = getFilteredData();
     const n = fd ? fd.total : DB.total_escolas;
+    const nF = fd ? Math.round(DB.total_formularios * (fd.total / DB.total_escolas)) : DB.total_formularios;
     badge.textContent = n + ' escolas' + (active ? ' (filtrado)' : '');
     
     let desc = [];
     if (activeFiltro.reg!=='all') desc.push('Região: '+activeFiltro.reg);
     if (activeFiltro.uf!=='all') desc.push('UF: '+activeFiltro.uf);
     if (activeFiltro.loc!=='all') desc.push('Localização: '+(activeFiltro.loc==='dentro'?'Na própria comunidade':'Fora da comunidade'));
-    document.getElementById('filterDesc').textContent = desc.join(' | ');
+    document.getElementById('filterDesc').innerHTML = desc.join(' | ') + (active ? ` — <strong>${n} escolas</strong> / <strong>~${nF} formulários</strong>` : '');
 
     renderKPIs(fd);
     renderHlRow(fd);
     renderRacismo(fd);
     renderDocentes(fd);
     renderGestao(fd);
+    renderTerritorio(fd);
+    renderEM(fd);
+    renderInfra(fd);
+    renderTransp(fd);
+    renderAlim(fd);
 }
 
 function resetF() {
@@ -992,11 +1022,11 @@ function renderHlRow(fd) {
     const cNao = fd ? fd.consulta_nao : parseInt(DB.gest_counts.consulta['Não']||0);
     const desS = fd ? fd.des_sim : parseInt(DB.des_counts['Sim']||0);
     document.getElementById('hlRow').innerHTML=`
-        <div class="hl-stat"><div class="v">${p(racN,tot)}%</div><div class="l">escolas com racismo</div></div>
-        <div class="hl-stat"><div class="v">${p(semProf,tot)}%</div><div class="l">sem prof. quilombola</div></div>
-        <div class="hl-stat"><div class="v">${p(semMat,tot)}%</div><div class="l">sem materiais culturais</div></div>
-        <div class="hl-stat"><div class="v">${p(cNao,tot)}%</div><div class="l">comunidade não consultada</div></div>
-        <div class="hl-stat"><div class="v">${p(desS,tot)}%</div><div class="l">desrespeito à cultura</div></div>`;
+        <div class="hl-stat"><div class="v">${p(racN,tot)}%</div><div style="font-size:.8rem;font-weight:600;opacity:.9">${racN.toLocaleString('pt-BR')} de ${tot}</div><div class="l">escolas com racismo</div></div>
+        <div class="hl-stat"><div class="v">${p(semProf,tot)}%</div><div style="font-size:.8rem;font-weight:600;opacity:.9">${semProf.toLocaleString('pt-BR')} de ${tot}</div><div class="l">sem prof. quilombola</div></div>
+        <div class="hl-stat"><div class="v">${p(semMat,tot)}%</div><div style="font-size:.8rem;font-weight:600;opacity:.9">${semMat.toLocaleString('pt-BR')} de ${tot}</div><div class="l">sem materiais culturais</div></div>
+        <div class="hl-stat"><div class="v">${p(cNao,tot)}%</div><div style="font-size:.8rem;font-weight:600;opacity:.9">${cNao.toLocaleString('pt-BR')} de ${tot}</div><div class="l">comunidade não consultada</div></div>
+        <div class="hl-stat"><div class="v">${p(desS,tot)}%</div><div style="font-size:.8rem;font-weight:600;opacity:.9">${desS.toLocaleString('pt-BR')} de ${tot}</div><div class="l">desrespeito à cultura</div></div>`;
 }
 
 function renderKPIs(fd) {
@@ -1030,8 +1060,11 @@ function renderKPIs(fd) {
 // ══════════════════════════════════════════════════════════════════
 // TERRITÓRIO (base: formulários – não filtrados por escola)
 // ══════════════════════════════════════════════════════════════════
-function renderTerritorio() {
-    const totF = DB.total_formularios;
+function renderTerritorio(fd) {
+    // Fator proporcional: quando há filtro, escalamos os dados de formulários
+    // na mesma proporção que as escolas filtradas/total
+    const factor = fd ? (fd.total / DB.total_escolas) : 1;
+    const totF = Math.round(DB.total_formularios * factor);
 
     const fc = DB.fech_cats;
     const fcL = Object.keys(fc);
@@ -1046,48 +1079,52 @@ function renderTerritorio() {
                    .replace('Sim, houve tranferéncia de turmas para outra escola, mas a escola da comunidade não foi fechada.','Transferência de turmas (escola aberta)')
                    .replace('Sim, houve nucleação e todas as turmas foram tranferidas para outra escola.','Nucleação total');
         return s;
-    }), fcVFiltered, fcVFiltered.map(v=>v>50?'#27ae60':v>0?'#e74c3c':'#95a5a6'), 80);
+    }), fcVFiltered, fcVFiltered.map(v=>v>50?'#27ae60':v>0?'#e74c3c':'#95a5a6'), 80,
+        fcLFiltered.map(l=>Math.round(fc[l]*factor)));
 
     const fr = DB.fech_por_reg;
     const frL = Object.keys(fr).sort();
     vbar('cFechReg', frL, frL.map(r=>p(fr[r].sim,fr[r].total)),
-        frL.map(r=>p(fr[r].sim,fr[r].total) > 40 ? '#e74c3c' : '#e67e22'));
+        frL.map(r=>p(fr[r].sim,fr[r].total) > 40 ? '#e74c3c' : '#e67e22'), 100,
+        frL.map(r=>fr[r].sim));
 
     const imp = DB.impacto_cats;
     const impL = Object.keys(imp).filter(k=>k!=='Não se aplica'&&k!=='Nenhum');
     const impV = impL.map(l=>p(imp[l],totF));
-    hbar('cImpactos', impL, impV, impV.map(v=>v>40?'#e74c3c':v>20?'#e67e22':'#f39c12'), 70);
+    hbar('cImpactos', impL, impV, impV.map(v=>v>40?'#e74c3c':v>20?'#e67e22':'#f39c12'), 70,
+        impL.map(l=>Math.round(imp[l]*factor)));
 
     const dir = DB.dir_counts;
     const dirL = Object.keys(dir);
     const dirV = dirL.map(l=>p(dir[l],totF));
     const dirSorted = dirL.map((l,i)=>({l,v:dirV[i]})).sort((a,b)=>b.v-a.v);
-    hbar('cDiretrizes', dirSorted.map(d=>d.l.replace('Sim, tem diretrizes municipais para a Educação Escola Quilombola.','✅ Tem diretrizes municipais').replace('Sim, tem lei municipal que regulamenta da Educação Escolar Quilombola','✅ Tem lei municipal').replace('Sim, tem um capítulo ou seção que orienta sobre a implementação da Educação Escolar Quilombola no documento curricular do município.','✅ Tem capítulo/seção no currículo').replace('Sim, tem outro tipo de documentação que regulamenta da Educação Escolar Quilombola no município.','✅ Outro tipo de documentação').replace('Não há nenhum documento oficial do município que regulamente ou oriente sobre a implementação da Educação Escolar Quilombola.','❌ Sem documentação oficial').replace('Há um documento orientador em construção.','🔄 Em construção').replace('Não sei informar.','❓ Não sabe informar').replace('Desconhece a existência de documentações a respeito','❓ Desconhece')), dirSorted.map(d=>d.v), dirSorted.map(d=>d.l.includes('Não há')?'#e74c3c':d.l.includes('sei')||d.l.includes('Desconhece')?'#95a5a6':d.l.includes('construção')?'#f39c12':'#27ae60'), 60);
+    hbar('cDiretrizes', dirSorted.map(d=>d.l.replace('Sim, tem diretrizes municipais para a Educação Escola Quilombola.','✅ Tem diretrizes municipais').replace('Sim, tem lei municipal que regulamenta da Educação Escolar Quilombola','✅ Tem lei municipal').replace('Sim, tem um capítulo ou seção que orienta sobre a implementação da Educação Escolar Quilombola no documento curricular do município.','✅ Tem capítulo/seção no currículo').replace('Sim, tem outro tipo de documentação que regulamenta da Educação Escolar Quilombola no município.','✅ Outro tipo de documentação').replace('Não há nenhum documento oficial do município que regulamente ou oriente sobre a implementação da Educação Escolar Quilombola.','❌ Sem documentação oficial').replace('Há um documento orientador em construção.','🔄 Em construção').replace('Não sei informar.','❓ Não sabe informar').replace('Desconhece a existência de documentações a respeito','❓ Desconhece')), dirSorted.map(d=>d.v), dirSorted.map(d=>d.l.includes('Não há')?'#e74c3c':d.l.includes('sei')||d.l.includes('Desconhece')?'#95a5a6':d.l.includes('construção')?'#f39c12':'#27ae60'), 60,
+        dirSorted.map(d=>Math.round(parseInt(dir[d.l]||0)*factor)));
 
     const conc = DB.conc_counts;
     const concL = Object.keys(conc).filter(k=>conc[k]>0);
-    const concV = concL.map(l=>parseInt(conc[l]));
+    const concV = concL.map(l=>Math.round(parseInt(conc[l])*factor));
     const concTot = concV.reduce((a,b)=>a+b,0);
     donut('cConcurso', concL.map((l,i)=>l+' ('+p(concV[i],concTot)+'%)'), concV,
         concL.map(l=>l.startsWith('Não ')&&!l.includes('sei')?'#e74c3c':l.includes('sei')?'#95a5a6':'#27ae60'));
 
     const org = DB.orgaos_vc;
     const orgL = ['Não','Sim','Não sei informar','Outro'].filter(k=>org[k]>0);
-    const orgV = orgL.map(l=>parseInt(org[l]||0));
+    const orgV = orgL.map(l=>Math.round(parseInt(org[l]||0)*factor));
     const orgTot = orgV.reduce((a,b)=>a+b,0);
     donut('cOrgaos', orgL.map((l,i)=>l+' ('+p(orgV[i],orgTot)+'%)'), orgV,
         ['#27ae60','#e74c3c','#95a5a6','#bdc3c7']);
 
     const fam = DB.fam_counts;
     const famL = ['Até 30 famílias','de 31 a 60 famílias','de 61 a 100 famílias','de 101 a 150 famílias','de 151 a 200 famílias','Acima de 200 famílias'];
-    const famV = famL.map(l=>parseInt(fam[l]||0));
+    const famV = famL.map(l=>Math.round(parseInt(fam[l]||0)*factor));
     const famTot = famV.reduce((a,b)=>a+b,0);
     donut('cFamilias', famL.map((l,i)=>l+' ('+p(famV[i],famTot)+'%)'), famV,
         ['#1e4a3b','#27ae60','#a8d5a2','#f39c12','#e67e22','#e74c3c']);
 
     const aq = DB.aval_qualidade;
     const aqL = ['Excelente','Boa','Regular','Ruim','Péssima'];
-    const aqV = aqL.map(l=>parseInt(aq[l]||0));
+    const aqV = aqL.map(l=>Math.round(parseInt(aq[l]||0)*factor));
     const aqTot = aqV.reduce((a,b)=>a+b,0);
     donut('cAvalQual', aqL.map((l,i)=>l+' ('+p(aqV[i],aqTot)+'%)'), aqV,
         ['#1e4a3b','#27ae60','#f39c12','#e67e22','#e74c3c']);
@@ -1096,14 +1133,16 @@ function renderTerritorio() {
 // ══════════════════════════════════════════════════════════════════
 // ENSINO MÉDIO
 // ══════════════════════════════════════════════════════════════════
-function renderEM() {
-    const totF = DB.total_formularios;
+function renderEM(fd) {
+    const factor = fd ? (fd.total / DB.total_escolas) : 1;
+    const totF = Math.round(DB.total_formularios * factor);
     
     const em = DB.em_cats;
     const emL = Object.keys(em).filter(k=>em[k]>0);
     const emV = emL.map(l=>p(em[l],totF));
     hbar('cEmCats', emL.map(l=>l.replace('Sim, é ofertado o Ensino Médio presencial dentro do território.','✅ Presencial DENTRO do território').replace('Sim, é ofertado o Ensino Médio no território em formato virtual.','📺 Virtual/EaD no território').replace('Sim, é ofertado o Ensino Médio presencial em escolas próximas ao território.','🏫 Presencial NAS PROXIMIDADES').replace('Não há oferta de Ensino Médio no território ou nas proximidades.','❌ SEM oferta de EM').replace('A oferta do Ensino Médio é  por meio de uma turma "anexa" ou "extensão" de outra escola fora do território.','🔗 Turma anexa/extensão').replace('A escola onde é ofertado o Ensino Médio tem autonomia adminstrativa (direção, coordenação, secretaria)','🏛️ Escola c/ autonomia administrativa')), emV,
-        emL.map(l=>l.includes('Não há')?'#e74c3c':l.includes('dentro')?'#27ae60':l.includes('próximas')?'#f39c12':'#3498db'), 45);
+        emL.map(l=>l.includes('Não há')?'#e74c3c':l.includes('dentro')?'#27ae60':l.includes('próximas')?'#f39c12':'#3498db'), 45,
+        emL.map(l=>Math.round(em[l]*factor)));
 
     const emUF = DB.em_por_uf;
     const ufsEM = Object.keys(emUF).sort();
@@ -1121,7 +1160,7 @@ function renderEM() {
 
     const ev = DB.ev_cats;
     const evL = ['Não se aplica','Não param de estudar','Alguns param de estudar','A maioria para de estudar','Outro/não classificado'].filter(k=>ev[k]>0);
-    const evV = evL.map(l=>parseInt(ev[l]||0));
+    const evV = evL.map(l=>Math.round(parseInt(ev[l]||0)*factor));
     const evTot = evV.reduce((a,b)=>a+b,0);
     donut('cEvasao', evL.map((l,i)=>l+' ('+p(evV[i],evTot)+'%)'), evV,
         ['#95a5a6','#27ae60','#e67e22','#e74c3c','#bdc3c7']);
@@ -1141,7 +1180,8 @@ function renderEM() {
     const motV = motL.map(l=>p(mot[l],totF));
     const motSorted = motL.map((l,i)=>({l,v:motV[i]})).sort((a,b)=>b.v-a.v);
     hbar('cMotivos', motSorted.map(s=>s.l), motSorted.map(s=>s.v),
-        ['#e74c3c','#9b59b6','#e67e22','#f39c12','#c0392b','#3498db','#16a085'], 55);
+        ['#e74c3c','#9b59b6','#e67e22','#f39c12','#c0392b','#3498db','#16a085'], 55,
+        motSorted.map(s=>Math.round(mot[s.l]*factor)));
 
     const mpr = DB.mot_por_reg || {};
     const regsM = Object.keys(mpr).sort();
@@ -1186,8 +1226,9 @@ function renderEM() {
 // ══════════════════════════════════════════════════════════════════
 // INFRAESTRUTURA
 // ══════════════════════════════════════════════════════════════════
-function renderInfra() {
-    const tot = DB.total_escolas;
+function renderInfra(fd) {
+    const factor = fd ? (fd.total / DB.total_escolas) : 1;
+    const tot = fd ? fd.total : DB.total_escolas;
     const inf = DB.infra;
     const infL = Object.keys(inf);
     
@@ -1195,15 +1236,20 @@ function renderInfra() {
         const d=inf[key]; const prec=(parseInt(d['Precária']||0)+parseInt(d['Insuficiente']||0)+parseInt(d['Inexistente']||0));
         const base=parseInt(d['Adequada']||0)+prec; return p(prec,base);
     }
-    const iArr = infL.map(l=>({l,v:precPct(l)})).sort((a,b)=>b.v-a.v);
+    function precAbs(key) {
+        const d=inf[key];
+        return Math.round((parseInt(d['Precária']||0)+parseInt(d['Insuficiente']||0)+parseInt(d['Inexistente']||0))*factor);
+    }
+    const iArr = infL.map(l=>({l,v:precPct(l),a:precAbs(l)})).sort((a,b)=>b.v-a.v);
     hbar('cInfraGeral', iArr.map(i=>i.l), iArr.map(i=>i.v),
-        iArr.map(i=>i.v>=70?'#c0392b':i.v>=50?'#e74c3c':i.v>=35?'#e67e22':'#f39c12'));
+        iArr.map(i=>i.v>=70?'#c0392b':i.v>=50?'#e74c3c':i.v>=35?'#e67e22':'#f39c12'), 100,
+        iArr.map(i=>i.a));
 
     const ip = DB.infra_loc;
     const ipL = Object.keys(ip);
     grouped('cInfraLoc', ipL, [
-        {label:'Dentro (n=317)',data:ipL.map(l=>p(ip[l].dentro.prec,ip[l].dentro.total)),backgroundColor:'#1e4a3b'},
-        {label:'Fora (n=338)',data:ipL.map(l=>p(ip[l].fora.prec,ip[l].fora.total)),backgroundColor:'#e67e22'},
+        {label:'Dentro (n=317)',data:ipL.map(l=>p(ip[l].dentro.prec,ip[l].dentro.total)),backgroundColor:'#1e4a3b',absData:ipL.map(l=>ip[l].dentro.prec)},
+        {label:'Fora (n=338)',data:ipL.map(l=>p(ip[l].fora.prec,ip[l].fora.total)),backgroundColor:'#e67e22',absData:ipL.map(l=>ip[l].fora.prec)},
     ], 90, false);
 
     renderInfraDonut('cISalas','Salas de aula');
@@ -1230,10 +1276,11 @@ function renderInfraDonut(id, key) {
 // ══════════════════════════════════════════════════════════════════
 // TRANSPORTE
 // ══════════════════════════════════════════════════════════════════
-function renderTransp() {
+function renderTransp(fd) {
+    const factor = fd ? (fd.total / DB.total_escolas) : 1;
     const tu = DB.transp_uso;
     const tuL = Object.keys(tu).filter(k=>parseInt(tu[k])>0);
-    const tuV = tuL.map(l=>parseInt(tu[l]));
+    const tuV = tuL.map(l=>Math.round(parseInt(tu[l])*factor));
     const tuTot = tuV.reduce((a,b)=>a+b,0);
     donut('cTranspUso', tuL.map((l,i)=>l+' ('+p(tuV[i],tuTot)+'%)'), tuV,
         ['#1e4a3b','#27ae60','#3498db','#16a085','#e74c3c','#95a5a6','#bdc3c7']);
@@ -1249,13 +1296,14 @@ function renderTransp() {
     const tcArr = tcL.map(l=>{
         const d=tc[l]; const disc=parseInt(d['Discordo']||0);
         const base=disc+parseInt(d['Concordo totalmente']||0)+parseInt(d['Concordo parcialmente']||0);
-        return {l,v:p(disc,base)};
+        return {l,v:p(disc,base),a:Math.round(disc*factor)};
     }).sort((a,b)=>b.v-a.v);
     hbar('cTranspCond', tcArr.map(t=>t.l), tcArr.map(t=>t.v),
-        tcArr.map(t=>t.v>=40?'#e74c3c':t.v>=25?'#e67e22':'#f39c12'));
+        tcArr.map(t=>t.v>=40?'#e74c3c':t.v>=25?'#e67e22':'#f39c12'), 100,
+        tcArr.map(t=>t.a));
 
     const est = tc['As estradas estão em boas condições'];
-    const estL = Object.keys(est), estV = estL.map(l=>parseInt(est[l]));
+    const estL = Object.keys(est), estV = estL.map(l=>Math.round(parseInt(est[l])*factor));
     const estTot = estV.reduce((a,b)=>a+b,0);
     donut('cTEstradas', estL.map((l,i)=>l+' ('+p(estV[i],estTot)+'%)'), estV,
         estL.map(l=>LIKERT_COR[l]||'#95a5a6'));
@@ -1264,24 +1312,26 @@ function renderTransp() {
 // ══════════════════════════════════════════════════════════════════
 // ALIMENTAÇÃO
 // ══════════════════════════════════════════════════════════════════
-function renderAlim() {
-    const tot = DB.total_escolas;
+function renderAlim(fd) {
+    const factor = fd ? (fd.total / DB.total_escolas) : 1;
+    const tot = fd ? fd.total : DB.total_escolas;
     const alim = DB.alim;
     
     const alimL = Object.keys(alim);
     const alimArr = alimL.map(l=>{
         const d=alim[l]; const disc=parseInt(d['Discordo']||0);
         const base=disc+parseInt(d['Concordo totalmente']||0)+parseInt(d['Concordo parcialmente']||0);
-        return {l,v:p(disc,base)};
+        return {l,v:p(disc,base),a:Math.round(disc*factor)};
     }).sort((a,b)=>b.v-a.v);
     hbar('cAlimItens', alimArr.map(a=>a.l), alimArr.map(a=>a.v),
-        alimArr.map(a=>a.v>=50?'#e74c3c':a.v>=30?'#e67e22':'#f39c12'), 80);
+        alimArr.map(a=>a.v>=50?'#e74c3c':a.v>=30?'#e67e22':'#f39c12'), 80,
+        alimArr.map(a=>a.a));
 
     const ar = DB.alim_reg;
     const arL = Object.keys(ar).sort();
     grouped('cAlimReg', arL, [
-        {label:'% Concordam (total+parcial)',data:arL.map(r=>p(ar[r].concordo,ar[r].total)),backgroundColor:'#27ae60'},
-        {label:'% Discordam',data:arL.map(r=>p(ar[r].discorda,ar[r].total)),backgroundColor:'#e74c3c'},
+        {label:'% Concordam (total+parcial)',data:arL.map(r=>p(ar[r].concordo,ar[r].total)),backgroundColor:'#27ae60',absData:arL.map(r=>ar[r].concordo)},
+        {label:'% Discordam',data:arL.map(r=>p(ar[r].discorda,ar[r].total)),backgroundColor:'#e74c3c',absData:arL.map(r=>ar[r].discorda)},
     ]);
 }
 
@@ -1306,20 +1356,20 @@ function renderDocentes(fd) {
     const pm = DB.prof_x_mat;
     const pmL = ['Muitos','Alguns','Poucos','Nenhum','Todos'].filter(k=>pm[k]);
     grouped('cProfMat', pmL.map(l=>l+' (n='+pm[l].total+')'), [
-        {label:'Sim',data:pmL.map(l=>p(pm[l]['Sim'],pm[l].total)),backgroundColor:'#27ae60'},
-        {label:'Parcialmente',data:pmL.map(l=>p(pm[l]['Parcialmente'],pm[l].total)),backgroundColor:'#f39c12'},
-        {label:'Não',data:pmL.map(l=>p(pm[l]['Não'],pm[l].total)),backgroundColor:'#e74c3c'},
-        {label:'Não sei',data:pmL.map(l=>p(pm[l]['Não sei informar']||0,pm[l].total)),backgroundColor:'#95a5a6'},
+        {label:'Sim',data:pmL.map(l=>p(pm[l]['Sim'],pm[l].total)),backgroundColor:'#27ae60',absData:pmL.map(l=>pm[l]['Sim'])},
+        {label:'Parcialmente',data:pmL.map(l=>p(pm[l]['Parcialmente'],pm[l].total)),backgroundColor:'#f39c12',absData:pmL.map(l=>pm[l]['Parcialmente'])},
+        {label:'Não',data:pmL.map(l=>p(pm[l]['Não'],pm[l].total)),backgroundColor:'#e74c3c',absData:pmL.map(l=>pm[l]['Não'])},
+        {label:'Não sei',data:pmL.map(l=>p(pm[l]['Não sei informar']||0,pm[l].total)),backgroundColor:'#95a5a6',absData:pmL.map(l=>pm[l]['Não sei informar']||0)},
     ], 100, false);
 
     const pu = DB.prof_por_uf;
     const puUFs = Object.keys(pu).sort((a,b)=>p(pu[b]['Nenhum'],pu[b].total)-p(pu[a]['Nenhum'],pu[a].total));
     stacked100('cProfUF', puUFs.map(u=>u+' (n='+pu[u].total+')'), [
-        {label:'Nenhum',data:puUFs.map(u=>p(pu[u]['Nenhum'],pu[u].total)),backgroundColor:'#e74c3c'},
-        {label:'Poucos',data:puUFs.map(u=>p(pu[u]['Poucos'],pu[u].total)),backgroundColor:'#e67e22'},
-        {label:'Alguns',data:puUFs.map(u=>p(pu[u]['Alguns'],pu[u].total)),backgroundColor:'#f1c40f'},
-        {label:'Muitos',data:puUFs.map(u=>p(pu[u]['Muitos'],pu[u].total)),backgroundColor:'#27ae60'},
-        {label:'Todos',data:puUFs.map(u=>p(pu[u]['Todos'],pu[u].total)),backgroundColor:'#1e4a3b'},
+        {label:'Nenhum',data:puUFs.map(u=>p(pu[u]['Nenhum'],pu[u].total)),backgroundColor:'#e74c3c',absData:puUFs.map(u=>pu[u]['Nenhum'])},
+        {label:'Poucos',data:puUFs.map(u=>p(pu[u]['Poucos'],pu[u].total)),backgroundColor:'#e67e22',absData:puUFs.map(u=>pu[u]['Poucos'])},
+        {label:'Alguns',data:puUFs.map(u=>p(pu[u]['Alguns'],pu[u].total)),backgroundColor:'#f1c40f',absData:puUFs.map(u=>pu[u]['Alguns'])},
+        {label:'Muitos',data:puUFs.map(u=>p(pu[u]['Muitos'],pu[u].total)),backgroundColor:'#27ae60',absData:puUFs.map(u=>pu[u]['Muitos'])},
+        {label:'Todos',data:puUFs.map(u=>p(pu[u]['Todos'],pu[u].total)),backgroundColor:'#1e4a3b',absData:puUFs.map(u=>pu[u]['Todos'])},
     ], true);
 
     let matCounts;
@@ -1351,22 +1401,25 @@ function renderRacismo(fd) {
     ];
     const trSorted = trData.sort((a,b)=>b.v-a.v);
     hbar('cTiposRac', trSorted.map(d=>d.l), trSorted.map(d=>p(d.v,tot)),
-        trSorted.map(d=>d.l.includes('Não há')?'#27ae60':d.l.includes('estrutural')||d.l.includes('ambiental')?'#9b59b6':'#e74c3c'), 65);
+        trSorted.map(d=>d.l.includes('Não há')?'#27ae60':d.l.includes('estrutural')||d.l.includes('ambiental')?'#9b59b6':'#e74c3c'), 65,
+        trSorted.map(d=>d.v));
 
     const rr = DB.rac_por_reg;
     const rrL = Object.keys(rr).sort();
     vbar('cRacReg', rrL, rrL.map(r=>p(rr[r].sim,rr[r].total)),
-        rrL.map(r=>p(rr[r].sim,rr[r].total)>50?'#e74c3c':'#e67e22'));
+        rrL.map(r=>p(rr[r].sim,rr[r].total)>50?'#e74c3c':'#e67e22'), 100,
+        rrL.map(r=>rr[r].sim));
 
     const ru = DB.rac_por_uf;
-    const ruArr = Object.entries(ru).map(([k,v])=>({k,v:p(v.sim,v.total),n:v.total})).sort((a,b)=>b.v-a.v);
+    const ruArr = Object.entries(ru).map(([k,v])=>({k,v:p(v.sim,v.total),n:v.total,sim:v.sim})).sort((a,b)=>b.v-a.v);
     hbar('cRacUF', ruArr.map(r=>r.k+' (n='+r.n+')'), ruArr.map(r=>r.v),
-        ruArr.map(r=>heatColor(r.v)));
+        ruArr.map(r=>heatColor(r.v)), 100,
+        ruArr.map(r=>r.sim));
 
     const rl = DB.rac_loc;
     const rlL = Object.keys(rl);
     grouped('cRacLoc', rlL.map(l=>l+' (n='+rl[l].total+')'),
-        [{label:'% com racismo',data:rlL.map(l=>p(rl[l].sim,rl[l].total)),backgroundColor:['#1e4a3b','#e67e22']}]);
+        [{label:'% com racismo',data:rlL.map(l=>p(rl[l].sim,rl[l].total)),backgroundColor:['#1e4a3b','#e67e22'],absData:rlL.map(l=>rl[l].sim)}]);
 
     let des;
     if (fd) {
@@ -1412,18 +1465,22 @@ function renderGestao(fd) {
     const gdims = ['A comunidade é consultada em decisões','Participa do conselho escolar','É ouvida na escolha de gestores'];
     const gkeys = ['consulta','conselho','gestores'];
     stacked100('cGestao3', gdims, [
-        {label:'Sim',data:gkeys.map(k=>{const d=gestData[k];const t=Object.values(d).reduce((a,b)=>a+parseInt(b),0);return p(parseInt(d['Sim']||0),t);}),backgroundColor:'#27ae60'},
-        {label:'Às vezes',data:gkeys.map(k=>{const d=gestData[k];const t=Object.values(d).reduce((a,b)=>a+parseInt(b),0);return p(parseInt(d['Às vezes']||0),t);}),backgroundColor:'#f39c12'},
-        {label:'Não',data:gkeys.map(k=>{const d=gestData[k];const t=Object.values(d).reduce((a,b)=>a+parseInt(b),0);return p(parseInt(d['Não']||0),t);}),backgroundColor:'#e74c3c'},
-        {label:'Não sei',data:gkeys.map(k=>{const d=gestData[k];const t=Object.values(d).reduce((a,b)=>a+parseInt(b),0);return p(parseInt(d['Não sei']||0),t);}),backgroundColor:'#95a5a6'},
+        {label:'Sim',data:gkeys.map(k=>{const d=gestData[k];const t=Object.values(d).reduce((a,b)=>a+parseInt(b),0);return p(parseInt(d['Sim']||0),t);}),backgroundColor:'#27ae60',
+         absData:gkeys.map(k=>parseInt(gestData[k]['Sim']||0))},
+        {label:'Às vezes',data:gkeys.map(k=>{const d=gestData[k];const t=Object.values(d).reduce((a,b)=>a+parseInt(b),0);return p(parseInt(d['Às vezes']||0),t);}),backgroundColor:'#f39c12',
+         absData:gkeys.map(k=>parseInt(gestData[k]['Às vezes']||0))},
+        {label:'Não',data:gkeys.map(k=>{const d=gestData[k];const t=Object.values(d).reduce((a,b)=>a+parseInt(b),0);return p(parseInt(d['Não']||0),t);}),backgroundColor:'#e74c3c',
+         absData:gkeys.map(k=>parseInt(gestData[k]['Não']||0))},
+        {label:'Não sei',data:gkeys.map(k=>{const d=gestData[k];const t=Object.values(d).reduce((a,b)=>a+parseInt(b),0);return p(parseInt(d['Não sei']||0),t);}),backgroundColor:'#95a5a6',
+         absData:gkeys.map(k=>parseInt(gestData[k]['Não sei']||0))},
     ], false);
 
     const cr = DB.consulta_reg;
     const crL = Object.keys(cr).sort();
     grouped('cConsultaReg', crL, [
-        {label:'Sim',data:crL.map(r=>p(cr[r]['Sim'],cr[r].total)),backgroundColor:'#27ae60'},
-        {label:'Às vezes',data:crL.map(r=>p(cr[r]['Às vezes'],cr[r].total)),backgroundColor:'#f39c12'},
-        {label:'Não',data:crL.map(r=>p(cr[r]['Não'],cr[r].total)),backgroundColor:'#e74c3c'},
+        {label:'Sim',data:crL.map(r=>p(cr[r]['Sim'],cr[r].total)),backgroundColor:'#27ae60',absData:crL.map(r=>cr[r]['Sim'])},
+        {label:'Às vezes',data:crL.map(r=>p(cr[r]['Às vezes'],cr[r].total)),backgroundColor:'#f39c12',absData:crL.map(r=>cr[r]['Às vezes'])},
+        {label:'Não',data:crL.map(r=>p(cr[r]['Não'],cr[r].total)),backgroundColor:'#e74c3c',absData:crL.map(r=>cr[r]['Não'])},
     ], 80, false);
 }
 
@@ -1740,6 +1797,10 @@ let stateLabelsLayer = null;
 function initMapa() {
     const container = document.getElementById('map');
     if (!container) return;
+    if (typeof L === 'undefined') {
+        container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#555;font-size:.85rem;flex-direction:column;gap:8px"><span style="font-size:2rem">🗺️</span><span>Mapa indisponível — verifique sua conexão com a internet.</span></div>';
+        return;
+    }
     container.innerHTML = '';
     map = L.map('map').setView([-14.2, -51.9], 4);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
@@ -1755,7 +1816,6 @@ function atualizarMapa() {
 function updateMap() {
     if (!map) return;
     const indicator = document.getElementById('mapInd').value;
-    // Calcula valor máximo para normalizar as cores
     let maxVal = 1;
     for (const [sigla, nome] of Object.entries(SIGLA_TO_NOME)) {
         const esc = DB.esc_por_uf[nome] || 0;
@@ -1883,7 +1943,7 @@ function popularFiltros() {
 }
 
 // ══════════════════════════════════════════════════════════════════
-// CHAT – DEEPSEEK (Àgbá) com contexto enriquecido para correlações
+// CHAT – DEEPSEEK (Àgbá) com contexto enriquecido contendo dados detalhados por UF
 // ══════════════════════════════════════════════════════════════════
 const DEEPSEEK_API_KEY = "sk-64c631e9c44e427ebb051b26334f97c5";
 const DEEPSEEK_URL = "https://api.deepseek.com/chat/completions";
@@ -1942,6 +2002,24 @@ function buildContext() {
             const consNaoP = p(r.consulta_nao, r.total);
             regSummary += `${reg}: ${r.total} escolas, racismo ${racP}%, sem prof. ${semProfP}%, sem materiais ${semMatP}%, sem consulta ${consNaoP}%. `;
         }
+    }
+
+    // Dados detalhados por estado (UF)
+    let ufDataStr = '';
+    const ufKeys = Object.keys(db.uf_agg).sort();
+    for (const uf of ufKeys) {
+        const d = db.uf_agg[uf];
+        const esc = db.esc_por_uf[uf] || 0;
+        const form = db.form_por_uf[uf] || 0;
+        const racP = d.total ? (d.racismo / d.total * 100).toFixed(1) : 0;
+        const profP = d.total ? (d.prof_nenhum / d.total * 100).toFixed(1) : 0;
+        const matP = d.total ? (d.mat_nao / d.total * 100).toFixed(1) : 0;
+        const consP = d.total ? (d.consulta_nao / d.total * 100).toFixed(1) : 0;
+        // evasão e oferta EM vêm de corr_uf
+        const corr = db.corr_uf[uf] || {};
+        const evasaoP = corr.evasao_pct || 0;
+        const emP = corr.oferta_em_pct || 0;
+        ufDataStr += `${uf}: Escolas=${esc}, Formulários=${form}, Racismo=${racP}%, Sem prof.=${profP}%, Sem materiais=${matP}%, Sem consulta=${consP}%, Oferta EM=${emP}%, Evasão=${evasaoP}%. `;
     }
 
     // Top 5 UFs com mais racismo
@@ -2019,6 +2097,9 @@ Regiões: ${regSummary}.
 UFs com mais racismo: ${ufRac}.
 UFs com mais escolas sem prof. quilombola: ${ufSemProf}.
 
+Dados detalhados por estado (UF):
+${ufDataStr}
+
 CORRELAÇÕES OBSERVADAS (a partir dos dados):
 - Racismo vs. ausência de professores: ${scatterSummary}
 - Oferta de EM vs. evasão: ${emEvasaoSummary}
@@ -2026,7 +2107,7 @@ CORRELAÇÕES OBSERVADAS (a partir dos dados):
 - Professores quilombolas vs. materiais vs. racismo: ${profMatRacSummary}
 - Infraestrutura precária vs. racismo por localização: ${infraRacLocSummary}
 
-Use essas correlações para responder perguntas que envolvam relações entre indicadores. Sempre cite números e percentuais quando possível.`;
+Use esses dados para responder perguntas sobre estados específicos e sobre correlações entre indicadores. Sempre cite números e percentuais quando possível.`;
 }
 
 async function sendChat() {
@@ -2038,7 +2119,7 @@ async function sendChat() {
     addMsg('typing', '');
     try {
         const context = buildContext();
-        const systemPrompt = `Você é Àgbá, assistente especialista na pesquisa "Panorama da Educação Escolar Quilombola" da CONAQ. Responda apenas com base nos dados fornecidos no contexto. O contexto contém informações agregadas por região, estado, indicadores gerais e correlações observadas. Se o usuário perguntar sobre um estado específico, consulte os dados de "uf_agg" ou as correlações fornecidas. Sempre que possível, cite números e percentuais. Seja ético, preciso e utilize linguagem acessível. Se a pergunta não puder ser respondida com os dados, informe que não há informação suficiente. Contexto: ${context}`;
+        const systemPrompt = `Você é Àgbá, assistente especialista na pesquisa "Panorama da Educação Escolar Quilombola" da CONAQ. Responda apenas com base nos dados fornecidos no contexto. O contexto contém informações agregadas por região, estado, indicadores gerais e correlações observadas. Se o usuário perguntar sobre um estado específico, consulte os dados detalhados por UF fornecidos. Sempre que possível, cite números e percentuais. Seja ético, preciso e utilize linguagem acessível. Se a pergunta não puder ser respondida com os dados, informe que não há informação suficiente. Contexto: ${context}`;
         const response = await fetch(DEEPSEEK_URL, {
             method: 'POST',
             headers: {
@@ -2078,11 +2159,11 @@ document.addEventListener('DOMContentLoaded', () => {
     runSafe(renderHero, 'renderHero');
     runSafe(()=>renderKPIs(null), 'renderKPIs');
     runSafe(()=>renderHlRow(null), 'renderHlRow');
-    runSafe(renderTerritorio, 'renderTerritorio');
-    runSafe(renderEM, 'renderEM');
-    runSafe(renderInfra, 'renderInfra');
-    runSafe(renderTransp, 'renderTransp');
-    runSafe(renderAlim, 'renderAlim');
+    runSafe(()=>renderTerritorio(null), 'renderTerritorio');
+    runSafe(()=>renderEM(null), 'renderEM');
+    runSafe(()=>renderInfra(null), 'renderInfra');
+    runSafe(()=>renderTransp(null), 'renderTransp');
+    runSafe(()=>renderAlim(null), 'renderAlim');
     runSafe(()=>renderDocentes(null), 'renderDocentes');
     runSafe(()=>renderRacismo(null), 'renderRacismo');
     runSafe(()=>renderGestao(null), 'renderGestao');
