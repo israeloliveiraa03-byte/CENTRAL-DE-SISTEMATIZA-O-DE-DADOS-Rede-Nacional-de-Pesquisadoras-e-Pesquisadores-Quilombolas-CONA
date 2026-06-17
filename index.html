@@ -7,7 +7,9 @@
 <link rel="icon" type="image/png" href="favicon.png">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0/dist/chartjs-plugin-datalabels.min.js"></script>
-<!-- Leaflet removed: using embedded SVG map -->
+<!-- Leaflet -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Inter',system-ui,-apple-system,sans-serif;background-color:#0a1a16;background-image:url('fundo-afro.png');background-size:420px;background-repeat:repeat;background-attachment:fixed;color:#1e2a3e;position:relative}
@@ -64,7 +66,8 @@ canvas{max-height:300px;width:100%!important}
 .nota{font-size:.63rem;color:#4a5568;text-align:center;margin-top:7px;background:rgba(230,126,34,.08);padding:4px 8px;border-radius:14px}
 
 /* MAPA */
-.map-box{height:500px;border-radius:18px;overflow:hidden;border:1px solid #e2e8f0}
+.map-box{height:500px;border-radius:18px;overflow:hidden;border:1px solid #e2e8f0; background:#f0f2f5; position:relative;}
+.map-box .leaflet-container { height: 100%; width: 100%; }
 
 /* LEGENDA MAPA */
 .map-legend{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:10px;font-size:.72rem;color:#fff}
@@ -91,7 +94,7 @@ td{padding:8px 7px;border-bottom:1px solid #e2e8f0;text-align:left}
 tr:nth-child(even) td{background:#f8fafc}
 tr:hover td{background:#fef9e6}
 
-/* CHAT */
+/* CHAT – estilo Àgbá */
 .cbtn{position:fixed;bottom:20px;right:20px;background:#1e4a3b;color:#fff;border:none;border-radius:60px;padding:9px 15px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.3);z-index:1000;display:flex;align-items:center;gap:6px;width:auto;font-size:.82rem}
 .cbtn:hover{background:#e67e22}
 .cwin{position:fixed;bottom:78px;right:20px;width:350px;max-width:calc(100vw - 40px);background:#fff;border-radius:18px;box-shadow:0 12px 28px rgba(0,0,0,.28);display:none;flex-direction:column;z-index:1001;overflow:hidden;font-size:.86rem}
@@ -121,6 +124,20 @@ tr:hover td{background:#fef9e6}
 .footer p{font-size:.73rem;margin:5px 0;line-height:1.5;color:#2c3e50}
 .fl{display:flex;justify-content:center;gap:18px;margin-bottom:12px;flex-wrap:wrap}
 .fl img{height:50px;background:#fff;border-radius:10px;padding:5px}
+
+/* estilos para labels do mapa */
+.state-label {
+    background: rgba(0,0,0,0.6);
+    color: white;
+    font-weight: bold;
+    font-size: 12px;
+    text-align: center;
+    border-radius: 12px;
+    padding: 2px 5px;
+    border: 1px solid white;
+    white-space: nowrap;
+    font-family: monospace;
+}
 
 @media(max-width:700px){.g2,.g3{grid-template-columns:1fr}.hero{flex-direction:column;text-align:center}.hstats{justify-content:center}}
 </style>
@@ -177,7 +194,7 @@ tr:hover td{background:#fef9e6}
   </div>
 </div>
 <div class="cc g1" style="padding:0 0 12px">
-  <div class="map-box" id="map" style="overflow:auto;background:#e8f4f8;display:flex;align-items:center;justify-content:center;position:relative;"></div>
+  <div class="map-box" id="map" style="overflow:hidden;background:#e8f4f8;display:flex;align-items:center;justify-content:center;position:relative;"></div>
   <div style="padding:0 14px">
     <div class="map-legend" id="mapLegend">
       <span style="font-size:.72rem;color:#aaa">Escala de cor: </span>
@@ -185,7 +202,7 @@ tr:hover td{background:#fef9e6}
       <div class="leg-item"><div class="leg-dot" style="background:#fd8d3c"></div> Médio</div>
       <div class="leg-item"><div class="leg-dot" style="background:#800026"></div> Alto</div>
     </div>
-    <div class="nota" style="margin-top:6px">Passe o mouse sobre os círculos para ver os dados do estado. Tamanho proporcional ao nº de escolas. Cor indica intensidade do indicador selecionado.</div>
+    <div class="nota" style="margin-top:6px">Passe o mouse sobre os estados para ver os dados. Tamanho proporcional ao nº de escolas. Cor indica intensidade do indicador selecionado.</div>
   </div>
 </div>
 
@@ -651,15 +668,15 @@ tr:hover td{background:#fef9e6}
 </div>
 
 <!-- CHAT -->
-<button class="cbtn" onclick="toggleChat()">💬 Perguntar</button>
+<button class="cbtn" onclick="toggleChat()">💬 Àgbá (IA)</button>
 <div class="cwin" id="chatWin">
-  <div class="chdr"><span>🤖 Assistente CONAQ</span><span onclick="toggleChat()">✕</span></div>
+  <div class="chdr"><span>🧠 Àgbá - assistente com IA</span><span onclick="toggleChat()">✕</span></div>
   <div class="cmsgs" id="chatMsgs">
-    <div class="msg bot">Olá! Pergunte sobre os dados da pesquisa de Educação Escolar Quilombola (CONAQ, 2025–2026).</div>
+    <div class="msg bot">Olá! Sou Àgbá, assistente da pesquisa de Educação Escolar Quilombola (CONAQ, 2025–2026). Pergunte sobre racismo, fechamento, oferta de EM, infraestrutura, professores quilombolas e muito mais!</div>
   </div>
   <div class="cinp">
-    <input type="text" id="chatInp" placeholder="Ex: Qual UF tem mais racismo?" onkeydown="if(event.key==='Enter')sendChat()">
-    <button onclick="sendChat()">➤</button>
+    <input type="text" id="chatInp" placeholder="Digite sua pergunta..." onkeydown="if(event.key==='Enter')sendChat()">
+    <button onclick="sendChat()">Enviar</button>
   </div>
 </div>
 
@@ -682,11 +699,22 @@ tr:hover td{background:#fef9e6}
 
 <script>
 // ══════════════════════════════════════════════════════════════════
-// BASE DE DADOS REAL
+// BASE DE DADOS REAL (NÃO ALTERAR)
 // ══════════════════════════════════════════════════════════════════
 const DB = {"total_escolas":655,"total_formularios":475,"form_por_uf":{"Minas Gerais":82,"Maranhão":46,"Rio de Janeiro":36,"Paraná":36,"Tocantins":32,"Sergipe":29,"Bahia":25,"Goiás":25,"Pernambuco":22,"Ceará":21,"Piauí":19,"Mato Grosso do Sul":17,"Alagoas":15,"Espírito Santo":15,"Rio Grande do Norte":13,"Amazonas":12,"São Paulo":10,"Santa Catarina":9,"Rio Grande do Sul":8,"Paraíba":2,"Rondônia":1},"form_por_reg":{"Nordeste":192,"Sudeste":142,"Sul":54,"Norte":44,"Centro-Oeste":43},"esc_por_uf":{"Minas Gerais":95,"Maranhão":64,"Rio de Janeiro":58,"Tocantins":56,"Paraná":53,"Mato Grosso do Sul":46,"Ceará":37,"Sergipe":37,"Alagoas":31,"Pernambuco":30,"Bahia":27,"Rio Grande do Sul":21,"São Paulo":20,"Rio Grande do Norte":18,"Espírito Santo":15,"Amazonas":12,"Goiás":11,"Piauí":11,"Santa Catarina":9,"Paraíba":3,"Rondônia":1},"esc_por_reg":{"Nordeste":257,"Sudeste":187,"Sul":85,"Norte":68,"Centro-Oeste":58},"fech_cats":{"Não houve fechamento, nucleação ou tranferência de turmas nos últimos 10 anos.":336,"Sim, escola de Ensino Fundamental 1 (até o 5º ano) foi fechada":61,"Sim, escola de Ensino Fundamenal 2 (6ª ao 9º ano) foi fechada":13,"Sim, escola de Ensino Médio foi fechada.":2,"Sim, houve tranferéncia de turmas para outra escola, mas a escola da comunidade não foi fechada.":0,"Sim, houve nucleação e todas as turmas foram tranferidas para outra escola.":19},"fech_sim_total":139,"fech_por_reg":{"Nordeste":{"sim":72,"total":192},"Sudeste":{"sim":38,"total":142},"Centro-Oeste":{"sim":15,"total":43},"Sul":{"sim":7,"total":54},"Norte":{"sim":7,"total":44}},"impacto_cats":{"Não se aplica":346,"Nenhum":14,"Maior interesse das crianças e jovens pelos estudos":1,"Melhoria na aprendizagem":3,"Queda/piora na aprendizagem":50,"Cansaço extremo":57,"Risco no trajeto":76,"Aumento de casos de racismo/bullying":23,"Perda de vínculo comunitário":62,"Aumento custos às famílias":26},"demanda_vc":{"Não se aplica":291,"Sim":97,"Não":50,"Outro":23,"Parcialmente":8,"Não sei informar":6},"orgaos_vc":{"Não":288,"Sim":140,"Não sei informar":47},"dir_counts":{"Sim, tem diretrizes municipais para a Educação Escola Quilombola.":44,"Sim, tem lei municipal que regulamenta da Educação Escolar Quilombola":16,"Sim, tem um capítulo ou seção que orienta sobre a implementação da Educação Escolar Quilombola no documento curricular do município.":16,"Sim, tem outro tipo de documentação que regulamenta da Educação Escolar Quilombola no município.":23,"Não há nenhum documento oficial do município que regulamente ou oriente sobre a implementação da Educação Escolar Quilombola.":244,"Há um documento orientador em construção.":40,"Não sei informar.":55,"Desconhece a existência de documentações a respeito":1},"conc_counts":{"Não":344,"Sim, tem reserva de vagas em concurso e/ou seleções.":66,"Não sei informar.":23,"Sim, tem concurso específico.":20},"fam_counts":{"Até 30 famílias":52,"de 31 a 60 famílias":77,"de 61 a 100 famílias":80,"de 101 a 150 famílias":67,"de 151 a 200 famílias":65,"Acima de 200 famílias":134},"em_cats":{"Sim, é ofertado o Ensino Médio presencial dentro do território.":83,"Sim, é ofertado o Ensino Médio no território em formato virtual.":15,"Sim, é ofertado o Ensino Médio presencial em escolas próximas ao território.":219,"Não há oferta de Ensino Médio no território ou nas proximidades.":93,"A oferta do Ensino Médio é  por meio de uma turma \"anexa\" ou \"extensão\" de outra escola fora do território.":16,"A escola onde é ofertado o Ensino Médio tem autonomia adminstrativa (direção, coordenação, secretaria)":32},"em_por_uf":{"Rio Grande do Norte":{"total":13,"dentro":6,"proximo":5,"virtual":0,"anexo":0,"sem":2},"Minas Gerais":{"total":82,"dentro":20,"proximo":58,"virtual":0,"anexo":2,"sem":2},"Paraíba":{"total":2,"dentro":1,"proximo":0,"virtual":0,"anexo":0,"sem":1},"Bahia":{"total":25,"dentro":5,"proximo":8,"virtual":1,"anexo":2,"sem":6},"Alagoas":{"total":15,"dentro":2,"proximo":10,"virtual":0,"anexo":2,"sem":1},"Ceará":{"total":21,"dentro":2,"proximo":1,"virtual":0,"anexo":0,"sem":18},"Goiás":{"total":25,"dentro":13,"proximo":4,"virtual":5,"anexo":0,"sem":2},"Santa Catarina":{"total":9,"dentro":4,"proximo":2,"virtual":1,"anexo":3,"sem":1},"Tocantins":{"total":32,"dentro":6,"proximo":7,"virtual":0,"anexo":1,"sem":7},"São Paulo":{"total":10,"dentro":1,"proximo":10,"virtual":0,"anexo":0,"sem":1},"Mato Grosso do Sul":{"total":17,"dentro":1,"proximo":10,"virtual":0,"anexo":0,"sem":3},"Sergipe":{"total":29,"dentro":5,"proximo":21,"virtual":0,"anexo":0,"sem":3},"Rio de Janeiro":{"total":36,"dentro":3,"proximo":13,"virtual":0,"anexo":0,"sem":1},"Maranhão":{"total":46,"dentro":2,"proximo":9,"virtual":1,"anexo":1,"sem":23},"Paraná":{"total":36,"dentro":2,"proximo":33,"virtual":0,"anexo":0,"sem":0},"Pernambuco":{"total":22,"dentro":3,"proximo":12,"virtual":0,"anexo":4,"sem":3},"Espírito Santo":{"total":15,"dentro":6,"proximo":10,"virtual":0,"anexo":0,"sem":0},"Amazonas":{"total":12,"dentro":1,"proximo":0,"virtual":7,"anexo":0,"sem":2},"Rondônia":{"total":1,"dentro":0,"proximo":0,"virtual":1,"anexo":0,"sem":0},"Rio Grande do Sul":{"total":8,"dentro":1,"proximo":5,"virtual":0,"anexo":0,"sem":1},"Piauí":{"total":19,"dentro":0,"proximo":1,"virtual":0,"anexo":1,"sem":16}},"ev_cats":{"Não se aplica":114,"Não param de estudar":97,"Alguns param de estudar":205,"A maioria para de estudar":49,"Outro/não classificado":10},"mot_cats":{"Não se aplica":177,"Distância/transporte":185,"Racismo/discriminação":59,"Trabalho":209,"Falta de apoio financeiro":133,"Violência/insegurança":40,"Falta de internet":12,"Gravidez/cuidado familiar":81},"mot_por_reg":{"Nordeste":{"total":192,"motivos":{"Não se aplica":63,"Distância/transporte":85,"Racismo/discriminação":35,"Trabalho":85,"Falta de apoio financeiro":71,"Violência/insegurança":29,"Falta de internet":6,"Gravidez/cuidado familiar":44}},"Sudeste":{"total":142,"motivos":{"Não se aplica":57,"Distância/transporte":61,"Racismo/discriminação":11,"Trabalho":68,"Falta de apoio financeiro":31,"Violência/insegurança":4,"Falta de internet":3,"Gravidez/cuidado familiar":10}},"Centro-Oeste":{"total":43,"motivos":{"Não se aplica":23,"Distância/transporte":9,"Racismo/discriminação":3,"Trabalho":15,"Falta de apoio financeiro":5,"Violência/insegurança":4,"Falta de internet":0,"Gravidez/cuidado familiar":5}},"Sul":{"total":54,"motivos":{"Não se aplica":25,"Distância/transporte":9,"Racismo/discriminação":7,"Trabalho":18,"Falta de apoio financeiro":8,"Violência/insegurança":2,"Falta de internet":2,"Gravidez/cuidado familiar":13}},"Norte":{"total":44,"motivos":{"Não se aplica":9,"Distância/transporte":21,"Racismo/discriminação":3,"Trabalho":23,"Falta de apoio financeiro":18,"Violência/insegurança":1,"Falta de internet":1,"Gravidez/cuidado familiar":9}}},"evasao_em":{"Dentro do território (presencial)":{"total":83,"Não param":12,"Alguns param":12,"A maioria para":2,"Não se aplica":55},"Nas proximidades (presencial)":{"total":219,"Não param":50,"Alguns param":102,"A maioria para":15,"Não se aplica":50},"Sem oferta no território":{"total":93,"Não param":17,"Alguns param":54,"A maioria para":20,"Não se aplica":2},"Virtual/mediação tecnológica":{"total":17,"Não param":4,"Alguns param":5,"A maioria para":2,"Não se aplica":3},"Turma anexa/extensão":{"total":16,"Não param":3,"Alguns param":5,"A maioria para":3,"Não se aplica":5}},"aval_qualidade":{"Excelente":12,"Boa":116,"Regular":204,"Ruim":68,"Péssima":75},"racismo_total":{"sim":250,"nao":405},"tipos_racismo":{"Entre estudantes":220,"Profissional → Estudante":53,"Profissional → Profissional":30,"Profissional → Familiares":22,"Racismo estrutural":4,"Racismo ambiental":1},"rac_por_reg":{"Centro-Oeste":{"sim":20,"total":58},"Nordeste":{"sim":90,"total":257},"Norte":{"sim":35,"total":68},"Sudeste":{"sim":51,"total":187},"Sul":{"sim":54,"total":85}},"rac_por_uf":{"Alagoas":{"sim":2,"total":31},"Amazonas":{"sim":5,"total":12},"Bahia":{"sim":6,"total":27},"Ceará":{"sim":36,"total":37},"Espírito Santo":{"sim":0,"total":15},"Goiás":{"sim":4,"total":11},"Maranhão":{"sim":9,"total":64},"Mato Grosso do Sul":{"sim":16,"total":46},"Minas Gerais":{"sim":27,"total":95},"Paraná":{"sim":38,"total":53},"Paraíba":{"sim":2,"total":3},"Pernambuco":{"sim":17,"total":30},"Piauí":{"sim":8,"total":11},"Rio Grande do Norte":{"sim":3,"total":18},"Rio Grande do Sul":{"sim":11,"total":21},"Rio de Janeiro":{"sim":20,"total":58},"Rondônia":{"sim":0,"total":1},"Santa Catarina":{"sim":3,"total":9},"Sergipe":{"sim":8,"total":37},"São Paulo":{"sim":5,"total":20},"Tocantins":{"sim":30,"total":56}},"rac_loc":{"Na própria comunidade quilombola":{"sim":95,"total":317},"Fora da comunidade":{"sim":155,"total":338}},"loc_counts":{"Na própria comunidade quilombola":317,"Na sede do município":197,"Em outra comunidade rural não quilombola":65,"Em outro bairro (quilombo urbano)":35,"Em outra comunidade quilombola":23,"Em outro município":13,"Próxima ao território":5},"mat_counts":{"Parcialmente":299,"Não":243,"Sim":91,"Não sei informar":22},"prof_counts":{"Muitos":60,"Alguns":114,"Poucos":152,"Nenhum":249,"Não sei":49,"Todos":31},"prof_por_uf":{"Alagoas":{"Muitos":4,"Alguns":7,"Poucos":5,"Nenhum":13,"Não sei":1,"Todos":1,"total":31},"Amazonas":{"Muitos":3,"Alguns":5,"Poucos":0,"Nenhum":1,"Não sei":0,"Todos":3,"total":12},"Bahia":{"Muitos":9,"Alguns":5,"Poucos":7,"Nenhum":3,"Não sei":0,"Todos":3,"total":27},"Ceará":{"Muitos":5,"Alguns":5,"Poucos":8,"Nenhum":19,"Não sei":0,"Todos":0,"total":37},"Espírito Santo":{"Muitos":3,"Alguns":7,"Poucos":3,"Nenhum":2,"Não sei":0,"Todos":0,"total":15},"Goiás":{"Muitos":2,"Alguns":1,"Poucos":3,"Nenhum":1,"Não sei":0,"Todos":4,"total":11},"Maranhão":{"Muitos":9,"Alguns":20,"Poucos":6,"Nenhum":11,"Não sei":12,"Todos":6,"total":64},"Mato Grosso do Sul":{"Muitos":0,"Alguns":5,"Poucos":9,"Nenhum":23,"Não sei":8,"Todos":1,"total":46},"Minas Gerais":{"Muitos":10,"Alguns":11,"Poucos":24,"Nenhum":42,"Não sei":2,"Todos":6,"total":95},"Paraná":{"Muitos":1,"Alguns":2,"Poucos":7,"Nenhum":33,"Não sei":9,"Todos":1,"total":53},"Paraíba":{"Muitos":0,"Alguns":0,"Poucos":0,"Nenhum":3,"Não sei":0,"Todos":0,"total":3},"Pernambuco":{"Muitos":4,"Alguns":5,"Poucos":6,"Nenhum":10,"Não sei":0,"Todos":5,"total":30},"Piauí":{"Muitos":1,"Alguns":6,"Poucos":2,"Nenhum":2,"Não sei":0,"Todos":0,"total":11},"Rio Grande do Norte":{"Muitos":1,"Alguns":6,"Poucos":5,"Nenhum":6,"Não sei":0,"Todos":0,"total":18},"Rio Grande do Sul":{"Muitos":0,"Alguns":5,"Poucos":4,"Nenhum":12,"Não sei":0,"Todos":0,"total":21},"Rio de Janeiro":{"Muitos":3,"Alguns":6,"Poucos":16,"Nenhum":32,"Não sei":1,"Todos":0,"total":58},"Rondônia":{"Muitos":0,"Alguns":0,"Poucos":1,"Nenhum":0,"Não sei":0,"Todos":0,"total":1},"Santa Catarina":{"Muitos":2,"Alguns":2,"Poucos":1,"Nenhum":3,"Não sei":0,"Todos":1,"total":9},"Sergipe":{"Muitos":1,"Alguns":7,"Poucos":17,"Nenhum":12,"Não sei":0,"Todos":0,"total":37},"São Paulo":{"Muitos":0,"Alguns":3,"Poucos":7,"Nenhum":10,"Não sei":0,"Todos":0,"total":20},"Tocantins":{"Muitos":2,"Alguns":6,"Poucos":21,"Nenhum":11,"Não sei":16,"Todos":0,"total":56}},"prof_x_mat":{"Muitos":{"total":60,"Sim":23,"Parcialmente":26,"Não":11,"Não sei informar":0},"Alguns":{"total":114,"Sim":17,"Parcialmente":50,"Não":42,"Não sei informar":5},"Poucos":{"total":152,"Sim":23,"Parcialmente":86,"Não":39,"Não sei informar":4},"Nenhum":{"total":249,"Sim":14,"Parcialmente":97,"Não":134,"Não sei informar":4},"Não sei":{"total":49,"Sim":2,"Parcialmente":28,"Não":11,"Não sei informar":8},"Todos":{"total":31,"Sim":12,"Parcialmente":12,"Não":6,"Não sei informar":1}},"rel_counts":{"Muito boa":109,"Boa":240,"Regular":199,"Ruim":88,"Não sabe":19},"des_counts":{"Sim":139,"Não":498,"Não sei":64},"gest_counts":{"consulta":{"Sim":143,"Às vezes":128,"Não":365,"Não sei":19},"conselho":{"Sim":200,"Às vezes":97,"Não":325,"Não sei":33},"gestores":{"Sim":129,"Às vezes":75,"Não":427,"Não sei":24}},"consulta_reg":{"Centro-Oeste":{"Sim":12,"Às vezes":8,"Não":34,"Não sei":4,"total":58},"Nordeste":{"Sim":65,"Às vezes":43,"Não":139,"Não sei":10,"total":257},"Norte":{"Sim":11,"Às vezes":27,"Não":28,"Não sei":2,"total":68},"Sudeste":{"Sim":43,"Às vezes":43,"Não":99,"Não sei":2,"total":187},"Sul":{"Sim":12,"Às vezes":7,"Não":65,"Não sei":1,"total":85}},"transp_uso":{"Não há necessidade de uso de transporte escolar.":123,"Sim, transporte terrestre.":466,"Sim, transporte marítmo ou fluvial.":13,"Sim, transporte terrestre E marítimo/fluvial.":13,"Sem transporte escolar (ausente/precário)":12},"transp_cond":{"O transporte é seguro e confortável":{"Concordo totalmente":192,"Concordo parcialmente":220,"Discordo":97,"Não sei informar":7,"Não se aplica":139},"O veículo está em bom estado de conservação":{"Concordo totalmente":204,"Concordo parcialmente":204,"Discordo":98,"Não sei informar":10,"Não se aplica":139},"As estradas estão em boas condições":{"Concordo totalmente":91,"Concordo parcialmente":191,"Discordo":223,"Não sei informar":3,"Não se aplica":147},"Os horários de partida e chegada são adequados":{"Concordo totalmente":262,"Concordo parcialmente":161,"Discordo":90,"Não sei informar":4,"Não se aplica":138},"Há regularidade na oferta do transporte":{"Concordo totalmente":292,"Concordo parcialmente":160,"Discordo":56,"Não sei informar":7,"Não se aplica":140},"O tempo de permanência dentro do veículo é adequado":{"Concordo totalmente":273,"Concordo parcialmente":165,"Discordo":69,"Não sei informar":7,"Não se aplica":141},"O tratamento dado pelos prestadores de serviço é adequado":{"Concordo totalmente":353,"Concordo parcialmente":113,"Discordo":41,"Não sei informar":7,"Não se aplica":141},"Os(as) motoristas são habilitados e capacitados para a função":{"Concordo totalmente":385,"Concordo parcialmente":85,"Discordo":14,"Não sei informar":23,"Não se aplica":148}},"transp_loc":{"Na própria comunidade quilombola":{"com_transporte":217,"com_problemas":115},"Fora da comunidade":{"com_transporte":277,"com_problemas":120}},"alim":{"Há oferta regular de alimentação escolar quilombola":{"Concordo totalmente":174,"Concordo parcialmente":205,"Discordo":239,"Não sei":37},"A oferta é feita em quantidade adequada":{"Concordo totalmente":348,"Concordo parcialmente":176,"Discordo":88,"Não sei":43},"Prioriza alimentos orgânicos e agroecológicos":{"Concordo totalmente":193,"Concordo parcialmente":223,"Discordo":167,"Não sei":72},"O mínimo de 30% dos produtos é oriundo da agricultura familiar":{"Concordo totalmente":223,"Concordo parcialmente":182,"Discordo":179,"Não sei":71},"A alimentação respeita a cultura alimentar quilombola":{"Concordo totalmente":135,"Concordo parcialmente":190,"Discordo":286,"Não sei":44},"A alimentação escolar é essencial para a manutenção da frequência escolar":{"Concordo totalmente":484,"Concordo parcialmente":107,"Discordo":47,"Não sei":17}},"alim_reg":{"Centro-Oeste":{"concordo":23,"discorda":27,"total":58},"Nordeste":{"concordo":115,"discorda":125,"total":257},"Norte":{"concordo":60,"discorda":5,"total":68},"Sudeste":{"concordo":86,"discorda":91,"total":187},"Sul":{"concordo":41,"discorda":38,"total":85}},"infra":{"Salas de aula":{"Adequada":407,"Precária":137,"Inexistente":0,"Insuficiente":93,"Não se aplica":6,"Não sei":12},"Biblioteca":{"Adequada":244,"Precária":106,"Inexistente":144,"Insuficiente":83,"Não se aplica":38,"Não sei":40},"Laboratório de informática":{"Adequada":183,"Precária":79,"Inexistente":221,"Insuficiente":61,"Não se aplica":55,"Não sei":56},"Acesso à internet":{"Adequada":361,"Precária":127,"Inexistente":50,"Insuficiente":71,"Não se aplica":21,"Não sei":25},"Espaço para práticas culturais":{"Adequada":236,"Precária":74,"Inexistente":191,"Insuficiente":101,"Não se aplica":34,"Não sei":19},"Espaço para práticas esportivas":{"Adequada":273,"Precária":98,"Inexistente":151,"Insuficiente":80,"Não se aplica":34,"Não sei":19},"Refeitório":{"Adequada":323,"Precária":100,"Inexistente":118,"Insuficiente":67,"Não se aplica":25,"Não sei":22},"Cozinha":{"Adequada":424,"Precária":119,"Inexistente":6,"Insuficiente":85,"Não se aplica":6,"Não sei":15},"Abastecimento de água potável":{"Adequada":430,"Precária":113,"Inexistente":17,"Insuficiente":57,"Não se aplica":12,"Não sei":26},"Acessibilidade arquitetônica":{"Adequada":253,"Precária":118,"Inexistente":84,"Insuficiente":125,"Não se aplica":45,"Não sei":30}},"infra_loc":{"Salas de aula":{"dentro":{"prec":146,"total":317},"fora":{"prec":84,"total":338}},"Biblioteca":{"dentro":{"prec":204,"total":317},"fora":{"prec":129,"total":338}},"Laboratório de informática":{"dentro":{"prec":222,"total":317},"fora":{"prec":139,"total":338}},"Acesso à internet":{"dentro":{"prec":140,"total":317},"fora":{"prec":108,"total":338}},"Espaço para práticas culturais":{"dentro":{"prec":200,"total":317},"fora":{"prec":166,"total":338}},"Espaço para práticas esportivas":{"dentro":{"prec":212,"total":317},"fora":{"prec":117,"total":338}},"Refeitório":{"dentro":{"prec":188,"total":317},"fora":{"prec":97,"total":338}},"Cozinha":{"dentro":{"prec":136,"total":317},"fora":{"prec":74,"total":338}},"Abastecimento de água potável":{"dentro":{"prec":131,"total":317},"fora":{"prec":56,"total":338}},"Acessibilidade arquitetônica":{"dentro":{"prec":180,"total":317},"fora":{"prec":147,"total":338}}},"etapas":{"Creche (crianças de 0 a 3 anos)":117,"Pré-escola (crianças 4 a 5 anos)":309,"Anos Iniciais do Ensino Fundamental 1 (1º ao 5º ano) Turmas regulares":271,"Anos Iniciais do Ensino Fundamental 1 (1º ao 5º ano) Turmas multisseriadas":133,"Anos Finais do Ensino Fundamental 2 (6º ao 9º ano) Turmas regulares":233,"Anos Finais do Ensino Fundamental 2 (6º ao 9º ano) Turmas multisseriadas":57,"Ensino Médio":248,"Ensino Médio com Educação Profissional (curso técnicos)":24,"Ensino Médio na modalidade EJA":41,"Educação de Jovens e Adultos - EJA (1º ao 5º ano)":52,"Educação de Jovens e Adultos - EJA (6º ao 9º ano)":46},"etapas_loc":{"Creche (crianças de 0 a 3 anos)":{"dentro":87,"fora":30},"Pré-escola (crianças 4 a 5 anos)":{"dentro":219,"fora":90},"Anos Iniciais do Ensino Fundamental 1 (1º ao 5º ano) Turmas regulares":{"dentro":153,"fora":118},"Anos Iniciais do Ensino Fundamental 1 (1º ao 5º ano) Turmas multisseriadas":{"dentro":119,"fora":14},"Anos Finais do Ensino Fundamental 2 (6º ao 9º ano) Turmas regulares":{"dentro":83,"fora":150},"Anos Finais do Ensino Fundamental 2 (6º ao 9º ano) Turmas multisseriadas":{"dentro":40,"fora":17},"Ensino Médio":{"dentro":56,"fora":192},"Ensino Médio com Educação Profissional (curso técnicos)":{"dentro":3,"fora":21},"Ensino Médio na modalidade EJA":{"dentro":14,"fora":27},"Educação de Jovens e Adultos - EJA (1º ao 5º ano)":{"dentro":41,"fora":11},"Educação de Jovens e Adultos - EJA (6º ao 9º ano)":{"dentro":38,"fora":8}},"heatmap_reg":{"Centro-Oeste":{"racismo_pct":34.5,"fechamento_pct":34.9,"sem_dir_pct":39.5,"sem_conc_pct":74.4,"sem_prof_pct":43.1,"sem_mat_pct":41.4,"sem_em_pct":11.6},"Nordeste":{"racismo_pct":35.0,"fechamento_pct":37.5,"sem_dir_pct":50.5,"sem_conc_pct":72.9,"sem_prof_pct":30.0,"sem_mat_pct":47.1,"sem_em_pct":38.5},"Norte":{"racismo_pct":51.5,"fechamento_pct":15.9,"sem_dir_pct":70.5,"sem_conc_pct":79.5,"sem_prof_pct":17.6,"sem_mat_pct":5.9,"sem_em_pct":20.5},"Sudeste":{"racismo_pct":27.3,"fechamento_pct":26.8,"sem_dir_pct":52.8,"sem_conc_pct":66.9,"sem_prof_pct":45.5,"sem_mat_pct":40.6,"sem_em_pct":2.1},"Sul":{"racismo_pct":63.5,"fechamento_pct":13.0,"sem_dir_pct":44.4,"sem_conc_pct":77.8,"sem_prof_pct":58.8,"sem_mat_pct":21.2,"sem_em_pct":3.7}},"corr_uf":{"Alagoas":{"total":15,"oferta_em_pct":93.3,"evasao_pct":6.7},"Amazonas":{"total":12,"oferta_em_pct":83.3,"evasao_pct":58.3},"Bahia":{"total":25,"oferta_em_pct":76.0,"evasao_pct":52.0},"Ceará":{"total":21,"oferta_em_pct":14.3,"evasao_pct":71.4},"Espírito Santo":{"total":15,"oferta_em_pct":100.0,"evasao_pct":100.0},"Goiás":{"total":25,"oferta_em_pct":92.0,"evasao_pct":28.0},"Maranhão":{"total":46,"oferta_em_pct":50.0,"evasao_pct":67.4},"Mato Grosso do Sul":{"total":17,"oferta_em_pct":82.4,"evasao_pct":35.3},"Minas Gerais":{"total":82,"oferta_em_pct":97.6,"evasao_pct":34.1},"Paraná":{"total":36,"oferta_em_pct":100.0,"evasao_pct":44.4},"Paraíba":{"total":2,"oferta_em_pct":50.0,"evasao_pct":50.0},"Pernambuco":{"total":22,"oferta_em_pct":86.4,"evasao_pct":50.0},"Piauí":{"total":19,"oferta_em_pct":15.8,"evasao_pct":94.7},"Rio Grande do Norte":{"total":13,"oferta_em_pct":84.6,"evasao_pct":53.8},"Rio Grande do Sul":{"total":8,"oferta_em_pct":87.5,"evasao_pct":62.5},"Rio de Janeiro":{"total":36,"oferta_em_pct":97.2,"evasao_pct":75.0},"Rondônia":{"total":1,"oferta_em_pct":100.0,"evasao_pct":0.0},"Santa Catarina":{"total":9,"oferta_em_pct":88.9,"evasao_pct":55.6},"Sergipe":{"total":29,"oferta_em_pct":89.7,"evasao_pct":41.4},"São Paulo":{"total":10,"oferta_em_pct":90.0,"evasao_pct":40.0},"Tocantins":{"total":32,"oferta_em_pct":78.1,"evasao_pct":78.1}},"uf_agg":{"Rio Grande do Norte":{"total":18,"racismo":3,"mat_sim":0,"mat_par":6,"mat_nao":12,"prof_nenhum":6,"prof_poucos":5,"prof_alguns":6,"prof_muitos":1,"prof_todos":0,"rel_ruim":3,"rel_regular":7,"rel_boa":7,"rel_mboa":1,"des_sim":1,"des_nao":17,"consulta_sim":5,"consulta_nao":9,"consulta_vezes":4,"dentro_n":14,"fora_n":4},"Minas Gerais":{"total":95,"racismo":27,"mat_sim":18,"mat_par":23,"mat_nao":54,"prof_nenhum":42,"prof_poucos":24,"prof_alguns":11,"prof_muitos":10,"prof_todos":6,"rel_ruim":23,"rel_regular":26,"rel_boa":27,"rel_mboa":16,"des_sim":14,"des_nao":77,"consulta_sim":17,"consulta_nao":62,"consulta_vezes":15,"dentro_n":57,"fora_n":38},"Paraíba":{"total":3,"racismo":2,"mat_sim":0,"mat_par":1,"mat_nao":2,"prof_nenhum":3,"prof_poucos":0,"prof_alguns":0,"prof_muitos":0,"prof_todos":0,"rel_ruim":2,"rel_regular":0,"rel_boa":0,"rel_mboa":1,"des_sim":1,"des_nao":2,"consulta_sim":0,"consulta_nao":2,"consulta_vezes":1,"dentro_n":2,"fora_n":1},"Bahia":{"total":27,"racismo":6,"mat_sim":1,"mat_par":15,"mat_nao":9,"prof_nenhum":3,"prof_poucos":7,"prof_alguns":5,"prof_muitos":9,"prof_todos":3,"rel_ruim":1,"rel_regular":7,"rel_boa":12,"rel_mboa":7,"des_sim":6,"des_nao":20,"consulta_sim":13,"consulta_nao":11,"consulta_vezes":3,"dentro_n":23,"fora_n":4},"Alagoas":{"total":31,"racismo":2,"mat_sim":4,"mat_par":1,"mat_nao":26,"prof_nenhum":13,"prof_poucos":5,"prof_alguns":7,"prof_muitos":4,"prof_todos":1,"rel_ruim":6,"rel_regular":2,"rel_boa":1,"rel_mboa":22,"des_sim":4,"des_nao":26,"consulta_sim":6,"consulta_nao":23,"consulta_vezes":2,"dentro_n":11,"fora_n":20},"Ceará":{"total":37,"racismo":36,"mat_sim":3,"mat_par":17,"mat_nao":17,"prof_nenhum":19,"prof_poucos":8,"prof_alguns":5,"prof_muitos":5,"prof_todos":0,"rel_ruim":11,"rel_regular":8,"rel_boa":13,"rel_mboa":5,"des_sim":21,"des_nao":15,"consulta_sim":10,"consulta_nao":18,"consulta_vezes":9,"dentro_n":20,"fora_n":17},"Goiás":{"total":11,"racismo":4,"mat_sim":8,"mat_par":2,"mat_nao":0,"prof_nenhum":1,"prof_poucos":3,"prof_alguns":1,"prof_muitos":2,"prof_todos":4,"rel_ruim":1,"rel_regular":2,"rel_boa":3,"rel_mboa":4,"des_sim":1,"des_nao":10,"consulta_sim":2,"consulta_nao":3,"consulta_vezes":5,"dentro_n":6,"fora_n":5},"Santa Catarina":{"total":9,"racismo":3,"mat_sim":1,"mat_par":2,"mat_nao":6,"prof_nenhum":3,"prof_poucos":1,"prof_alguns":2,"prof_muitos":2,"prof_todos":1,"rel_ruim":2,"rel_regular":3,"rel_boa":1,"rel_mboa":3,"des_sim":2,"des_nao":6,"consulta_sim":4,"consulta_nao":3,"consulta_vezes":1,"dentro_n":4,"fora_n":5},"Tocantins":{"total":56,"racismo":30,"mat_sim":6,"mat_par":47,"mat_nao":1,"prof_nenhum":11,"prof_poucos":21,"prof_alguns":6,"prof_muitos":2,"prof_todos":0,"rel_ruim":0,"rel_regular":3,"rel_boa":37,"rel_mboa":16,"des_sim":0,"des_nao":56,"consulta_sim":4,"consulta_nao":26,"consulta_vezes":24,"dentro_n":17,"fora_n":39},"São Paulo":{"total":20,"racismo":5,"mat_sim":4,"mat_par":14,"mat_nao":2,"prof_nenhum":10,"prof_poucos":7,"prof_alguns":3,"prof_muitos":0,"prof_todos":0,"rel_ruim":1,"rel_regular":10,"rel_boa":7,"rel_mboa":2,"des_sim":5,"des_nao":14,"consulta_sim":3,"consulta_nao":3,"consulta_vezes":14,"dentro_n":11,"fora_n":9},"Mato Grosso do Sul":{"total":46,"racismo":16,"mat_sim":3,"mat_par":15,"mat_nao":23,"prof_nenhum":23,"prof_poucos":9,"prof_alguns":5,"prof_muitos":0,"prof_todos":1,"rel_ruim":10,"rel_regular":8,"rel_boa":13,"rel_mboa":7,"des_sim":6,"des_nao":35,"consulta_sim":10,"consulta_nao":30,"consulta_vezes":3,"dentro_n":7,"fora_n":39},"Sergipe":{"total":37,"racismo":8,"mat_sim":8,"mat_par":7,"mat_nao":22,"prof_nenhum":12,"prof_poucos":17,"prof_alguns":7,"prof_muitos":1,"prof_todos":0,"rel_ruim":4,"rel_regular":19,"rel_boa":8,"rel_mboa":6,"des_sim":10,"des_nao":26,"consulta_sim":8,"consulta_nao":25,"consulta_vezes":4,"dentro_n":34,"fora_n":3},"Rio de Janeiro":{"total":58,"racismo":20,"mat_sim":9,"mat_par":26,"mat_nao":20,"prof_nenhum":32,"prof_poucos":16,"prof_alguns":6,"prof_muitos":3,"prof_todos":0,"rel_ruim":7,"rel_regular":17,"rel_boa":24,"rel_mboa":8,"des_sim":4,"des_nao":53,"consulta_sim":7,"consulta_nao":34,"consulta_vezes":16,"dentro_n":21,"fora_n":37},"Paraná":{"total":53,"racismo":38,"mat_sim":3,"mat_par":43,"mat_nao":7,"prof_nenhum":33,"prof_poucos":7,"prof_alguns":2,"prof_muitos":1,"prof_todos":1,"rel_ruim":2,"rel_regular":24,"rel_boa":25,"rel_mboa":2,"des_sim":44,"des_nao":9,"consulta_sim":3,"consulta_nao":48,"consulta_vezes":2,"dentro_n":6,"fora_n":47},"Pernambuco":{"total":30,"racismo":17,"mat_sim":3,"mat_par":17,"mat_nao":9,"prof_nenhum":10,"prof_poucos":6,"prof_alguns":5,"prof_muitos":4,"prof_todos":5,"rel_ruim":5,"rel_regular":13,"rel_boa":9,"rel_mboa":3,"des_sim":6,"des_nao":24,"consulta_sim":7,"consulta_nao":15,"consulta_vezes":8,"dentro_n":21,"fora_n":9},"Espírito Santo":{"total":15,"racismo":0,"mat_sim":0,"mat_par":14,"mat_nao":1,"prof_nenhum":2,"prof_poucos":3,"prof_alguns":7,"prof_muitos":3,"prof_todos":0,"rel_ruim":0,"rel_regular":5,"rel_boa":10,"rel_mboa":0,"des_sim":0,"des_nao":15,"consulta_sim":14,"consulta_nao":1,"consulta_vezes":0,"dentro_n":14,"fora_n":1},"Amazonas":{"total":12,"racismo":5,"mat_sim":4,"mat_par":5,"mat_nao":3,"prof_nenhum":1,"prof_poucos":0,"prof_alguns":5,"prof_muitos":3,"prof_todos":3,"rel_ruim":0,"rel_regular":4,"rel_boa":6,"rel_mboa":2,"des_sim":0,"des_nao":12,"consulta_sim":8,"consulta_nao":2,"consulta_vezes":2,"dentro_n":12,"fora_n":0},"Rondônia":{"total":1,"racismo":0,"mat_sim":1,"mat_par":0,"mat_nao":0,"prof_nenhum":0,"prof_poucos":1,"prof_alguns":0,"prof_muitos":0,"prof_todos":0,"rel_ruim":0,"rel_regular":0,"rel_boa":1,"rel_mboa":0,"des_sim":1,"des_nao":0,"consulta_sim":0,"consulta_nao":0,"consulta_vezes":1,"dentro_n":1,"fora_n":0},"Rio Grande do Sul":{"total":21,"racismo":11,"mat_sim":1,"mat_par":14,"mat_nao":5,"prof_nenhum":12,"prof_poucos":4,"prof_alguns":5,"prof_muitos":0,"prof_todos":0,"rel_ruim":4,"rel_regular":10,"rel_boa":7,"rel_mboa":0,"des_sim":3,"des_nao":17,"consulta_sim":5,"consulta_nao":12,"consulta_vezes":4,"dentro_n":6,"fora_n":15},"Maranhão":{"total":64,"racismo":9,"mat_sim":12,"mat_par":25,"mat_nao":20,"prof_nenhum":11,"prof_poucos":6,"prof_alguns":20,"prof_muitos":9,"prof_todos":6,"rel_ruim":6,"rel_regular":26,"rel_boa":23,"rel_mboa":4,"des_sim":7,"des_nao":56,"consulta_sim":17,"consulta_nao":28,"consulta_vezes":9,"dentro_n":24,"fora_n":40},"Piauí":{"total":11,"racismo":8,"mat_sim":2,"mat_par":5,"mat_nao":4,"prof_nenhum":2,"prof_poucos":2,"prof_alguns":6,"prof_muitos":1,"prof_todos":0,"rel_ruim":0,"rel_regular":5,"rel_boa":6,"rel_mboa":0,"des_sim":3,"des_nao":8,"consulta_sim":0,"consulta_nao":10,"consulta_vezes":1,"dentro_n":6,"fora_n":5}},"reg_agg":{"Nordeste":{"total":257,"racismo":90,"mat_sim":33,"mat_par":93,"mat_nao":121,"prof_nenhum":77,"prof_poucos":57,"prof_alguns":62,"prof_muitos":33,"prof_todos":15,"rel_ruim":39,"rel_regular":86,"rel_boa":79,"rel_mboa":48,"des_sim":58,"des_nao":194,"consulta_sim":65,"consulta_nao":139,"consulta_vezes":43,"dentro_n":156,"fora_n":101},"Sudeste":{"total":187,"racismo":51,"mat_sim":31,"mat_par":77,"mat_nao":76,"prof_nenhum":85,"prof_poucos":49,"prof_alguns":26,"prof_muitos":18,"prof_todos":6,"rel_ruim":29,"rel_regular":57,"rel_boa":68,"rel_mboa":28,"des_sim":22,"des_nao":160,"consulta_sim":43,"consulta_nao":99,"consulta_vezes":43,"dentro_n":103,"fora_n":84},"Centro-Oeste":{"total":58,"racismo":20,"mat_sim":11,"mat_par":17,"mat_nao":24,"prof_nenhum":25,"prof_poucos":12,"prof_alguns":6,"prof_muitos":2,"prof_todos":5,"rel_ruim":12,"rel_regular":10,"rel_boa":16,"rel_mboa":11,"des_sim":7,"des_nao":45,"consulta_sim":12,"consulta_nao":34,"consulta_vezes":8,"dentro_n":13,"fora_n":45},"Sul":{"total":85,"racismo":54,"mat_sim":5,"mat_par":61,"mat_nao":18,"prof_nenhum":50,"prof_poucos":12,"prof_alguns":9,"prof_muitos":3,"prof_todos":2,"rel_ruim":8,"rel_regular":39,"rel_boa":33,"rel_mboa":5,"des_sim":51,"des_nao":32,"consulta_sim":12,"consulta_nao":65,"consulta_vezes":7,"dentro_n":16,"fora_n":69},"Norte":{"total":68,"racismo":35,"mat_sim":11,"mat_par":51,"mat_nao":4,"prof_nenhum":12,"prof_poucos":22,"prof_alguns":11,"prof_muitos":4,"prof_todos":3,"rel_ruim":0,"rel_regular":7,"rel_boa":44,"rel_mboa":17,"des_sim":1,"des_nao":67,"consulta_sim":11,"consulta_nao":28,"consulta_vezes":27,"dentro_n":29,"fora_n":39}}};
 
-// Global error handler to prevent silent failures
+// Mapeamento sigla -> nome completo para o mapa
+const SIGLA_TO_NOME = {
+    'AC': 'Acre', 'AL': 'Alagoas', 'AP': 'Amapá', 'AM': 'Amazonas',
+    'BA': 'Bahia', 'CE': 'Ceará', 'DF': 'Distrito Federal', 'ES': 'Espírito Santo',
+    'GO': 'Goiás', 'MA': 'Maranhão', 'MT': 'Mato Grosso', 'MS': 'Mato Grosso do Sul',
+    'MG': 'Minas Gerais', 'PA': 'Pará', 'PB': 'Paraíba', 'PR': 'Paraná',
+    'PE': 'Pernambuco', 'PI': 'Piauí', 'RJ': 'Rio de Janeiro', 'RN': 'Rio Grande do Norte',
+    'RS': 'Rio Grande do Sul', 'RO': 'Rondônia', 'RR': 'Roraima', 'SC': 'Santa Catarina',
+    'SP': 'São Paulo', 'SE': 'Sergipe', 'TO': 'Tocantins'
+};
+
+// Global error handler
 window.addEventListener('error', function(e) {
     console.error('Global JS Error:', e.message, 'at', e.filename, ':', e.lineno);
 });
@@ -698,22 +726,24 @@ function p(n,t){ return t>0 ? parseFloat((n/t*100).toFixed(1)) : 0; }
 
 // Cor de intensidade (escala de calor: amarelo → vermelho)
 function heatColor(pct) {
-    // 0–20: #ffffcc (amarelo pálido), 20–40: #fd8d3c (laranja), 40–60: #e31a1c, 60–100: #800026
     const stops = [
-        [0,   [255,255,204]],
-        [20,  [254,217,118]],
-        [40,  [253,141,60]],
-        [60,  [227,26,28]],
-        [80,  [177,0,38]],
-        [100, [128,0,38]]
+        [0,[255,255,204]],
+        [20,[254,217,118]],
+        [40,[253,141,60]],
+        [60,[227,26,28]],
+        [80,[177,0,38]],
+        [100,[128,0,38]]
     ];
     pct = Math.max(0, Math.min(100, pct));
     let i = 0;
     while (i < stops.length-1 && stops[i+1][0] <= pct) i++;
-    if (i >= stops.length-1) return `rgb(${stops[stops.length-1][1].join(',')})`;
-    const [p0, c0] = stops[i], [p1, c1] = stops[i+1];
-    const t = (pct - p0[0]) / (p1[0] - p0[0]);
-    const c = c0[1].map((v,j) => Math.round(v + t*(c1[1][j]-v)));
+    if (i >= stops.length-1) {
+        return `rgb(${stops[stops.length-1][1].join(',')})`;
+    }
+    const [p0,c0] = stops[i];
+    const [p1,c1] = stops[i+1];
+    const t = (pct - p0) / (p1 - p0);
+    const c = c0.map((v,j)=>Math.round(v + t*(c1[j]-v)));
     return `rgb(${c.join(',')})`;
 }
 
@@ -788,12 +818,8 @@ function stacked100(id, labels, datasets, horiz=false) {
 let activeFiltro = {reg: 'all', uf: 'all', loc: 'all'};
 
 function getFilteredData() {
-    // Retorna dados agregados filtrados da base de escolas
-    // Combinamos uf_agg e reg_agg conforme filtro
     const {reg, uf, loc} = activeFiltro;
-    if (reg==='all' && uf==='all' && loc==='all') return null; // sem filtro = usar DB direto
-
-    // Coletar dados filtrados agregando
+    if (reg==='all' && uf==='all' && loc==='all') return null;
     let total=0, racismo=0, mat_sim=0, mat_par=0, mat_nao=0, mat_nsei=0;
     let prof_nenhum=0, prof_poucos=0, prof_alguns=0, prof_muitos=0, prof_todos=0, prof_nsei=0;
     let rel_ruim=0, rel_regular=0, rel_boa=0, rel_mboa=0, rel_nsabe=0;
@@ -801,7 +827,6 @@ function getFilteredData() {
     let consulta_sim=0, consulta_nao=0, consulta_vezes=0;
     let dentro_n=0, fora_n=0;
 
-    // Filter by UF or Reg
     const agg = DB.uf_agg;
     const regAgg = DB.reg_agg;
 
@@ -809,12 +834,6 @@ function getFilteredData() {
     if (uf !== 'all') {
         sourceKeys = [uf];
     } else if (reg !== 'all') {
-        // get UFs in this region
-        sourceKeys = Object.keys(agg).filter(u => {
-            // check region from esc_por_uf: we need to match
-            return DB.rac_por_uf[u] && DB.reg_agg[reg] !== undefined;
-        });
-        // Use reg_agg directly
         const r = regAgg[reg];
         if (r) {
             total = r.total; racismo = r.racismo;
@@ -826,9 +845,7 @@ function getFilteredData() {
             consulta_sim=r.consulta_sim; consulta_nao=r.consulta_nao; consulta_vezes=r.consulta_vezes;
             dentro_n=r.dentro_n; fora_n=r.fora_n;
         }
-        // Apply loc filter
         if (loc !== 'all') {
-            // Adjust by proportion (approximate)
             const pDentro = total > 0 ? dentro_n/total : 0.5;
             const pFora = 1 - pDentro;
             const factor = loc==='dentro' ? pDentro : pFora;
@@ -883,14 +900,12 @@ function getFilteredData() {
                 consulta_sim, consulta_nao, consulta_vezes, dentro_n, fora_n};
     }
 
-    // Only loc filter
     if (loc !== 'all') {
         const tot = DB.total_escolas;
         const rloc = DB.rac_loc || {};
         const din = rloc["Na própria comunidade quilombola"] || {sim:0, total:317};
         const fora_r = rloc["Fora da comunidade"] || {sim:0, total:338};
         const r = loc==='dentro' ? din : fora_r;
-        // Use global data scaled by location
         const factor = r.total / tot;
         return {
             total: r.total,
@@ -920,7 +935,7 @@ function getFilteredData() {
 }
 
 function aplicarFiltros() {
-    if (!window._chartsReady) return; // Don't apply before initial render
+    if (!window._chartsReady) return;
     activeFiltro.reg = document.getElementById('fReg').value;
     activeFiltro.uf = document.getElementById('fUF').value;
     activeFiltro.loc = document.getElementById('fLoc').value;
@@ -989,7 +1004,7 @@ function renderKPIs(fd) {
     const semProf = fd ? fd.prof_nenhum : parseInt(DB.prof_counts['Nenhum']||0);
     const semMat = fd ? fd.mat_nao : parseInt(DB.mat_counts['Não']||0);
     const cNao = fd ? fd.consulta_nao : parseInt(DB.gest_counts.consulta['Não']||0);
-    const gNao = fd ? fd.fora_n : 0; // placeholder
+    const gNao = fd ? fd.fora_n : 0;
     const desS = fd ? fd.des_sim : parseInt(DB.des_counts['Sim']||0);
     const alimD = parseInt(DB.alim['A alimentação respeita a cultura alimentar quilombola']['Discordo']||0);
     const labInex = parseInt(DB.infra['Laboratório de informática']['Inexistente']||0);
@@ -1017,11 +1032,9 @@ function renderKPIs(fd) {
 function renderTerritorio() {
     const totF = DB.total_formularios;
 
-    // Q14 Fechamento categorias
     const fc = DB.fech_cats;
     const fcL = Object.keys(fc);
     const fcV = fcL.map(l=>p(fc[l],totF));
-    // Filter out zero-count categories
     const fcLFiltered = fcL.filter(l=>fc[l]>0);
     const fcVFiltered = fcLFiltered.map(l=>p(fc[l],totF));
     hbar('cFechCats', fcLFiltered.map(l=>{
@@ -1034,26 +1047,22 @@ function renderTerritorio() {
         return s;
     }), fcVFiltered, fcVFiltered.map(v=>v>50?'#27ae60':v>0?'#e74c3c':'#95a5a6'), 80);
 
-    // Q14 por região
     const fr = DB.fech_por_reg;
     const frL = Object.keys(fr).sort();
     vbar('cFechReg', frL, frL.map(r=>p(fr[r].sim,fr[r].total)),
         frL.map(r=>p(fr[r].sim,fr[r].total) > 40 ? '#e74c3c' : '#e67e22'));
 
-    // Q15 Impactos
     const imp = DB.impacto_cats;
     const impL = Object.keys(imp).filter(k=>k!=='Não se aplica'&&k!=='Nenhum');
     const impV = impL.map(l=>p(imp[l],totF));
     hbar('cImpactos', impL, impV, impV.map(v=>v>40?'#e74c3c':v>20?'#e67e22':'#f39c12'), 70);
 
-    // Q10 Diretrizes
     const dir = DB.dir_counts;
     const dirL = Object.keys(dir);
     const dirV = dirL.map(l=>p(dir[l],totF));
     const dirSorted = dirL.map((l,i)=>({l,v:dirV[i]})).sort((a,b)=>b.v-a.v);
     hbar('cDiretrizes', dirSorted.map(d=>d.l.replace('Sim, tem diretrizes municipais para a Educação Escola Quilombola.','✅ Tem diretrizes municipais').replace('Sim, tem lei municipal que regulamenta da Educação Escolar Quilombola','✅ Tem lei municipal').replace('Sim, tem um capítulo ou seção que orienta sobre a implementação da Educação Escolar Quilombola no documento curricular do município.','✅ Tem capítulo/seção no currículo').replace('Sim, tem outro tipo de documentação que regulamenta da Educação Escolar Quilombola no município.','✅ Outro tipo de documentação').replace('Não há nenhum documento oficial do município que regulamente ou oriente sobre a implementação da Educação Escolar Quilombola.','❌ Sem documentação oficial').replace('Há um documento orientador em construção.','🔄 Em construção').replace('Não sei informar.','❓ Não sabe informar').replace('Desconhece a existência de documentações a respeito','❓ Desconhece')), dirSorted.map(d=>d.v), dirSorted.map(d=>d.l.includes('Não há')?'#e74c3c':d.l.includes('sei')||d.l.includes('Desconhece')?'#95a5a6':d.l.includes('construção')?'#f39c12':'#27ae60'), 60);
 
-    // Q11 Concurso
     const conc = DB.conc_counts;
     const concL = Object.keys(conc).filter(k=>conc[k]>0);
     const concV = concL.map(l=>parseInt(conc[l]));
@@ -1061,7 +1070,6 @@ function renderTerritorio() {
     donut('cConcurso', concL.map((l,i)=>l+' ('+p(concV[i],concTot)+'%)'), concV,
         concL.map(l=>l.startsWith('Não ')&&!l.includes('sei')?'#e74c3c':l.includes('sei')?'#95a5a6':'#27ae60'));
 
-    // Q17 Órgãos
     const org = DB.orgaos_vc;
     const orgL = ['Não','Sim','Não sei informar','Outro'].filter(k=>org[k]>0);
     const orgV = orgL.map(l=>parseInt(org[l]||0));
@@ -1069,7 +1077,6 @@ function renderTerritorio() {
     donut('cOrgaos', orgL.map((l,i)=>l+' ('+p(orgV[i],orgTot)+'%)'), orgV,
         ['#27ae60','#e74c3c','#95a5a6','#bdc3c7']);
 
-    // Q9 Famílias
     const fam = DB.fam_counts;
     const famL = ['Até 30 famílias','de 31 a 60 famílias','de 61 a 100 famílias','de 101 a 150 famílias','de 151 a 200 famílias','Acima de 200 famílias'];
     const famV = famL.map(l=>parseInt(fam[l]||0));
@@ -1077,7 +1084,6 @@ function renderTerritorio() {
     donut('cFamilias', famL.map((l,i)=>l+' ('+p(famV[i],famTot)+'%)'), famV,
         ['#1e4a3b','#27ae60','#a8d5a2','#f39c12','#e67e22','#e74c3c']);
 
-    // Q23 Avaliação qualidade
     const aq = DB.aval_qualidade;
     const aqL = ['Excelente','Boa','Regular','Ruim','Péssima'];
     const aqV = aqL.map(l=>parseInt(aq[l]||0));
@@ -1092,14 +1098,12 @@ function renderTerritorio() {
 function renderEM() {
     const totF = DB.total_formularios;
     
-    // Q19 categorias
     const em = DB.em_cats;
     const emL = Object.keys(em).filter(k=>em[k]>0);
     const emV = emL.map(l=>p(em[l],totF));
     hbar('cEmCats', emL.map(l=>l.replace('Sim, é ofertado o Ensino Médio presencial dentro do território.','✅ Presencial DENTRO do território').replace('Sim, é ofertado o Ensino Médio no território em formato virtual.','📺 Virtual/EaD no território').replace('Sim, é ofertado o Ensino Médio presencial em escolas próximas ao território.','🏫 Presencial NAS PROXIMIDADES').replace('Não há oferta de Ensino Médio no território ou nas proximidades.','❌ SEM oferta de EM').replace('A oferta do Ensino Médio é  por meio de uma turma "anexa" ou "extensão" de outra escola fora do território.','🔗 Turma anexa/extensão').replace('A escola onde é ofertado o Ensino Médio tem autonomia adminstrativa (direção, coordenação, secretaria)','🏛️ Escola c/ autonomia administrativa')), emV,
         emL.map(l=>l.includes('Não há')?'#e74c3c':l.includes('dentro')?'#27ae60':l.includes('próximas')?'#f39c12':'#3498db'), 45);
 
-    // Q19 por UF
     const emUF = DB.em_por_uf;
     const ufsEM = Object.keys(emUF).sort();
     dc('cEmUF');
@@ -1114,7 +1118,6 @@ function renderEM() {
         plugins:{legend:{position:'bottom',labels:{boxWidth:12,font:{size:9}}},
             datalabels:{formatter:v=>v>0?v:'',color:'#fff',font:{size:8,weight:'700'}}}}});
 
-    // Q20 Evasão
     const ev = DB.ev_cats;
     const evL = ['Não se aplica','Não param de estudar','Alguns param de estudar','A maioria para de estudar','Outro/não classificado'].filter(k=>ev[k]>0);
     const evV = evL.map(l=>parseInt(ev[l]||0));
@@ -1122,7 +1125,6 @@ function renderEM() {
     donut('cEvasao', evL.map((l,i)=>l+' ('+p(evV[i],evTot)+'%)'), evV,
         ['#95a5a6','#27ae60','#e67e22','#e74c3c','#bdc3c7']);
 
-    // Evasão × tipo EM
     const eev = DB.evasao_em || {};
     const eevL = Object.keys(eev);
     if (!eevL.length) { console.warn('evasao_em empty'); }
@@ -1133,7 +1135,6 @@ function renderEM() {
         {label:'Não se aplica',data:eevL.map(l=>p(eev[l]['Não se aplica'],eev[l].total)),backgroundColor:'#95a5a6'},
     ], false);
 
-    // Q21 Motivos total
     const mot = DB.mot_cats;
     const motL = Object.keys(mot).filter(k=>k!=='Não se aplica'&&mot[k]>0);
     const motV = motL.map(l=>p(mot[l],totF));
@@ -1141,7 +1142,6 @@ function renderEM() {
     hbar('cMotivos', motSorted.map(s=>s.l), motSorted.map(s=>s.v),
         ['#e74c3c','#9b59b6','#e67e22','#f39c12','#c0392b','#3498db','#16a085'], 55);
 
-    // Motivos por região
     const mpr = DB.mot_por_reg || {};
     const regsM = Object.keys(mpr).sort();
     if (!regsM.length) return;
@@ -1152,7 +1152,6 @@ function renderEM() {
         backgroundColor:mColors[i]
     })), 55, false);
 
-    // Scatter: EM × Evasão por UF
     const corr = DB.corr_uf;
     const corrArr = Object.entries(corr).map(([uf,d])=>({x:d.oferta_em_pct,y:d.evasao_pct,uf,tot:d.total}));
     dc('cCorrUF');
@@ -1162,7 +1161,6 @@ function renderEM() {
             plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>{const i=c.dataIndex;return corrArr[i]?`${corrArr[i].uf}: EM=${c.raw.x}% | Evasão=${c.raw.y}%`:'';}}},
                 datalabels:{formatter:(v,c)=>{const i=c.dataIndex;return corrArr[i]?corrArr[i].uf:'';},align:'top',offset:5,font:{size:8},color:'#1e4a3b'}}}});
 
-    // Etapas dentro × fora
     const etL = Object.keys(DB.etapas_loc);
     const etNames = etL.map(e=>{
         if(e.includes('Creche')) return 'Creche (0-3a)';
@@ -1200,7 +1198,6 @@ function renderInfra() {
     hbar('cInfraGeral', iArr.map(i=>i.l), iArr.map(i=>i.v),
         iArr.map(i=>i.v>=70?'#c0392b':i.v>=50?'#e74c3c':i.v>=35?'#e67e22':'#f39c12'));
 
-    // Por localização
     const ip = DB.infra_loc;
     const ipL = Object.keys(ip);
     grouped('cInfraLoc', ipL, [
@@ -1233,7 +1230,6 @@ function renderInfraDonut(id, key) {
 // TRANSPORTE
 // ══════════════════════════════════════════════════════════════════
 function renderTransp() {
-    // Uso de transporte – categorias exatas
     const tu = DB.transp_uso;
     const tuL = Object.keys(tu).filter(k=>parseInt(tu[k])>0);
     const tuV = tuL.map(l=>parseInt(tu[l]));
@@ -1241,14 +1237,12 @@ function renderTransp() {
     donut('cTranspUso', tuL.map((l,i)=>l+' ('+p(tuV[i],tuTot)+'%)'), tuV,
         ['#1e4a3b','#27ae60','#3498db','#16a085','#e74c3c','#95a5a6','#bdc3c7']);
 
-    // Por localização
     const tl = DB.transp_loc;
     grouped('cTranspLoc',
         Object.keys(tl).map(k=>k+' (n='+tl[k].com_transporte+')'),
         [{label:'% com problemas',data:Object.values(tl).map(d=>p(d.com_problemas,d.com_transporte)),
           backgroundColor:['#1e4a3b','#e67e22']}]);
 
-    // Condições – % Discordo
     const tc = DB.transp_cond;
     const tcL = Object.keys(tc);
     const tcArr = tcL.map(l=>{
@@ -1259,7 +1253,6 @@ function renderTransp() {
     hbar('cTranspCond', tcArr.map(t=>t.l), tcArr.map(t=>t.v),
         tcArr.map(t=>t.v>=40?'#e74c3c':t.v>=25?'#e67e22':'#f39c12'));
 
-    // Estradas – distribuição completa
     const est = tc['As estradas estão em boas condições'];
     const estL = Object.keys(est), estV = estL.map(l=>parseInt(est[l]));
     const estTot = estV.reduce((a,b)=>a+b,0);
@@ -1274,7 +1267,6 @@ function renderAlim() {
     const tot = DB.total_escolas;
     const alim = DB.alim;
     
-    // % Discordo por item
     const alimL = Object.keys(alim);
     const alimArr = alimL.map(l=>{
         const d=alim[l]; const disc=parseInt(d['Discordo']||0);
@@ -1284,7 +1276,6 @@ function renderAlim() {
     hbar('cAlimItens', alimArr.map(a=>a.l), alimArr.map(a=>a.v),
         alimArr.map(a=>a.v>=50?'#e74c3c':a.v>=30?'#e67e22':'#f39c12'), 80);
 
-    // Por região
     const ar = DB.alim_reg;
     const arL = Object.keys(ar).sort();
     grouped('cAlimReg', arL, [
@@ -1299,21 +1290,18 @@ function renderAlim() {
 function renderDocentes(fd) {
     const tot = fd ? fd.total : DB.total_escolas;
     
-    // Professores quilombolas – categorias exatas
     let pc;
     if (fd) {
         pc = {Muitos:fd.prof_muitos, Alguns:fd.prof_alguns, Poucos:fd.prof_poucos, Nenhum:fd.prof_nenhum, Todos:fd.prof_todos, 'Não sei':0};
     } else {
         pc = DB.prof_counts;
     }
-    // Ordem do formulário: Muitos / Alguns / Poucos / Nenhum / Não sei / Todos
     const profOrder = ['Muitos','Alguns','Poucos','Nenhum','Não sei','Todos'];
     const profV = profOrder.map(k=>parseInt(pc[k]||0));
     const profTot = profV.reduce((a,b)=>a+b,0);
     donut('cProfCats', profOrder.map((l,i)=>l+' ('+p(profV[i],profTot)+'%)'), profV,
         ['#1e4a3b','#27ae60','#f39c12','#e74c3c','#95a5a6','#a8d5a2']);
 
-    // Prof × Materiais
     const pm = DB.prof_x_mat;
     const pmL = ['Muitos','Alguns','Poucos','Nenhum','Todos'].filter(k=>pm[k]);
     grouped('cProfMat', pmL.map(l=>l+' (n='+pm[l].total+')'), [
@@ -1323,7 +1311,6 @@ function renderDocentes(fd) {
         {label:'Não sei',data:pmL.map(l=>p(pm[l]['Não sei informar']||0,pm[l].total)),backgroundColor:'#95a5a6'},
     ], 100, false);
 
-    // Prof por UF – stacked
     const pu = DB.prof_por_uf;
     const puUFs = Object.keys(pu).sort((a,b)=>p(pu[b]['Nenhum'],pu[b].total)-p(pu[a]['Nenhum'],pu[a].total));
     stacked100('cProfUF', puUFs.map(u=>u+' (n='+pu[u].total+')'), [
@@ -1334,7 +1321,6 @@ function renderDocentes(fd) {
         {label:'Todos',data:puUFs.map(u=>p(pu[u]['Todos'],pu[u].total)),backgroundColor:'#1e4a3b'},
     ], true);
 
-    // Materiais
     let matCounts;
     if (fd) {
         matCounts = {'Não':fd.mat_nao,'Parcialmente':fd.mat_par,'Sim':fd.mat_sim,'Não sei informar':0};
@@ -1356,7 +1342,6 @@ function renderRacismo(fd) {
     const racN = fd ? fd.racismo : DB.racismo_total.sim;
     const racNao = fd ? (tot-fd.racismo) : DB.racismo_total.nao;
 
-    // Tipos de racismo – categorias exatas do formulário
     const tr = DB.tipos_racismo;
     const trL = ['Não há relatos de racismo.','Entre estudantes','Profissional → Estudante','Profissional → Profissional','Profissional → Familiares','Racismo estrutural','Racismo ambiental'];
     const trData = [
@@ -1367,25 +1352,21 @@ function renderRacismo(fd) {
     hbar('cTiposRac', trSorted.map(d=>d.l), trSorted.map(d=>p(d.v,tot)),
         trSorted.map(d=>d.l.includes('Não há')?'#27ae60':d.l.includes('estrutural')||d.l.includes('ambiental')?'#9b59b6':'#e74c3c'), 65);
 
-    // Por região
     const rr = DB.rac_por_reg;
     const rrL = Object.keys(rr).sort();
     vbar('cRacReg', rrL, rrL.map(r=>p(rr[r].sim,rr[r].total)),
         rrL.map(r=>p(rr[r].sim,rr[r].total)>50?'#e74c3c':'#e67e22'));
 
-    // Por UF – todas
     const ru = DB.rac_por_uf;
     const ruArr = Object.entries(ru).map(([k,v])=>({k,v:p(v.sim,v.total),n:v.total})).sort((a,b)=>b.v-a.v);
     hbar('cRacUF', ruArr.map(r=>r.k+' (n='+r.n+')'), ruArr.map(r=>r.v),
         ruArr.map(r=>heatColor(r.v)));
 
-    // Dentro vs Fora
     const rl = DB.rac_loc;
     const rlL = Object.keys(rl);
     grouped('cRacLoc', rlL.map(l=>l+' (n='+rl[l].total+')'),
         [{label:'% com racismo',data:rlL.map(l=>p(rl[l].sim,rl[l].total)),backgroundColor:['#1e4a3b','#e67e22']}]);
 
-    // Desrespeito
     let des;
     if (fd) {
         des = {'Sim':fd.des_sim,'Não':fd.des_nao,'Não sei':0};
@@ -1398,7 +1379,6 @@ function renderRacismo(fd) {
     donut('cDesrespeito', desL.map((l,i)=>l+' ('+p(desV[i],desTot)+'%)'), desV,
         ['#e74c3c','#27ae60','#95a5a6']);
 
-    // Relação escola-comunidade
     let rel;
     if (fd) {
         rel = {'Muito boa':fd.rel_mboa,'Boa':fd.rel_boa,'Regular':fd.rel_regular,'Ruim':fd.rel_ruim,'Não sabe':0};
@@ -1418,12 +1398,11 @@ function renderRacismo(fd) {
 function renderGestao(fd) {
     const tot = fd ? fd.total : DB.total_escolas;
     
-    // 3 dimensões – stacked 100%
     let gestData;
     if (fd) {
         gestData = {
             consulta: {'Sim':fd.consulta_sim,'Às vezes':fd.consulta_vezes,'Não':fd.consulta_nao,'Não sei':0},
-            conselho: DB.gest_counts.conselho,  // not filterable
+            conselho: DB.gest_counts.conselho,
             gestores: DB.gest_counts.gestores,
         };
     } else {
@@ -1438,7 +1417,6 @@ function renderGestao(fd) {
         {label:'Não sei',data:gkeys.map(k=>{const d=gestData[k];const t=Object.values(d).reduce((a,b)=>a+parseInt(b),0);return p(parseInt(d['Não sei']||0),t);}),backgroundColor:'#95a5a6'},
     ], false);
 
-    // Consulta × Região
     const cr = DB.consulta_reg;
     const crL = Object.keys(cr).sort();
     grouped('cConsultaReg', crL, [
@@ -1452,7 +1430,6 @@ function renderGestao(fd) {
 // ANÁLISES AVANÇADAS
 // ══════════════════════════════════════════════════════════════════
 function renderAvancado() {
-    // Heatmap regional
     const hm = DB.heatmap_reg;
     const hmRegs = Object.keys(hm).sort();
     const hmInds = ['racismo_pct','fechamento_pct','sem_dir_pct','sem_conc_pct','sem_prof_pct','sem_mat_pct','sem_em_pct'];
@@ -1466,7 +1443,6 @@ function renderAvancado() {
         plugins:{legend:{position:'bottom',labels:{boxWidth:12,font:{size:9}}},
             datalabels:{formatter:v=>v>8?v+'%':'',font:{size:8,weight:'700'},color:'#fff',anchor:'end',align:'inside'}}}});
 
-    // Radar
     const radarRegs = Object.keys(hm).sort();
     const radarInds = ['% Racismo','% Sem EM','% Sem prof.Q.','% Sem materiais','% Sem consulta'];
     dc('cRadar');
@@ -1499,7 +1475,6 @@ const CORR_DATA = {
 };
 
 function renderCorrelacoes() {
-    // 1. Scatter: Racismo × Sem prof quilombola por UF
     (function() {
         dc('cCorrRacProf');
         const ctx = document.getElementById('cCorrRacProf'); if(!ctx) return;
@@ -1533,7 +1508,6 @@ function renderCorrelacoes() {
         });
     })();
 
-    // 2. Gestão × Racismo por região
     (function() {
         const data = CORR_DATA.gestao_rac_reg;
         const regs = Object.keys(data).sort();
@@ -1543,7 +1517,6 @@ function renderCorrelacoes() {
         ], 85, false);
     })();
 
-    // 3. Prof × Materiais (3 colunas empilhadas + linha racismo)
     (function() {
         const pm = CORR_DATA.prof_mat_rac;
         const cats = ['Nenhum','Poucos','Alguns','Muitos','Todos'].filter(c=>pm[c]);
@@ -1573,7 +1546,6 @@ function renderCorrelacoes() {
         });
     })();
 
-    // 4. Infra × Racismo por localização
     (function() {
         const data = CORR_DATA.infra_rac_loc;
         const locs = Object.keys(data);
@@ -1600,7 +1572,6 @@ function renderCorrelacoes() {
         });
     })();
 
-    // 5. EM × Evasão – barras por UF (sorted)
     (function() {
         const data = CORR_DATA.em_ev_bars;
         dc('cCorrEmEvasaoBars');
@@ -1628,7 +1599,6 @@ function renderCorrelacoes() {
         });
     })();
 
-    // 6. Consulta × Racismo/Desrespeito por região
     (function() {
         const data = CORR_DATA.cons_des_reg;
         const regs = Object.keys(data).sort();
@@ -1638,7 +1608,6 @@ function renderCorrelacoes() {
         ], 85, false);
     })();
 
-    // 7. Panorama UF – 4 indicadores agrupados (top 15 piores)
     (function() {
         const data = CORR_DATA.uf_panel;
         const ufs = Object.keys(data).sort((a,b) => {
@@ -1654,13 +1623,10 @@ function renderCorrelacoes() {
         ], 105, false);
     })();
 
-    // 8. Relação escola-comunidade × Racismo × Desrespeito
     (function() {
-        // Approximate from global data proportions
         const relOrder = ['Muito boa','Boa','Regular','Ruim'];
         const relCounts = DB.rel_counts;
         const tot = Object.values(relCounts).reduce((a,b)=>a+parseInt(b),0);
-        // Racismo inversamente proporcional à qualidade (approximation based on known data patterns)
         const racWeights   = {'Muito boa':0.15,'Boa':0.30,'Regular':0.45,'Ruim':0.70};
         const desWeights   = {'Muito boa':0.08,'Boa':0.15,'Regular':0.28,'Ruim':0.55};
         const relVals = relOrder.filter(c=>parseInt(relCounts[c]||0)>0);
@@ -1765,157 +1731,121 @@ function renderTabela() {
 }
 
 // ══════════════════════════════════════════════════════════════════
-// MAPA (escala de calor por cor)
+// MAPA – LEaFLET (substituindo o SVG antigo)
 // ══════════════════════════════════════════════════════════════════
-let mapMarkers={}; // SVG map markers
+let map = null;
+let stateLabelsLayer = null;
 
-// ══════════════════════════════════════════════════════════════════
-// MAPA SVG EMBUTIDO (sem dependência externa)
-// ══════════════════════════════════════════════════════════════════
 function initMapa() {
-    const mapDiv = document.getElementById('map');
-    if (!mapDiv) return;
-
-    // Coordenadas aproximadas dos estados no SVG (800x560)
-    const stateCoords = {
-        'Acre':        {x:95,  y:225}, 'Alagoas':    {x:600, y:280}, 'Amapá':      {x:435, y:110},
-        'Amazonas':    {x:195, y:195}, 'Bahia':      {x:560, y:310}, 'Ceará':      {x:600, y:205},
-        'Espírito Santo':{x:610,y:375},'Goiás':      {x:480, y:340}, 'Maranhão':   {x:510, y:205},
-        'Mato Grosso': {x:370, y:300}, 'Mato Grosso do Sul':{x:400,y:390},
-        'Minas Gerais':{x:560, y:375}, 'Pará':       {x:370, y:195}, 'Paraíba':    {x:640, y:240},
-        'Paraná':      {x:480, y:435}, 'Pernambuco': {x:620, y:255}, 'Piauí':      {x:565, y:235},
-        'Rio de Janeiro':{x:595,y:400},'Rio Grande do Norte':{x:645,y:220},
-        'Rio Grande do Sul':{x:455,y:490},'Rondônia':{x:235, y:285},
-        'Roraima':     {x:270, y:120}, 'Santa Catarina':{x:480,y:465},
-        'São Paulo':   {x:525, y:410}, 'Sergipe':    {x:620, y:285},
-        'Tocantins':   {x:490, y:270}
-    };
-
-    // Data per UF
-    const ufData = {};
-    const rac = DB.rac_por_uf;
-    const prof = DB.prof_por_uf;
-    const em = DB.em_por_uf;
-    const uagg = DB.uf_agg;
-    Object.keys(rac).forEach(uf => {
-        const n = rac[uf].total;
-        const formN = parseInt(DB.form_por_uf[uf]||0);
-        ufData[uf] = {
-            esc: n,
-            form: formN,
-            racismo: n>0?parseFloat((rac[uf].sim/n*100).toFixed(1)):0,
-            sem_prof: prof[uf]?parseFloat((prof[uf]['Nenhum']/prof[uf].total*100).toFixed(1)):0,
-            sem_mat: uagg[uf]?parseFloat((uagg[uf].mat_nao/uagg[uf].total*100).toFixed(1)):0,
-            cNao: uagg[uf]?parseFloat((uagg[uf].consulta_nao/uagg[uf].total*100).toFixed(1)):0,
-            sem_em: em[uf]?parseFloat((em[uf].sem/em[uf].total*100).toFixed(1)):0,
-        };
-        mapMarkers[uf] = ufData[uf];
-    });
-
-    renderSVGMap('racismo');
-}
-
-function renderSVGMap(indicator) {
-    const mapDiv = document.getElementById('map');
-    if (!mapDiv) return;
-
-    const stateCoords = {
-        'Acre':        {x:95,  y:225}, 'Alagoas':    {x:600, y:280}, 'Amapá':      {x:435, y:110},
-        'Amazonas':    {x:195, y:195}, 'Bahia':      {x:560, y:310}, 'Ceará':      {x:600, y:205},
-        'Espírito Santo':{x:610,y:375},'Goiás':      {x:480, y:340}, 'Maranhão':   {x:510, y:205},
-        'Mato Grosso': {x:370, y:300}, 'Mato Grosso do Sul':{x:400,y:390},
-        'Minas Gerais':{x:560, y:375}, 'Pará':       {x:370, y:195}, 'Paraíba':    {x:640, y:240},
-        'Paraná':      {x:480, y:435}, 'Pernambuco': {x:620, y:255}, 'Piauí':      {x:565, y:235},
-        'Rio de Janeiro':{x:595,y:400},'Rio Grande do Norte':{x:645,y:220},
-        'Rio Grande do Sul':{x:455,y:490},'Rondônia':{x:235, y:285},
-        'Roraima':     {x:270, y:120}, 'Santa Catarina':{x:480,y:465},
-        'São Paulo':   {x:525, y:410}, 'Sergipe':    {x:620, y:285},
-        'Tocantins':   {x:490, y:270}
-    };
-
-    const indLabels = {
-        racismo:'% com racismo', sem_prof:'% sem prof.Q.',
-        sem_mat:'% sem materiais', cNao:'% sem consulta', sem_em:'% sem EM'
-    };
-    const ind = indicator || 'racismo';
-
-    let circles = '';
-    Object.entries(stateCoords).forEach(([uf, pos]) => {
-        const data = mapMarkers[uf];
-        if (!data) return;
-        const val = data[ind] !== undefined ? data[ind] : data.esc;
-        const r = Math.max(12, Math.min(32, data.esc * 0.55));
-        const cor = heatColor(val);
-        const abbr = uf.length > 12 ? uf.substring(0,2).toUpperCase() :
-            {'Minas Gerais':'MG','Mato Grosso':'MT','Mato Grosso do Sul':'MS','Rio de Janeiro':'RJ',
-             'Rio Grande do Norte':'RN','Rio Grande do Sul':'RS','Espírito Santo':'ES',
-             'São Paulo':'SP','Santa Catarina':'SC','Bahia':'BA','Ceará':'CE','Goiás':'GO',
-             'Maranhão':'MA','Paraíba':'PB','Paraná':'PR','Pernambuco':'PE','Piauí':'PI',
-             'Rondônia':'RO','Roraima':'RR','Sergipe':'SE','Tocantins':'TO',
-             'Alagoas':'AL','Amapá':'AP','Amazonas':'AM','Pará':'PA','Acre':'AC'}[uf]||uf.substring(0,2);
-        const tooltip = `${uf}\nEscolas: ${data.esc} | Formulários: ${data.form}\nRacismo: ${data.racismo}%\nSem prof.Q.: ${data.sem_prof}%\nSem mat.: ${data.sem_mat}%\nSem consulta: ${data.cNao}%\nSem EM: ${data.sem_em}%`;
-        circles += `<g class="state-circle" data-uf="${uf}" style="cursor:pointer" onclick="showStateInfo('${uf}')">
-            <circle cx="${pos.x}" cy="${pos.y}" r="${r}" fill="${cor}" stroke="white" stroke-width="1.5" opacity="0.9"/>
-            <text x="${pos.x}" y="${pos.y+1}" text-anchor="middle" dominant-baseline="middle" 
-                  font-size="9" font-weight="700" fill="white" pointer-events="none">${abbr}</text>
-            <title>${tooltip}</title>
-        </g>`;
-    });
-
-    // Color scale legend
-    const gradStops = ['#ffffcc','#fed976','#fd8d3c','#e31a1c','#800026'];
-    const legendGrad = gradStops.map((c,i)=>`<stop offset="${i*25}%" stop-color="${c}"/>`).join('');
-
-    mapDiv.innerHTML = `
-    <div id="stateInfoBox" style="position:absolute;top:10px;right:10px;background:rgba(255,255,255,0.97);
-         border-radius:12px;padding:12px 16px;font-size:12px;max-width:220px;display:none;
-         border:1px solid #e2e8f0;box-shadow:0 4px 12px rgba(0,0,0,.15);z-index:10;line-height:1.6">
-        <strong id="siUF" style="font-size:14px;color:#1e4a3b"></strong><br>
-        <div id="siContent"></div>
-    </div>
-    <svg viewBox="0 0 780 530" style="width:100%;height:100%;background:linear-gradient(180deg,#ddf4f7 0%,#c8eef5 100%)">
-        <defs>
-            <linearGradient id="legendGrad" x1="0" x2="1" y1="0" y2="0">
-                ${legendGrad}
-            </linearGradient>
-        </defs>
-        <!-- Background elements -->
-        <ellipse cx="400" cy="320" rx="320" ry="240" fill="rgba(255,255,255,0.15)"/>
-        <text x="400" y="20" text-anchor="middle" font-size="13" font-weight="700" fill="#1e4a3b" opacity="0.6">Brasil – ${indLabels[ind]||ind}</text>
-        <!-- State circles -->
-        ${circles}
-        <!-- Legend -->
-        <rect x="20" y="490" width="200" height="16" rx="8" fill="url(#legendGrad)" stroke="#ccc" stroke-width="0.5"/>
-        <text x="20" y="485" font-size="9" fill="#555">0%</text>
-        <text x="220" y="485" font-size="9" fill="#555" text-anchor="end">100%</text>
-        <text x="120" y="520" font-size="10" fill="#555" text-anchor="middle">Intensidade do indicador</text>
-        <!-- Note -->
-        <text x="400" y="515" text-anchor="middle" font-size="9" fill="#888">Tamanho proporcional ao nº de escolas • Clique no estado para detalhes</text>
-    </svg>`;
-}
-
-function showStateInfo(uf) {
-    const data = mapMarkers[uf];
-    if (!data) return;
-    const box = document.getElementById('stateInfoBox');
-    document.getElementById('siUF').textContent = uf;
-    document.getElementById('siContent').innerHTML = `
-        Escolas: <b>${data.esc}</b> | Formulários: <b>${data.form}</b><br>
-        Racismo: <b style="color:${heatColor(data.racismo)}">${data.racismo}%</b><br>
-        Sem prof. quilombola: <b style="color:${heatColor(data.sem_prof)}">${data.sem_prof}%</b><br>
-        Sem materiais culturais: <b style="color:${heatColor(data.sem_mat)}">${data.sem_mat}%</b><br>
-        Comunidade não consultada: <b style="color:${heatColor(data.cNao)}">${data.cNao}%</b><br>
-        Sem oferta de EM: <b style="color:${heatColor(data.sem_em)}">${data.sem_em}%</b>
-    `;
-    box.style.display = 'block';
+    const container = document.getElementById('map');
+    if (!container) return;
+    container.innerHTML = '';
+    map = L.map('map').setView([-14.2, -51.9], 4);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
+    }).addTo(map);
+    updateMap();
 }
 
 function atualizarMapa() {
-    const ind = document.getElementById('mapInd').value;
-    renderSVGMap(ind);
+    if (map) updateMap();
 }
 
-function initMapa_old_unused() {}
+function updateMap() {
+    if (!map) return;
+    const indicator = document.getElementById('mapInd').value;
+    let maxVal = 1;
+    for (const [sigla, nome] of Object.entries(SIGLA_TO_NOME)) {
+        const d = DB.uf_agg[nome];
+        if (!d || !d.total) continue;
+        let val = 0;
+        if (indicator === 'racismo') val = d.racismo / d.total * 100;
+        else if (indicator === 'sem_prof') val = d.prof_nenhum / d.total * 100;
+        else if (indicator === 'sem_mat') val = d.mat_nao / d.total * 100;
+        else if (indicator === 'consulta_nao') val = d.consulta_nao / d.total * 100;
+        else if (indicator === 'total') val = d.total;
+        if (val > maxVal) maxVal = val;
+    }
+
+    fetch('https://raw.githubusercontent.com/codeforamerica/click_that_hood/master/public/data/brazil-states.geojson')
+        .then(res => res.ok ? res.json() : Promise.reject())
+        .then(geo => {
+            map.eachLayer(l => { if (!!l.feature) map.removeLayer(l); });
+            if (stateLabelsLayer) map.removeLayer(stateLabelsLayer);
+
+            L.geoJSON(geo, {
+                style: (f) => {
+                    const sigla = f.properties.sigla;
+                    const nome = SIGLA_TO_NOME[sigla];
+                    const d = DB.uf_agg[nome];
+                    const hasData = d && d.total > 0;
+                    if (!hasData) {
+                        return { fillColor: '#cccccc', weight: 1, opacity: 1, color: 'white', fillOpacity: 0.5 };
+                    }
+                    let val = 0;
+                    if (indicator === 'racismo') val = d.racismo / d.total * 100;
+                    else if (indicator === 'sem_prof') val = d.prof_nenhum / d.total * 100;
+                    else if (indicator === 'sem_mat') val = d.mat_nao / d.total * 100;
+                    else if (indicator === 'consulta_nao') val = d.consulta_nao / d.total * 100;
+                    else if (indicator === 'total') val = d.total;
+                    const intensity = maxVal > 0 ? 0.2 + (val / maxVal) * 0.7 : 0.5;
+                    return { fillColor: '#e67e22', weight: 1, opacity: 1, color: 'white', fillOpacity: intensity };
+                },
+                onEachFeature: (f, l) => {
+                    const sigla = f.properties.sigla;
+                    const nome = SIGLA_TO_NOME[sigla];
+                    const d = DB.uf_agg[nome] || {};
+                    let tooltipContent = `<b>${f.properties.nome} (${sigla})</b><br>`;
+                    if (d.total) {
+                        const racP = (d.racismo / d.total * 100).toFixed(1);
+                        const profP = (d.prof_nenhum / d.total * 100).toFixed(1);
+                        const matP = (d.mat_nao / d.total * 100).toFixed(1);
+                        const consP = (d.consulta_nao / d.total * 100).toFixed(1);
+                        tooltipContent += `📋 Formulários: ${d.total}<br>`;
+                        tooltipContent += `🏫 Escolas: ${d.total}<br>`;
+                        tooltipContent += `⚠️ Racismo: ${racP}%<br>`;
+                        tooltipContent += `👩🏿‍🏫 Sem prof.: ${profP}%<br>`;
+                        tooltipContent += `📚 Sem materiais: ${matP}%<br>`;
+                        tooltipContent += `🤝 Sem consulta: ${consP}%`;
+                    } else {
+                        tooltipContent += `⚠️ Nenhum dado disponível.`;
+                    }
+                    l.bindTooltip(tooltipContent);
+                }
+            }).addTo(map);
+
+            const stateCentroids = {
+                'AC': [-9.023, -70.811], 'AL': [-9.571, -36.782], 'AP': [1.998, -51.99], 'AM': [-3.465, -62.216],
+                'BA': [-12.579, -41.701], 'CE': [-5.498, -39.321], 'DF': [-15.799, -47.864], 'ES': [-19.183, -40.308],
+                'GO': [-15.934, -50.143], 'MA': [-5.425, -45.439], 'MT': [-12.682, -56.922], 'MS': [-20.442, -54.646],
+                'MG': [-18.512, -44.555], 'PA': [-3.416, -52.359], 'PB': [-7.276, -36.731], 'PR': [-24.625, -51.662],
+                'PE': [-8.284, -40.312], 'PI': [-6.876, -42.735], 'RJ': [-22.200, -42.867], 'RN': [-5.779, -36.591],
+                'RS': [-30.166, -53.497], 'RO': [-10.829, -63.458], 'RR': [1.987, -61.278], 'SC': [-27.242, -50.218],
+                'SP': [-22.000, -48.986], 'SE': [-10.574, -37.201], 'TO': [-10.184, -48.333]
+            };
+            const labelLayer = L.layerGroup();
+            for (let [sigla, coords] of Object.entries(stateCentroids)) {
+                const label = L.marker(coords, {
+                    icon: L.divIcon({
+                        className: 'state-label',
+                        html: sigla,
+                        iconSize: [30, 20],
+                        iconAnchor: [15, 10]
+                    }),
+                    interactive: false
+                });
+                labelLayer.addLayer(label);
+            }
+            labelLayer.addTo(map);
+            stateLabelsLayer = labelLayer;
+        })
+        .catch(err => {
+            console.warn('Erro ao carregar GeoJSON:', err);
+            map.eachLayer(l => { if (!!l.feature) map.removeLayer(l); });
+            const container = document.getElementById('map');
+            if (container) container.innerHTML = '<div class="map-placeholder">Não foi possível carregar o mapa. Tente novamente mais tarde.</div>';
+        });
+}
 
 // ══════════════════════════════════════════════════════════════════
 // FILTROS – popular selects
@@ -1928,37 +1858,198 @@ function popularFiltros() {
 }
 
 // ══════════════════════════════════════════════════════════════════
-// CHAT
+// CHAT – DEEPSEEK (Àgbá) com contexto enriquecido para correlações
 // ══════════════════════════════════════════════════════════════════
-function toggleChat(){const w=document.getElementById('chatWin');w.style.display=w.style.display==='flex'?'none':'flex';}
-async function sendChat(){
-    const inp=document.getElementById('chatInp');const msg=inp.value.trim();if(!msg)return;
-    inp.value='';addMsg('user',msg);addMsg('typing','');
-    try{
-        const ctx=`Você é assistente especialista na pesquisa "Panorama da Educação Escolar Quilombola no Brasil" (CONAQ, 2025–2026). Base: 475 formulários, 655 escolas.
-Principais dados: ${p(DB.racismo_total.sim,DB.total_escolas)}% escolas com racismo | ${p(parseInt(DB.prof_counts['Nenhum']),655)}% sem prof.quilombola | ${p(parseInt(DB.mat_counts['Não']),655)}% sem materiais culturais | Ceará: ${p(DB.em_por_uf['Ceará'].sem,DB.em_por_uf['Ceará'].total)}% sem EM | Sul: ${p(DB.rac_por_reg['Sul'].sim,DB.rac_por_reg['Sul'].total)}% racismo nas escolas | Norte: ${p(DB.rac_por_reg['Norte'].sim,DB.rac_por_reg['Norte'].total)}% racismo | Estradas ruins: ${p(parseInt(DB.transp_cond['As estradas estão em boas condições']['Discordo']||0),parseInt(DB.transp_cond['As estradas estão em boas condições']['Discordo']||0)+parseInt(DB.transp_cond['As estradas estão em boas condições']['Concordo totalmente']||0)+parseInt(DB.transp_cond['As estradas estão em boas condições']['Concordo parcialmente']||0))}% | 72,4% municípios sem concurso para prof.quilombola.
-Avaliação qualidade EM: Ruim/Péssima=${parseInt(DB.aval_qualidade['Ruim']||0)+parseInt(DB.aval_qualidade['Péssima']||0)}/475.
-Responda em português com dados precisos. Máximo 3 parágrafos.
-PERGUNTA: ${msg}`;
-        const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},
-            body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:600,messages:[{role:'user',content:ctx}]})});
-        const data=await resp.json();
+const DEEPSEEK_API_KEY = "sk-64c631e9c44e427ebb051b26334f97c5";
+const DEEPSEEK_URL = "https://api.deepseek.com/chat/completions";
+
+function toggleChat() {
+    const w = document.getElementById('chatWin');
+    w.style.display = w.style.display === 'flex' ? 'none' : 'flex';
+}
+
+function addMsg(type, text) {
+    const m = document.getElementById('chatMsgs');
+    if (type === 'typing') {
+        const d = document.createElement('div');
+        d.className = 'typing';
+        d.id = 'typingInd';
+        d.innerHTML = '<span></span><span></span><span></span>';
+        m.appendChild(d);
+    } else {
+        const d = document.createElement('div');
+        d.className = `msg ${type}`;
+        d.textContent = text;
+        m.appendChild(d);
+    }
+    m.scrollTop = m.scrollHeight;
+}
+
+function removeTyping() {
+    const t = document.getElementById('typingInd');
+    if (t) t.remove();
+}
+
+function buildContext() {
+    const db = DB;
+    const totalEsc = db.total_escolas;
+    const totalForm = db.total_formularios;
+    const racismoTotal = db.racismo_total.sim;
+    const semProf = db.prof_counts['Nenhum'] || 0;
+    const semMat = db.mat_counts['Não'] || 0;
+    const semConsulta = db.gest_counts.consulta['Não'] || 0;
+    const desrespeito = db.des_counts['Sim'] || 0;
+    const pctRac = p(racismoTotal, totalEsc);
+    const pctSemProf = p(semProf, totalEsc);
+    const pctSemMat = p(semMat, totalEsc);
+    const pctSemConsulta = p(semConsulta, totalEsc);
+    const pctDesrespeito = p(desrespeito, totalEsc);
+
+    // Resumo por região
+    let regSummary = '';
+    const regs = ['Nordeste','Sudeste','Sul','Norte','Centro-Oeste'];
+    for (let reg of regs) {
+        const r = db.reg_agg[reg];
+        if (r) {
+            const racP = p(r.racismo, r.total);
+            const semProfP = p(r.prof_nenhum, r.total);
+            const semMatP = p(r.mat_nao, r.total);
+            const consNaoP = p(r.consulta_nao, r.total);
+            regSummary += `${reg}: ${r.total} escolas, racismo ${racP}%, sem prof. ${semProfP}%, sem materiais ${semMatP}%, sem consulta ${consNaoP}%. `;
+        }
+    }
+
+    // Top 5 UFs com mais racismo
+    const ufRac = Object.entries(db.rac_por_uf)
+        .map(([uf, d]) => ({ uf, pct: p(d.sim, d.total) }))
+        .sort((a,b) => b.pct - a.pct)
+        .slice(0,5)
+        .map(u => `${u.uf} (${u.pct}%)`)
+        .join(', ');
+
+    // Top 5 UFs sem prof.
+    const ufSemProf = Object.entries(db.prof_por_uf)
+        .map(([uf, d]) => ({ uf, pct: p(d['Nenhum'], d.total) }))
+        .sort((a,b) => b.pct - a.pct)
+        .slice(0,5)
+        .map(u => `${u.uf} (${u.pct}%)`)
+        .join(', ');
+
+    // Fechamento por região
+    const fechReg = Object.entries(db.fech_por_reg)
+        .map(([reg, d]) => `${reg}: ${p(d.sim, d.total)}%`)
+        .join('; ');
+
+    // Oferta EM
+    const semEM = db.em_cats['Não há oferta de Ensino Médio no território ou nas proximidades.'] || 0;
+    const pctSemEM = p(semEM, totalForm);
+
+    // Infra crítica
+    const infraItems = ['Salas de aula','Biblioteca','Laboratório de informática','Acesso à internet','Espaço para práticas culturais'];
+    const infraCrit = infraItems.map(item => {
+        const d = db.infra[item];
+        if (!d) return '';
+        const prec = parseInt(d['Precária']||0) + parseInt(d['Insuficiente']||0) + parseInt(d['Inexistente']||0);
+        const base = parseInt(d['Adequada']||0) + prec;
+        return `${item}: ${p(prec, base)}%`;
+    }).join('; ');
+
+    // --- CORRELAÇÕES (para a IA poder responder perguntas complexas) ---
+    // 1. Racismo × Sem professores (scatter) – resumo
+    const scatterData = CORR_DATA.rac_prof_scatter;
+    const scatterSummary = scatterData
+        .sort((a,b) => b.racismo - a.racismo)
+        .slice(0,5)
+        .map(d => `${d.uf} (racismo ${d.racismo}%, sem prof ${d.sem_prof}%)`)
+        .join('; ');
+    // 2. Oferta EM × Evasão – resumo
+    const emEvasao = CORR_DATA.em_ev_bars;
+    const emEvasaoSummary = emEvasao
+        .sort((a,b) => b.evasao - a.evasao)
+        .slice(0,5)
+        .map(d => `${d.uf} (sem EM ${d.sem_em}%, evasão ${d.evasao}%)`)
+        .join('; ');
+    // 3. Consulta comunitária × Racismo por região
+    const consRac = CORR_DATA.gestao_rac_reg;
+    const consRacSummary = Object.entries(consRac)
+        .map(([reg, d]) => `${reg}: sem consulta ${d.consulta_nao}%, racismo ${d.racismo}%`)
+        .join('; ');
+    // 4. Professores × Materiais × Racismo – resumo
+    const profMatRac = CORR_DATA.prof_mat_rac;
+    const profMatRacSummary = Object.entries(profMatRac)
+        .map(([cat, d]) => `${cat}: sem materiais ${d.sem_mat}%, com materiais ${d.com_mat}%, parcial ${d.parcial_mat}%`)
+        .join('; ');
+    // 5. Infraestrutura precária × Racismo por localização
+    const infraRacLoc = CORR_DATA.infra_rac_loc;
+    const infraRacLocSummary = Object.entries(infraRacLoc)
+        .map(([loc, d]) => `${loc}: infra precária ${d.infra_prec}%, lab precário ${d.lab_prec}%, racismo ${d.racismo}%`)
+        .join('; ');
+
+    return `Contexto da pesquisa CONAQ 2025-2026:
+Total: ${totalEsc} escolas, ${totalForm} formulários.
+Racismo: ${pctRac}% das escolas (${racismoTotal} escolas).
+Professores quilombolas: ${pctSemProf}% das escolas sem nenhum.
+Materiais didáticos: ${pctSemMat}% das escolas sem materiais culturais.
+Consulta comunitária: ${pctSemConsulta}% das escolas NÃO consultadas.
+Desrespeito cultural: ${pctDesrespeito}% das escolas.
+Fechamento/nucleação por região: ${fechReg}.
+Sem oferta de EM: ${pctSemEM}% dos territórios.
+Infraestrutura crítica: ${infraCrit}.
+Regiões: ${regSummary}.
+UFs com mais racismo: ${ufRac}.
+UFs com mais escolas sem prof. quilombola: ${ufSemProf}.
+
+CORRELAÇÕES OBSERVADAS (a partir dos dados):
+- Racismo vs. ausência de professores: ${scatterSummary}
+- Oferta de EM vs. evasão: ${emEvasaoSummary}
+- Consulta comunitária vs. racismo por região: ${consRacSummary}
+- Professores quilombolas vs. materiais vs. racismo: ${profMatRacSummary}
+- Infraestrutura precária vs. racismo por localização: ${infraRacLocSummary}
+
+Use essas correlações para responder perguntas que envolvam relações entre indicadores. Sempre cite números e percentuais quando possível.`;
+}
+
+async function sendChat() {
+    const inp = document.getElementById('chatInp');
+    const msg = inp.value.trim();
+    if (!msg) return;
+    inp.value = '';
+    addMsg('user', msg);
+    addMsg('typing', '');
+    try {
+        const context = buildContext();
+        const systemPrompt = `Você é Àgbá, assistente especialista na pesquisa "Panorama da Educação Escolar Quilombola" da CONAQ. Responda apenas com base nos dados fornecidos no contexto. O contexto contém informações agregadas por região, estado, indicadores gerais e correlações observadas. Se o usuário perguntar sobre um estado específico, consulte os dados de "uf_agg" ou as correlações fornecidas. Sempre que possível, cite números e percentuais. Seja ético, preciso e utilize linguagem acessível. Se a pergunta não puder ser respondida com os dados, informe que não há informação suficiente. Contexto: ${context}`;
+        const response = await fetch(DEEPSEEK_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${DEEPSEEK_API_KEY}`
+            },
+            body: JSON.stringify({
+                model: 'deepseek-chat',
+                messages: [
+                    { role: 'system', content: systemPrompt },
+                    { role: 'user', content: msg }
+                ],
+                temperature: 0.2,
+                max_tokens: 800
+            })
+        });
+        if (!response.ok) throw new Error('API error');
+        const data = await response.json();
+        const answer = data.choices[0].message.content;
         removeTyping();
-        addMsg('bot',data.content?.[0]?.text||'Não foi possível obter resposta.');
-    }catch(e){removeTyping();addMsg('bot','Erro ao conectar. Consulte os gráficos.');}
+        addMsg('bot', answer);
+    } catch (e) {
+        removeTyping();
+        addMsg('bot', 'Erro ao consultar a assistente. Tente novamente mais tarde.');
+    }
 }
-function addMsg(type,text){
-    const m=document.getElementById('chatMsgs');
-    if(type==='typing'){const d=document.createElement('div');d.className='typing';d.id='typingInd';d.innerHTML='<span></span><span></span><span></span>';m.appendChild(d);}
-    else{const d=document.createElement('div');d.className=`msg ${type}`;d.textContent=text;m.appendChild(d);}
-    m.scrollTop=m.scrollHeight;
-}
-function removeTyping(){const t=document.getElementById('typingInd');if(t)t.remove();}
 
 // ══════════════════════════════════════════════════════════════════
 // INIT
 // ══════════════════════════════════════════════════════════════════
-document.addEventListener('DOMContentLoaded',()=>{
+document.addEventListener('DOMContentLoaded', () => {
     const runSafe = (fn, name) => {
         try { fn(); }
         catch(e) { console.error('Erro em '+name+':', e); }
