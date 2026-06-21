@@ -95,23 +95,32 @@ tr:nth-child(even) td{background:#f8fafc}
 tr:hover td{background:#fef9e6}
 
 /* CHAT – estilo Àgbá */
-.cbtn{position:fixed;bottom:20px;right:20px;background:#1e4a3b;color:#fff;border:none;border-radius:60px;padding:9px 15px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.3);z-index:1000;display:flex;align-items:center;gap:6px;width:auto;font-size:.82rem}
-.cbtn:hover{background:#e67e22}
-.cwin{position:fixed;bottom:78px;right:20px;width:350px;max-width:calc(100vw - 40px);background:#fff;border-radius:18px;box-shadow:0 12px 28px rgba(0,0,0,.28);display:none;flex-direction:column;z-index:1001;overflow:hidden;font-size:.86rem}
-.chdr{background:#1e4a3b;color:#fff;padding:9px 13px;font-weight:700;display:flex;justify-content:space-between;align-items:center}
+.cbtn{position:fixed;bottom:20px;right:20px;background:#1e4a3b;color:#fff;border:none;border-radius:60px;padding:10px 16px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.3);z-index:1000;display:flex;align-items:center;gap:6px;width:auto;font-size:.85rem;transition:transform .15s ease, background .15s ease}
+.cbtn:hover{background:#e67e22;transform:scale(1.04)}
+.cbtn:active{transform:scale(0.97)}
+.cwin{position:fixed;bottom:84px;right:20px;width:380px;max-width:calc(100vw - 24px);height:520px;max-height:calc(100vh - 110px);background:#fff;border-radius:18px;box-shadow:0 12px 28px rgba(0,0,0,.28);display:none;flex-direction:column;z-index:1001;overflow:hidden;font-size:.88rem}
+.chdr{background:#1e4a3b;color:#fff;padding:11px 14px;font-weight:700;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
 .chdr span{cursor:pointer;font-size:1.2rem}
-.cmsgs{height:340px;overflow-y:auto;padding:10px;background:#fef9e6;display:flex;flex-direction:column;gap:6px}
-.msg{border-radius:12px;padding:6px 10px;max-width:88%;line-height:1.4}
+.cmsgs{flex:1;min-height:0;overflow-y:auto;padding:12px;background:#fef9e6;display:flex;flex-direction:column;gap:8px;scroll-behavior:smooth}
+.msg{border-radius:14px;padding:8px 12px;max-width:88%;line-height:1.45;white-space:pre-wrap;word-wrap:break-word;animation:msgIn .18s ease-out}
+@keyframes msgIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
 .msg.bot{background:#e9ecef;align-self:flex-start;border-bottom-left-radius:3px}
 .msg.user{background:#1e4a3b;color:#fff;align-self:flex-end;border-bottom-right-radius:3px}
-.cinp{display:flex;border-top:1px solid #ddd}
-.cinp input{flex:1;border:none;padding:9px 11px;font-size:.82rem;border-radius:0}
-.cinp button{width:auto;border-radius:0;background:#e67e22;padding:0 13px}
-.typing{display:flex;align-items:center;gap:4px;padding:7px 11px}
+.cinp{display:flex;border-top:1px solid #ddd;flex-shrink:0}
+.cinp input{flex:1;border:none;padding:11px 13px;font-size:.86rem;border-radius:0;outline:none}
+.cinp input:focus{background:#fafafa}
+.cinp button{width:auto;border-radius:0;background:#e67e22;padding:0 16px;transition:background .15s ease}
+.cinp button:hover{background:#cf6d1a}
+.typing{display:flex;align-items:center;gap:4px;padding:8px 12px;align-self:flex-start}
 .typing span{width:7px;height:7px;background:#aaa;border-radius:50%;animation:blink 1.4s infinite ease-in-out}
 .typing span:nth-child(2){animation-delay:.2s}
 .typing span:nth-child(3){animation-delay:.4s}
 @keyframes blink{0%,60%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-5px);opacity:1}}
+
+@media (max-width:560px){
+  .cwin{right:12px;left:12px;bottom:76px;width:auto;max-width:none;height:auto;max-height:calc(100vh - 100px)}
+  .cbtn{right:12px;bottom:12px;padding:9px 14px;font-size:.8rem}
+}
 
 /* MODAL */
 .modal{display:none;position:fixed;z-index:2000;left:0;top:0;width:100%;height:100%;background:rgba(0,0,0,.55);justify-content:center;align-items:center}
@@ -778,9 +787,9 @@ tr:hover td{background:#fef9e6}
 </div>
 
 <!-- CHAT -->
-<button class="cbtn" onclick="toggleChat()">💬 Àgbá (IA)</button>
+<button class="cbtn" onclick="toggleChat()">💬 Àgbá</button>
 <div class="cwin" id="chatWin">
-  <div class="chdr"><span>🧠 Àgbá - assistente com IA</span><span onclick="toggleChat()">✕</span></div>
+  <div class="chdr"><span>🧠 Àgbá</span><span onclick="toggleChat()">✕</span></div>
   <div class="cmsgs" id="chatMsgs">
     <div class="msg bot">Olá! Sou Àgbá, assistente da pesquisa de Educação Escolar Quilombola (CONAQ, 2025–2026). Pergunte sobre racismo, fechamento, oferta de Ensino Médio, infraestrutura, professores quilombolas e muito mais!</div>
   </div>
@@ -2505,14 +2514,19 @@ function popularFiltros() {
 }
 
 // ══════════════════════════════════════════════════════════════════
-// CHAT – DEEPSEEK (Àgbá) com contexto enriquecido contendo dados detalhados por UF
+// CHAT – ÀGBÁ: motor local baseado em palavras-chave (sem API externa)
 // ══════════════════════════════════════════════════════════════════
-const DEEPSEEK_API_KEY = "sk-64c631e9c44e427ebb051b26334f97c5";
-const DEEPSEEK_URL = "https://api.deepseek.com/chat/completions";
 
 function toggleChat() {
     const w = document.getElementById('chatWin');
-    w.style.display = w.style.display === 'flex' ? 'none' : 'flex';
+    const opening = w.style.display !== 'flex';
+    w.style.display = opening ? 'flex' : 'none';
+    if (opening) {
+        setTimeout(() => {
+            const inp = document.getElementById('chatInp');
+            if (inp) inp.focus();
+        }, 50);
+    }
 }
 
 function addMsg(type, text) {
@@ -2537,176 +2551,329 @@ function removeTyping() {
     if (t) t.remove();
 }
 
-function buildContext() {
-    const db = DB;
-    const totalEsc = db.total_escolas;
-    const totalForm = db.total_formularios;
-    const racismoTotal = db.racismo_total.sim;
-    const semProf = db.prof_counts['Nenhum'] || 0;
-    const semMat = db.mat_counts['Não'] || 0;
-    const semConsulta = db.gest_counts.consulta['Não'] || 0;
-    const desrespeito = db.des_counts['Sim'] || 0;
-    const pctRac = p(racismoTotal, totalEsc);
-    const pctSemProf = p(semProf, totalEsc);
-    const pctSemMat = p(semMat, totalEsc);
-    const pctSemConsulta = p(semConsulta, totalEsc);
-    const pctDesrespeito = p(desrespeito, totalEsc);
+// Normaliza texto (sem acento, minúsculo) para facilitar a busca por palavras-chave
+function norm(s) {
+    return s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+}
 
-    // Resumo por região
-    let regSummary = '';
-    const regs = ['Nordeste','Sudeste','Sul','Norte','Centro-Oeste'];
-    for (let reg of regs) {
-        const r = db.reg_agg[reg];
-        if (r) {
-            const racP = p(r.racismo, r.total);
-            const semProfP = p(r.prof_nenhum, r.total);
-            const semMatP = p(r.mat_nao, r.total);
-            const consNaoP = p(r.consulta_nao, r.total);
-            regSummary += `${reg}: ${r.total} escolas, racismo ${racP}%, sem professor quilombola ${semProfP}%, sem materiais ${semMatP}%, sem consulta ${consNaoP}%. `;
+// Tabela de nomes de UF/sigla → nome oficial, para identificar estado citado na pergunta
+const UF_ALIASES = {
+    'ac':'Acre','acre':'Acre','al':'Alagoas','alagoas':'Alagoas','ap':'Amapá','amapa':'Amapá',
+    'am':'Amazonas','amazonas':'Amazonas','ba':'Bahia','bahia':'Bahia','ce':'Ceará','ceara':'Ceará',
+    'df':'Distrito Federal','es':'Espírito Santo','espirito santo':'Espírito Santo','go':'Goiás','goias':'Goiás',
+    'ma':'Maranhão','maranhao':'Maranhão','mt':'Mato Grosso','mato grosso':'Mato Grosso',
+    'ms':'Mato Grosso do Sul','mato grosso do sul':'Mato Grosso do Sul','mg':'Minas Gerais','minas gerais':'Minas Gerais',
+    'pa':'Pará','para':'Pará','pb':'Paraíba','paraiba':'Paraíba','pr':'Paraná','parana':'Paraná',
+    'pe':'Pernambuco','pernambuco':'Pernambuco','pi':'Piauí','piaui':'Piauí',
+    'rj':'Rio de Janeiro','rio de janeiro':'Rio de Janeiro','rn':'Rio Grande do Norte','rio grande do norte':'Rio Grande do Norte',
+    'rs':'Rio Grande do Sul','rio grande do sul':'Rio Grande do Sul','ro':'Rondônia','rondonia':'Rondônia',
+    'rr':'Roraima','sc':'Santa Catarina','santa catarina':'Santa Catarina','sp':'São Paulo','sao paulo':'São Paulo',
+    'se':'Sergipe','sergipe':'Sergipe','to':'Tocantins','tocantins':'Tocantins'
+};
+// Região de cada UF — usada para responder "qual a região da Bahia?" e similares
+const UF_PARA_REGIAO = {
+    'Acre':'Norte','Amazonas':'Norte','Amapá':'Norte','Pará':'Norte','Rondônia':'Norte','Roraima':'Norte','Tocantins':'Norte',
+    'Alagoas':'Nordeste','Bahia':'Nordeste','Ceará':'Nordeste','Maranhão':'Nordeste','Paraíba':'Nordeste','Pernambuco':'Nordeste','Piauí':'Nordeste','Rio Grande do Norte':'Nordeste','Sergipe':'Nordeste',
+    'Distrito Federal':'Centro-Oeste','Goiás':'Centro-Oeste','Mato Grosso':'Centro-Oeste','Mato Grosso do Sul':'Centro-Oeste',
+    'Espírito Santo':'Sudeste','Minas Gerais':'Sudeste','Rio de Janeiro':'Sudeste','São Paulo':'Sudeste',
+    'Paraná':'Sul','Rio Grande do Sul':'Sul','Santa Catarina':'Sul'
+};
+const REGIOES = ['Nordeste','Norte','Centro-Oeste','Sudeste','Sul'];
+// Aliases para variações comuns de escrita (com/sem hífen, abreviações)
+const REGIAO_ALIASES = {
+    'norte':'Norte',
+    'nordeste':'Nordeste',
+    'centro-oeste':'Centro-Oeste','centro oeste':'Centro-Oeste','centrooeste':'Centro-Oeste',
+    'sudeste':'Sudeste',
+    'sul':'Sul'
+};
+
+// Memória de curto prazo: último estado/região mencionados, para perguntas de acompanhamento
+const agbaCtx = { uf: null, reg: null };
+
+function detectaUF(txtNorm) {
+    for (const [alias, nome] of Object.entries(UF_ALIASES)) {
+        const re = new RegExp(`(^|[^a-z])${alias}([^a-z]|$)`);
+        if (re.test(txtNorm)) return nome;
+    }
+    return null;
+}
+function detectaRegiao(txtNorm) {
+    // Ordena os aliases do mais longo para o mais curto, para que "nordeste" seja
+    // testado antes de "norte" e não haja colisão de substring.
+    const aliases = Object.keys(REGIAO_ALIASES).sort((a,b) => b.length - a.length);
+    for (const alias of aliases) {
+        const re = new RegExp(`(^|[^a-z])${alias.replace(/ /g,'[ -]?')}([^a-z]|$)`);
+        if (re.test(txtNorm)) return REGIAO_ALIASES[alias];
+    }
+    return null;
+}
+
+// Detecta se a pergunta pede explicitamente % ou número absoluto.
+function detectaModo(txtNorm) {
+    const pedePct = /(\bem\s*%|\bpercentual|\bporcentagem|\bporcento|\b%\b)/.test(txtNorm);
+    const pedeAbs = /(numero absoluto|numeros absolutos|valor absoluto|em numero|em numeros|quantidade exata|numero exato|em quantidade)/.test(txtNorm);
+    if (pedePct && !pedeAbs) return 'pct';
+    if (pedeAbs && !pedePct) return 'abs';
+    return 'ambos';
+}
+
+function fmt(modo, pct, abs, total) {
+    if (modo === 'pct') return `${pct}%`;
+    if (modo === 'abs') return `${abs} de ${total}`;
+    return `${pct}% (${abs} de ${total})`;
+}
+function fmtCompact(modo, pct, abs) {
+    if (modo === 'pct') return `${pct}%`;
+    if (modo === 'abs') return `${abs}`;
+    return `${pct}% (n=${abs})`;
+}
+
+// Sugestões de perguntas relacionadas, mostradas ao final das respostas para guiar o usuário
+function sugestoes(lista) {
+    return `\n\n💡 Você também pode perguntar: ${lista.map(s=>`"${s}"`).join(' · ')}`;
+}
+
+// Monta a resposta completa de um indicador agregado (uf_agg ou reg_agg), reutilizada
+// tanto para UF quanto para região — evita duplicação e garante cobertura total dos temas
+function respostaIndicadores(nome, d, modo, extra) {
+    let txt = `• Racismo relatado: ${fmt(modo, p(d.racismo,d.total), d.racismo, d.total)}\n` +
+              `• Sem nenhum professor quilombola: ${fmt(modo, p(d.prof_nenhum,d.total), d.prof_nenhum, d.total)}\n` +
+              `• Sem materiais didáticos quilombolas: ${fmt(modo, p(d.mat_nao,d.total), d.mat_nao, d.total)}\n` +
+              `• Comunidade não consultada na gestão: ${fmt(modo, p(d.consulta_nao,d.total), d.consulta_nao, d.total)}\n` +
+              `• Desrespeito à cultura relatado: ${fmt(modo, p(d.des_sim,d.total), d.des_sim, d.total)}`;
+    if (extra) txt += `\n` + extra;
+    return txt;
+}
+
+// Linha extra com fechamento e oferta de EM, a partir de corr_uf (só disponível por UF)
+function extraUF(uf) {
+    const corr = DB.corr_uf[uf] || {};
+    let linha = `• Oferta de Ensino Médio: ${corr.oferta_em_pct ?? 0}% dos territórios`;
+    return linha;
+}
+function extraReg(reg) {
+    const f = DB.fech_por_reg[reg];
+    const h = DB.heatmap_reg[reg] || {};
+    let linha = '';
+    if (f) linha += `• Fechamento/nucleação nos últimos 10 anos: ${p(f.sim,f.total)}% dos territórios\n`;
+    linha += `• Sem oferta de Ensino Médio: ${(h.sem_em_pct ?? 0)}% dos territórios`;
+    return linha;
+}
+
+// Motor de respostas: a ORDEM importa — checagens mais específicas (rankings, UF/região)
+// vêm antes das genéricas por palavra-chave, para não "roubar" a pergunta.
+function responderAgba(pergunta) {
+    const t = norm(pergunta);
+    const db = DB;
+    const modo = detectaModo(t);
+    const pedeRanking = /(qual|quais)\s+(o\s+|a\s+)?(estado|uf|regiao)/.test(t) || t.includes('ranking') || t.includes('top ');
+    const pedeMenos = /(menos|menor|menores)/.test(t);
+    const pedeMais  = /(mais|maior|maiores|pior|piores)/.test(t);
+
+    // ── A. "Qual a região da Bahia?" / pergunta de acompanhamento curta ──
+    if ((t.includes('qual') && t.includes('regiao')) && t.split(' ').length <= 5) {
+        if (agbaCtx.uf && UF_PARA_REGIAO[agbaCtx.uf]) {
+            const r = UF_PARA_REGIAO[agbaCtx.uf];
+            return `📍 ${agbaCtx.uf} fica na região ${r}.` + sugestoes([`Como está a região ${r}?`, `E o ${agbaCtx.uf} sobre infraestrutura?`]);
+        }
+        return `Para eu saber a região de qual estado, me diga o nome dele — ex: "Qual a região da Bahia?".`;
+    }
+
+    // ── B. RANKINGS — verificados antes de tudo para não cair em regra genérica ──
+    if (pedeRanking || ((pedeMais || pedeMenos) && (t.includes('professor') || t.includes('racismo') || t.includes('material') || t.includes('consulta')))) {
+        // Se a pergunta menciona uma região, o ranking é restrito aos estados dessa região
+        const regFiltro = detectaRegiao(t);
+        const filtraReg = (u) => !regFiltro || UF_PARA_REGIAO[u] === regFiltro;
+        const labelEscopo = regFiltro ? ` na região ${regFiltro}` : '';
+
+        // Ranking de professores quilombolas
+        if (t.includes('professor')) {
+            let top = Object.entries(db.prof_por_uf)
+                .filter(([u]) => filtraReg(u))
+                .map(([u,d]) => ({u, pct:p(d['Nenhum'],d.total), abs:d['Nenhum'], n:d.total}))
+                .filter(x=>x.n>=3);
+            if (!top.length) return `Não encontrei estados${labelEscopo} com dados suficientes (mínimo 3 escolas) para esse ranking.`;
+            top.sort((a,b)=> pedeMenos ? a.pct-b.pct : b.pct-a.pct);
+            top = top.slice(0,5);
+            const tituloSentido = pedeMenos ? 'menor' : 'maior';
+            agbaCtx.uf = top[0]?.u || agbaCtx.uf;
+            return `👩🏿‍🏫 Estados${labelEscopo} com ${tituloSentido} ${modo==='abs'?'número':'%'} de escolas SEM nenhum professor quilombola (mín. 3 escolas):\n` +
+                top.map((x,i)=>`${i+1}. ${x.u}: ${fmtCompact(modo, x.pct, x.abs)}`).join('\n') +
+                sugestoes([`Como está ${top[0].u}?`, `E sobre racismo?`]);
+        }
+
+        // Ranking de racismo
+        if (t.includes('racismo')) {
+            let top = Object.entries(db.rac_por_uf)
+                .filter(([u]) => filtraReg(u))
+                .map(([u,d]) => ({u, pct:p(d.sim,d.total), abs:d.sim, n:d.total}))
+                .filter(x=>x.n>=3);
+            if (!top.length) return `Não encontrei estados${labelEscopo} com dados suficientes (mínimo 3 escolas) para esse ranking.`;
+            top.sort((a,b)=> pedeMenos ? a.pct-b.pct : b.pct-a.pct);
+            top = top.slice(0,5);
+            const tituloSentido = pedeMenos ? 'menor' : 'maior';
+            agbaCtx.uf = top[0]?.u || agbaCtx.uf;
+            return `⚡ Estados${labelEscopo} com ${tituloSentido} ${modo==='abs'?'número':'%'} de escolas com relatos de racismo (mín. 3 escolas):\n` +
+                top.map((x,i)=>`${i+1}. ${x.u}: ${fmtCompact(modo, x.pct, x.abs)}`).join('\n') +
+                sugestoes([`Como está ${top[0].u}?`, `E sobre professores?`]);
+        }
+
+        // Ranking de materiais didáticos
+        if (t.includes('material')) {
+            let top = Object.entries(db.uf_agg)
+                .filter(([u]) => filtraReg(u))
+                .map(([u,d]) => ({u, pct:p(d.mat_nao,d.total), abs:d.mat_nao, n:d.total}))
+                .filter(x=>x.n>=3);
+            if (!top.length) return `Não encontrei estados${labelEscopo} com dados suficientes (mínimo 3 escolas) para esse ranking.`;
+            top.sort((a,b)=> pedeMenos ? a.pct-b.pct : b.pct-a.pct);
+            top = top.slice(0,5);
+            const tituloSentido = pedeMenos ? 'menor' : 'maior';
+            return `📖 Estados${labelEscopo} com ${tituloSentido} ${modo==='abs'?'número':'%'} de escolas SEM materiais didáticos quilombolas:\n` +
+                top.map((x,i)=>`${i+1}. ${x.u}: ${fmtCompact(modo, x.pct, x.abs)}`).join('\n');
+        }
+
+        // Ranking de consulta comunitária
+        if (t.includes('consulta')) {
+            let top = Object.entries(db.uf_agg)
+                .filter(([u]) => filtraReg(u))
+                .map(([u,d]) => ({u, pct:p(d.consulta_nao,d.total), abs:d.consulta_nao, n:d.total}))
+                .filter(x=>x.n>=3);
+            if (!top.length) return `Não encontrei estados${labelEscopo} com dados suficientes (mínimo 3 escolas) para esse ranking.`;
+            top.sort((a,b)=> pedeMenos ? a.pct-b.pct : b.pct-a.pct);
+            top = top.slice(0,5);
+            const tituloSentido = pedeMenos ? 'menor' : 'maior';
+            return `🏛️ Estados${labelEscopo} com ${tituloSentido} ${modo==='abs'?'número':'%'} de escolas onde a comunidade NÃO é consultada:\n` +
+                top.map((x,i)=>`${i+1}. ${x.u}: ${fmtCompact(modo, x.pct, x.abs)}`).join('\n');
+        }
+
+        // Se mencionou região mas não bateu em nenhum indicador específico,
+        // não cair direto na resposta de região (bloco D) sem dar a chance de refinar
+        if (regFiltro && !(t.includes('professor')||t.includes('racismo')||t.includes('material')||t.includes('consulta'))) {
+            // segue para os próximos blocos normalmente
         }
     }
 
-    // Dados detalhados por estado (UF)
-    let ufDataStr = '';
-    const ufKeys = Object.keys(db.uf_agg).sort();
-    for (const uf of ufKeys) {
+
+    // ── C. Pergunta sobre UF específica ──────────────────────────────
+    const uf = detectaUF(t);
+    if (uf && db.uf_agg[uf]) {
+        agbaCtx.uf = uf; agbaCtx.reg = UF_PARA_REGIAO[uf];
         const d = db.uf_agg[uf];
         const esc = db.esc_por_uf[uf] || 0;
         const form = db.form_por_uf[uf] || 0;
-        const racP = d.total ? (d.racismo / d.total * 100).toFixed(1) : 0;
-        const profP = d.total ? (d.prof_nenhum / d.total * 100).toFixed(1) : 0;
-        const matP = d.total ? (d.mat_nao / d.total * 100).toFixed(1) : 0;
-        const consP = d.total ? (d.consulta_nao / d.total * 100).toFixed(1) : 0;
-        // evasão e oferta EM vêm de corr_uf
-        const corr = db.corr_uf[uf] || {};
-        const evasaoP = corr.evasao_pct || 0;
-        const emP = corr.oferta_em_pct || 0;
-        ufDataStr += `${uf}: Escolas=${esc}, Formulários=${form}, Racismo=${racP}%, Sem professor quilombola=${profP}%, Sem materiais=${matP}%, Sem consulta=${consP}%, Oferta de Ensino Médio=${emP}%, Evasão=${evasaoP}%. `;
+        return `📍 ${uf} (região ${UF_PARA_REGIAO[uf]}): ${esc} escolas analisadas, ${form} formulários respondidos.\n` +
+               respostaIndicadores(uf, d, modo, extraUF(uf)) +
+               sugestoes([`Como está a região ${UF_PARA_REGIAO[uf]}?`, `Quais estados têm mais racismo?`, `${uf} em números absolutos`]);
     }
 
-    // Top 5 UFs com mais racismo
-    const ufRac = Object.entries(db.rac_por_uf)
-        .map(([uf, d]) => ({ uf, pct: p(d.sim, d.total) }))
-        .sort((a,b) => b.pct - a.pct)
-        .slice(0,5)
-        .map(u => `${u.uf} (${u.pct}%)`)
-        .join(', ');
+    // ── D. Pergunta sobre região específica ──────────────────────────
+    const reg = detectaRegiao(t);
+    if (reg && db.reg_agg[reg]) {
+        agbaCtx.reg = reg;
+        const r = db.reg_agg[reg];
+        return `📍 Região ${reg}: ${r.total} escolas analisadas.\n` +
+               respostaIndicadores(reg, r, modo, extraReg(reg)) +
+               sugestoes([`Quais estados do ${reg} têm mais racismo?`, `Como está o transporte no ${reg}?`]);
+    }
 
-    // Top 5 UFs sem prof.
-    const ufSemProf = Object.entries(db.prof_por_uf)
-        .map(([uf, d]) => ({ uf, pct: p(d['Nenhum'], d.total) }))
-        .sort((a,b) => b.pct - a.pct)
-        .slice(0,5)
-        .map(u => `${u.uf} (${u.pct}%)`)
-        .join(', ');
+    // ── E. Total geral / quantas escolas, formulários ────────────────
+    if (t.includes('quantas escolas') || t.includes('quantos formularios') || t.includes('total de escolas') || (t.includes('quantos') && t.includes('formulario'))) {
+        return `📚 A pesquisa reúne ${db.total_formularios} formulários e ${db.total_escolas} escolas analisadas individualmente, coletados entre 2025 e 2026.` +
+            sugestoes(['Quantas escolas têm racismo?', 'Como está a Bahia?']);
+    }
 
-    // Fechamento por região
-    const fechReg = Object.entries(db.fech_por_reg)
-        .map(([reg, d]) => `${reg}: ${p(d.sim, d.total)}%`)
-        .join('; ');
+    // ── F. Racismo geral ──────────────────────────────────────────────
+    if (t.includes('racismo')) {
+        const racT = db.racismo_total.sim;
+        const tipos = Object.entries(db.tipos_racismo).sort((a,b)=>b[1]-a[1]);
+        return `⚡ ${fmt(modo, p(racT,db.total_escolas), racT, db.total_escolas)} escolas relataram algum tipo de racismo.\n` +
+            `Tipos mais comuns: ` + tipos.map(([k,v])=>`${k} (${v})`).join(', ') + '.' +
+            sugestoes(['Quais estados têm mais racismo?', 'Racismo em %']);
+    }
 
-    // Oferta EM
-    const semEM = db.em_cats['Não há oferta de Ensino Médio no território ou nas proximidades.'] || 0;
-    const pctSemEM = p(semEM, totalForm);
+    // ── G. Professores quilombolas geral ──────────────────────────────
+    if (t.includes('professor')) {
+        const sem = db.prof_counts['Nenhum'] || 0;
+        return `👩🏿‍🏫 ${fmt(modo, p(sem,db.total_escolas), sem, db.total_escolas)} escolas não têm nenhum professor quilombola em seu quadro.` +
+            sugestoes(['Quais estados têm mais escolas sem professor?', 'Quais estados têm menos escolas sem professor?']);
+    }
 
-    // Infra crítica
-    const infraItems = ['Salas de aula','Biblioteca','Laboratório de informática','Acesso à internet','Espaço para práticas culturais'];
-    const infraCrit = infraItems.map(item => {
-        const d = db.infra[item];
-        if (!d) return '';
-        const prec = parseInt(d['Precária']||0) + parseInt(d['Insuficiente']||0) + parseInt(d['Inexistente']||0);
-        const base = parseInt(d['Adequada']||0) + prec;
-        return `${item}: ${p(prec, base)}%`;
-    }).join('; ');
+    // ── H. Materiais didáticos ──────────────────────────────────────
+    if (t.includes('material') || t.includes('materiais')) {
+        const sem = db.mat_counts['Não'] || 0;
+        return `📖 ${fmt(modo, p(sem,db.total_escolas), sem, db.total_escolas)} escolas não possuem materiais didáticos que abordem cultura e história quilombola.` +
+            sugestoes(['Quais estados têm mais escolas sem materiais?']);
+    }
 
-    // --- CORRELAÇÕES (para a IA poder responder perguntas complexas) ---
-    const scatterData = CORR_DATA.rac_prof_scatter;
-    const scatterSummary = scatterData
-        .sort((a,b) => b.racismo - a.racismo)
-        .slice(0,5)
-        .map(d => `${d.uf} (racismo ${d.racismo}%, sem prof ${d.sem_prof}%)`)
-        .join('; ');
-    const emEvasao = CORR_DATA.em_ev_bars;
-    const emEvasaoSummary = emEvasao
-        .sort((a,b) => b.evasao - a.evasao)
-        .slice(0,5)
-        .map(d => `${d.uf} (sem EM ${d.sem_em}%, evasão ${d.evasao}%)`)
-        .join('; ');
-    const consRac = CORR_DATA.gestao_rac_reg;
-    const consRacSummary = Object.entries(consRac)
-        .map(([reg, d]) => `${reg}: sem consulta ${d.consulta_nao}%, racismo ${d.racismo}%`)
-        .join('; ');
-    const profMatRac = CORR_DATA.prof_mat_rac;
-    const profMatRacSummary = Object.entries(profMatRac)
-        .map(([cat, d]) => `${cat}: sem materiais ${d.sem_mat}%, com materiais ${d.com_mat}%, parcial ${d.parcial_mat}%`)
-        .join('; ');
-    const infraRacLoc = CORR_DATA.infra_rac_loc;
-    const infraRacLocSummary = Object.entries(infraRacLoc)
-        .map(([loc, d]) => `${loc}: infra precária ${d.infra_prec}%, lab precário ${d.lab_prec}%, racismo ${d.racismo}%`)
-        .join('; ');
+    // ── I. Ensino Médio / evasão ──────────────────────────────────────
+    if (t.includes('ensino medio') || t.includes('evasao')) {
+        const semEM = db.em_cats['Não há oferta de Ensino Médio no território ou nas proximidades.'] || 0;
+        return `🎓 ${fmt(modo, p(semEM,db.total_formularios), semEM, db.total_formularios)} territórios não têm oferta de Ensino Médio dentro ou nas proximidades, principal causa de evasão escolar entre jovens quilombolas.` +
+            sugestoes(['Como está o Ensino Médio no meu estado?']);
+    }
 
-    return `Contexto da pesquisa CONAQ 2025-2026:
-Total: ${totalEsc} escolas, ${totalForm} formulários.
-Racismo: ${pctRac}% das escolas (${racismoTotal} escolas).
-Professores quilombolas: ${pctSemProf}% das escolas sem nenhum.
-Materiais didáticos: ${pctSemMat}% das escolas sem materiais culturais.
-Consulta comunitária: ${pctSemConsulta}% das escolas NÃO consultadas.
-Desrespeito cultural: ${pctDesrespeito}% das escolas.
-Fechamento/nucleação por região: ${fechReg}.
-Sem oferta de Ensino Médio: ${pctSemEM}% dos territórios.
-Infraestrutura crítica: ${infraCrit}.
-Regiões: ${regSummary}.
-UFs com mais racismo: ${ufRac}.
-Estados com mais escolas sem professor quilombola: ${ufSemProf}.
+    // ── J. Fechamento de escolas ──────────────────────────────────────
+    if (t.includes('fechamento') || t.includes('nucleacao') || t.includes('fechada')) {
+        const naoHouve = db.fech_cats['Não houve fechamento, nucleação ou tranferência de turmas nos últimos 10 anos.'] || 0;
+        const houve = db.total_formularios - naoHouve;
+        return `🏫 ${fmt(modo, p(houve,db.total_formularios), houve, db.total_formularios)} territórios relataram algum tipo de fechamento, nucleação ou transferência de turmas nos últimos 10 anos.` +
+            sugestoes(['Como está o fechamento de escolas na minha região?']);
+    }
 
-Dados detalhados por estado (UF):
-${ufDataStr}
+    // ── K. Consulta / gestão democrática ──────────────────────────────
+    if (t.includes('consulta') || t.includes('gestao')) {
+        const semCons = db.gest_counts.consulta['Não'] || 0;
+        return `🏛️ ${fmt(modo, p(semCons,db.total_escolas), semCons, db.total_escolas)} escolas relatam que a comunidade quilombola NÃO é consultada em decisões de gestão escolar.` +
+            sugestoes(['Quais estados têm menos consulta comunitária?']);
+    }
 
-CORRELAÇÕES OBSERVADAS (a partir dos dados):
-- Racismo vs. ausência de professores: ${scatterSummary}
-- Oferta de Ensino Médio vs. evasão: ${emEvasaoSummary}
-- Consulta comunitária vs. racismo por região: ${consRacSummary}
-- Professores quilombolas vs. materiais vs. racismo: ${profMatRacSummary}
-- Infraestrutura precária vs. racismo por localização: ${infraRacLocSummary}
+    // ── L. Transporte ────────────────────────────────────────────────
+    if (t.includes('transporte')) {
+        const discordo = db.transp_cond['As estradas estão em boas condições']?.['Discordo'] || 0;
+        const base = (db.transp_cond['As estradas estão em boas condições']?.['Concordo totalmente']||0) +
+                     (db.transp_cond['As estradas estão em boas condições']?.['Concordo parcialmente']||0) + discordo;
+        return `🚌 ${fmt(modo, p(discordo,base), discordo, base)} escolas com transporte escolar relatam que as estradas NÃO estão em boas condições.`;
+    }
 
-Use esses dados para responder perguntas sobre estados específicos e sobre correlações entre indicadores. Sempre cite números e percentuais quando possível.`;
+    // ── M. Infraestrutura ──────────────────────────────────────────────
+    if (t.includes('infraestrutura') || t.includes('infra')) {
+        const lab = db.infra['Laboratório de informática'] || {};
+        const inex = lab['Inexistente'] || 0;
+        return `🏗️ ${fmt(modo, p(inex,db.total_escolas), inex, db.total_escolas)} escolas não possuem laboratório de informática.`;
+    }
+
+    // ── N. Saudação ──────────────────────────────────────────────────
+    if (t.includes('oi') || t.includes('ola') || t.includes('bom dia') || t.includes('boa tarde') || t.includes('boa noite')) {
+        return `Olá! 👋 Sou o Àgbá, assistente da Central de Confluência de Dados da CONAQ. Posso responder perguntas sobre os dados da pesquisa — por exemplo: "Quantas escolas têm racismo?", "Como está a Bahia?", "Quais estados têm mais professores quilombolas?". Você também pode pedir "em %" ou "em números absolutos" para focar o formato da resposta.` +
+            sugestoes(['Como está a Bahia?', 'Quantas escolas têm racismo?', 'Quais estados têm mais professores?']);
+    }
+
+    // ── Fallback: nenhuma regra reconheceu a pergunta ───────────────────
+    return `Não encontrei essa informação diretamente nos dados. Posso ajudar com perguntas sobre: racismo, professores quilombolas, materiais didáticos, Ensino Médio/evasão, fechamento de escolas, consulta comunitária, transporte, infraestrutura, ou dados de um estado/região específico.` +
+        sugestoes(['Como está a Bahia?', 'Quais estados têm mais racismo?', 'Quantas escolas tem a pesquisa?']);
 }
 
-async function sendChat() {
+function sendChat() {
     const inp = document.getElementById('chatInp');
     const msg = inp.value.trim();
     if (!msg) return;
     inp.value = '';
+    inp.disabled = true;
     addMsg('user', msg);
     addMsg('typing', '');
-    try {
-        const context = buildContext();
-        const systemPrompt = `Você é Àgbá, assistente especialista na pesquisa "Panorama da Educação Escolar Quilombola" da CONAQ. Responda apenas com base nos dados fornecidos no contexto. O contexto contém informações agregadas por região, estado, indicadores gerais e correlações observadas. Se o usuário perguntar sobre um estado específico, consulte os dados detalhados por UF fornecidos. Sempre que possível, cite números e percentuais. Seja ético, preciso e utilize linguagem acessível. Se a pergunta não puder ser respondida com os dados, informe que não há informação suficiente. Contexto: ${context}`;
-        const response = await fetch(DEEPSEEK_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${DEEPSEEK_API_KEY}`
-            },
-            body: JSON.stringify({
-                model: 'deepseek-chat',
-                messages: [
-                    { role: 'system', content: systemPrompt },
-                    { role: 'user', content: msg }
-                ],
-                temperature: 0.2,
-                max_tokens: 800
-            })
-        });
-        if (!response.ok) throw new Error('API error');
-        const data = await response.json();
-        const answer = data.choices[0].message.content;
+    // Processamento local é instantâneo; atraso curto só para suavizar a transição visual
+    setTimeout(() => {
         removeTyping();
-        addMsg('bot', answer);
-    } catch (e) {
-        removeTyping();
-        addMsg('bot', 'Erro ao consultar a assistente. Tente novamente mais tarde.');
-    }
+        try {
+            const resposta = responderAgba(msg);
+            addMsg('bot', resposta);
+        } catch (e) {
+            addMsg('bot', 'Não consegui processar essa pergunta. Tente reformular ou pergunte sobre um indicador específico (racismo, professores, materiais, etc.).');
+        }
+        inp.disabled = false;
+        inp.focus();
+    }, 220);
 }
 
 // ══════════════════════════════════════════════════════════════════
