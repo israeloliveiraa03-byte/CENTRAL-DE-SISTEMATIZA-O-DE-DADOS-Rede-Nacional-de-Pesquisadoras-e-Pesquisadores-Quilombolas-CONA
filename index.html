@@ -2563,7 +2563,7 @@ const UF_ALIASES = {
     'df':'Distrito Federal','es':'Espírito Santo','espirito santo':'Espírito Santo','go':'Goiás','goias':'Goiás',
     'ma':'Maranhão','maranhao':'Maranhão','mt':'Mato Grosso','mato grosso':'Mato Grosso',
     'ms':'Mato Grosso do Sul','mato grosso do sul':'Mato Grosso do Sul','mg':'Minas Gerais','minas gerais':'Minas Gerais',
-    'pa':'Pará','para':'Pará','pb':'Paraíba','paraiba':'Paraíba','pr':'Paraná','parana':'Paraná',
+    'pa':'Pará','pb':'Paraíba','paraiba':'Paraíba','pr':'Paraná','parana':'Paraná',
     'pe':'Pernambuco','pernambuco':'Pernambuco','pi':'Piauí','piaui':'Piauí',
     'rj':'Rio de Janeiro','rio de janeiro':'Rio de Janeiro','rn':'Rio Grande do Norte','rio grande do norte':'Rio Grande do Norte',
     'rs':'Rio Grande do Sul','rio grande do sul':'Rio Grande do Sul','ro':'Rondônia','rondonia':'Rondônia',
@@ -2591,7 +2591,13 @@ const REGIAO_ALIASES = {
 // Memória de curto prazo: último estado/região mencionados, para perguntas de acompanhamento
 const agbaCtx = { uf: null, reg: null };
 
-function detectaUF(txtNorm) {
+function detectaUF(txtNorm, txtOriginal) {
+    // Checagem especial: "Pará" (com acento) só pode ser diferenciado da preposição
+    // "para" se o acento for preservado — por isso comparamos com o texto original aqui.
+    if (txtOriginal) {
+        const lowerOriginal = txtOriginal.toLowerCase();
+        if (/(^|[^a-zà-ú])pará([^a-zà-ú]|$)/.test(lowerOriginal)) return 'Pará';
+    }
     for (const [alias, nome] of Object.entries(UF_ALIASES)) {
         const re = new RegExp(`(^|[^a-z])${alias}([^a-z]|$)`);
         if (re.test(txtNorm)) return nome;
@@ -2663,100 +2669,127 @@ function extraReg(reg) {
 
 // Motor de respostas: a ORDEM importa — checagens mais específicas (rankings, UF/região)
 // vêm antes das genéricas por palavra-chave, para não "roubar" a pergunta.
+
+// Mapa de sinônimos → termo canônico usado nas checagens t.includes(...) abaixo.
+// Aplicado sobre o texto já normalizado (sem acento, minúsculo).
+const SINONIMOS = [
+    [/discriminacao racial|preconceito racial/g, 'racismo'],
+    [/participacao da comunidade|escuta da comunidade|gestao democratica/g, 'consulta'],
+    [/corpo docente quilombola|professores negros|falta de professor/g, 'professor'],
+    [/conteudo quilombola|livros sobre cultura quilombola/g, 'material'],
+    [/abandono escolar/g, 'evasao'],
+    [/escolas fechadas/g, 'fechamento'],
+    [/onibus escolar|condicoes do transporte/g, 'transporte'],
+    [/merenda quilombola|comida na escola/g, 'merenda'],
+    [/transferencia de turmas/g, 'fechamento'],
+    [/falta de respeito a tradicao/g, 'desrespeito'],
+];
+function aplicaSinonimos(txt) {
+    let r = txt;
+    SINONIMOS.forEach(([re, alvo]) => { r = r.replace(re, alvo); });
+    return r;
+}
+
 function responderAgba(pergunta) {
-    const t = norm(pergunta);
+    const t = aplicaSinonimos(norm(pergunta));
     const db = DB;
     const modo = detectaModo(t);
-    const pedeRanking = /(qual|quais)\s+(o\s+|a\s+)?(estado|uf|regiao)/.test(t) || t.includes('ranking') || t.includes('top ');
+    const pedeRanking = /(qual|quais)\s+(o\s+|a\s+|os\s+|as\s+)?(estado|uf|regiao)/.test(t) || t.includes('ranking') || t.includes('top ') || t.includes('quem tem') || t.includes('compare');
     const pedeMenos = /(menos|menor|menores)/.test(t);
     const pedeMais  = /(mais|maior|maiores|pior|piores)/.test(t);
 
-    // ── A. "Qual a região da Bahia?" / pergunta de acompanhamento curta ──
-    if ((t.includes('qual') && t.includes('regiao')) && t.split(' ').length <= 5) {
-        if (agbaCtx.uf && UF_PARA_REGIAO[agbaCtx.uf]) {
-            const r = UF_PARA_REGIAO[agbaCtx.uf];
-            return `📍 ${agbaCtx.uf} fica na região ${r}.` + sugestoes([`Como está a região ${r}?`, `E o ${agbaCtx.uf} sobre infraestrutura?`]);
+    // ── A. "Qual a região da Bahia?" / pergunta de acompanhamento, incluindo
+    //      perguntas compostas como "Como está Minas Gerais? Qual a região?" ──
+    if (t.includes('qual') && t.includes('regiao') && !pedeRanking) {
+        const ufNaPergunta = detectaUF(t, pergunta);
+        const ufAlvo = ufNaPergunta || agbaCtx.uf;
+        if (ufAlvo && UF_PARA_REGIAO[ufAlvo]) {
+            const r = UF_PARA_REGIAO[ufAlvo];
+            agbaCtx.uf = ufAlvo; agbaCtx.reg = r;
+            return `📍 ${ufAlvo} fica na região ${r}.` + sugestoes([`Como está a região ${r}?`, `E o ${ufAlvo} sobre infraestrutura?`]);
         }
         return `Para eu saber a região de qual estado, me diga o nome dele — ex: "Qual a região da Bahia?".`;
     }
 
     // ── B. RANKINGS — verificados antes de tudo para não cair em regra genérica ──
-    if (pedeRanking || ((pedeMais || pedeMenos) && (t.includes('professor') || t.includes('racismo') || t.includes('material') || t.includes('consulta')))) {
+    if (pedeRanking || ((pedeMais || pedeMenos) && (t.includes('professor') || t.includes('racismo') || t.includes('material') || t.includes('consulta') || t.includes('desrespeito') || t.includes('fechamento')))) {
         // Se a pergunta menciona uma região, o ranking é restrito aos estados dessa região
         const regFiltro = detectaRegiao(t);
         const filtraReg = (u) => !regFiltro || UF_PARA_REGIAO[u] === regFiltro;
         const labelEscopo = regFiltro ? ` na região ${regFiltro}` : '';
 
-        // Ranking de professores quilombolas
-        if (t.includes('professor')) {
-            let top = Object.entries(db.prof_por_uf)
-                .filter(([u]) => filtraReg(u))
-                .map(([u,d]) => ({u, pct:p(d['Nenhum'],d.total), abs:d['Nenhum'], n:d.total}))
-                .filter(x=>x.n>=3);
-            if (!top.length) return `Não encontrei estados${labelEscopo} com dados suficientes (mínimo 3 escolas) para esse ranking.`;
-            top.sort((a,b)=> pedeMenos ? a.pct-b.pct : b.pct-a.pct);
-            top = top.slice(0,5);
-            const tituloSentido = pedeMenos ? 'menor' : 'maior';
-            agbaCtx.uf = top[0]?.u || agbaCtx.uf;
-            return `👩🏿‍🏫 Estados${labelEscopo} com ${tituloSentido} ${modo==='abs'?'número':'%'} de escolas SEM nenhum professor quilombola (mín. 3 escolas):\n` +
-                top.map((x,i)=>`${i+1}. ${x.u}: ${fmtCompact(modo, x.pct, x.abs)}`).join('\n') +
-                sugestoes([`Como está ${top[0].u}?`, `E sobre racismo?`]);
-        }
+        // Tabela de temas rankeáveis: cada um sabe extrair (pct, abs, n) por UF
+        const RANKING_TEMAS = [
+            { kw:['professor'], emoji:'👩🏿‍🏫', titulo:'de escolas SEM nenhum professor quilombola',
+              fonte: () => Object.entries(db.prof_por_uf).map(([u,d])=>({u, abs:d['Nenhum']||0, n:d.total})) },
+            { kw:['racismo'], emoji:'⚡', titulo:'de escolas com relatos de racismo',
+              fonte: () => Object.entries(db.rac_por_uf).map(([u,d])=>({u, abs:d.sim||0, n:d.total})) },
+            { kw:['material'], emoji:'📖', titulo:'de escolas SEM materiais didáticos quilombolas',
+              fonte: () => Object.entries(db.uf_agg).map(([u,d])=>({u, abs:d.mat_nao||0, n:d.total})) },
+            { kw:['consulta'], emoji:'🏛️', titulo:'de escolas onde a comunidade NÃO é consultada',
+              fonte: () => Object.entries(db.uf_agg).map(([u,d])=>({u, abs:d.consulta_nao||0, n:d.total})) },
+            { kw:['desrespeito'], emoji:'🚫', titulo:'de escolas com desrespeito à cultura quilombola',
+              fonte: () => Object.entries(db.uf_agg).map(([u,d])=>({u, abs:d.des_sim||0, n:d.total})) },
+        ];
 
-        // Ranking de racismo
-        if (t.includes('racismo')) {
-            let top = Object.entries(db.rac_por_uf)
-                .filter(([u]) => filtraReg(u))
-                .map(([u,d]) => ({u, pct:p(d.sim,d.total), abs:d.sim, n:d.total}))
-                .filter(x=>x.n>=3);
-            if (!top.length) return `Não encontrei estados${labelEscopo} com dados suficientes (mínimo 3 escolas) para esse ranking.`;
-            top.sort((a,b)=> pedeMenos ? a.pct-b.pct : b.pct-a.pct);
-            top = top.slice(0,5);
-            const tituloSentido = pedeMenos ? 'menor' : 'maior';
-            agbaCtx.uf = top[0]?.u || agbaCtx.uf;
-            return `⚡ Estados${labelEscopo} com ${tituloSentido} ${modo==='abs'?'número':'%'} de escolas com relatos de racismo (mín. 3 escolas):\n` +
-                top.map((x,i)=>`${i+1}. ${x.u}: ${fmtCompact(modo, x.pct, x.abs)}`).join('\n') +
-                sugestoes([`Como está ${top[0].u}?`, `E sobre professores?`]);
-        }
-
-        // Ranking de materiais didáticos
-        if (t.includes('material')) {
-            let top = Object.entries(db.uf_agg)
-                .filter(([u]) => filtraReg(u))
-                .map(([u,d]) => ({u, pct:p(d.mat_nao,d.total), abs:d.mat_nao, n:d.total}))
-                .filter(x=>x.n>=3);
-            if (!top.length) return `Não encontrei estados${labelEscopo} com dados suficientes (mínimo 3 escolas) para esse ranking.`;
-            top.sort((a,b)=> pedeMenos ? a.pct-b.pct : b.pct-a.pct);
-            top = top.slice(0,5);
-            const tituloSentido = pedeMenos ? 'menor' : 'maior';
-            return `📖 Estados${labelEscopo} com ${tituloSentido} ${modo==='abs'?'número':'%'} de escolas SEM materiais didáticos quilombolas:\n` +
-                top.map((x,i)=>`${i+1}. ${x.u}: ${fmtCompact(modo, x.pct, x.abs)}`).join('\n');
-        }
-
-        // Ranking de consulta comunitária
-        if (t.includes('consulta')) {
-            let top = Object.entries(db.uf_agg)
-                .filter(([u]) => filtraReg(u))
-                .map(([u,d]) => ({u, pct:p(d.consulta_nao,d.total), abs:d.consulta_nao, n:d.total}))
-                .filter(x=>x.n>=3);
-            if (!top.length) return `Não encontrei estados${labelEscopo} com dados suficientes (mínimo 3 escolas) para esse ranking.`;
-            top.sort((a,b)=> pedeMenos ? a.pct-b.pct : b.pct-a.pct);
-            top = top.slice(0,5);
-            const tituloSentido = pedeMenos ? 'menor' : 'maior';
-            return `🏛️ Estados${labelEscopo} com ${tituloSentido} ${modo==='abs'?'número':'%'} de escolas onde a comunidade NÃO é consultada:\n` +
-                top.map((x,i)=>`${i+1}. ${x.u}: ${fmtCompact(modo, x.pct, x.abs)}`).join('\n');
-        }
-
-        // Se mencionou região mas não bateu em nenhum indicador específico,
-        // não cair direto na resposta de região (bloco D) sem dar a chance de refinar
-        if (regFiltro && !(t.includes('professor')||t.includes('racismo')||t.includes('material')||t.includes('consulta'))) {
-            // segue para os próximos blocos normalmente
+        for (const tema of RANKING_TEMAS) {
+            if (tema.kw.some(k => t.includes(k))) {
+                let top = tema.fonte().filter(x => filtraReg(x.u) && x.n >= 3)
+                    .map(x => ({...x, pct: p(x.abs, x.n)}));
+                if (!top.length) return `Não encontrei estados${labelEscopo} com dados suficientes (mínimo 3 escolas) para esse ranking.`;
+                top.sort((a,b)=> pedeMenos ? a.pct-b.pct : b.pct-a.pct);
+                top = top.slice(0,5);
+                const tituloSentido = pedeMenos ? 'menor' : 'maior';
+                agbaCtx.uf = top[0]?.u || agbaCtx.uf;
+                return `${tema.emoji} Estados${labelEscopo} com ${tituloSentido} ${modo==='abs'?'número':'%'} ${tema.titulo} (mín. 3 escolas):\n` +
+                    top.map((x,i)=>`${i+1}. ${x.u}: ${fmtCompact(modo, x.pct, x.abs)}`).join('\n') +
+                    sugestoes([`Como está ${top[0].u}?`, `Compare com outro indicador`]);
+            }
         }
     }
 
 
+    // ── C0. Indicador específico + UF/região juntos (ex: "biblioteca em Tocantins") ──
+    // Verificado ANTES do resumo geral de UF/região para não "engolir" a pergunta fina.
+    {
+        const ufMencionada = detectaUF(t, pergunta);
+        const regMencionada = detectaRegiao(t);
+        const temIndicadorFino = /(biblioteca|laboratorio|internet|agua potavel|acessibilidade|espaco cultural|espaco esportivo|sala de aula|salas de aula|cozinha|refeitorio|alimentacao|merenda|desrespeito|estrada)/.test(t);
+        if ((ufMencionada || regMencionada) && temIndicadorFino) {
+            // Reusa as funções de indicador fino mais abaixo, mas filtrando pelo escopo: aqui
+            // calculamos diretamente a partir de SD (slices por UF/região) quando disponível,
+            // ou avisamos que o detalhamento fino só está disponível nacionalmente.
+            const escopoNome = ufMencionada || regMencionada;
+            const escopoTipo = ufMencionada ? 'uf' : 'reg';
+            const sliceKey = escopoTipo === 'uf' ? `uf:${escopoNome}` : `reg:${escopoNome}`;
+            const slice = (typeof SD !== 'undefined' && SD.escola_agg) ? SD.escola_agg[sliceKey] : null;
+            if (slice && slice.infra) {
+                const TEMA_MAP = {
+                    'biblioteca':'Biblioteca', 'laboratorio':'Laboratório de informática',
+                    'internet':'Acesso à internet', 'agua potavel':'Abastecimento de água potável',
+                    'acessibilidade':'Acessibilidade arquitetônica', 'espaco cultural':'Espaço para práticas culturais',
+                    'espaco esportivo':'Espaço para práticas esportivas', 'sala de aula':'Salas de aula',
+                    'salas de aula':'Salas de aula', 'cozinha':'Cozinha', 'refeitorio':'Refeitório',
+                };
+                for (const [kw, chave] of Object.entries(TEMA_MAP)) {
+                    if (t.includes(kw)) {
+                        const d = slice.infra[chave] || {};
+                        const ruim = (d['Inexistente']||0)+(d['Precária']||0)+(d['Insuficiente']||0);
+                        const total = slice.total || 0;
+                        if (escopoTipo === 'uf') { agbaCtx.uf = escopoNome; agbaCtx.reg = UF_PARA_REGIAO[escopoNome]; }
+                        else agbaCtx.reg = escopoNome;
+                        return `📍 ${escopoNome} — ${chave}: ${fmt(modo, p(ruim,total), ruim, total)} escolas com infraestrutura inexistente, precária ou insuficiente.` +
+                            sugestoes([`Como está ${escopoNome} em geral?`, `Como está o racismo em ${escopoNome}?`]);
+                    }
+                }
+            }
+            // Sem slice detalhado disponível: orienta o usuário e mostra o dado nacional do tema
+            // (cai naturalmente para os blocos de indicador fino mais abaixo, que respondem em nível nacional)
+        }
+    }
+
     // ── C. Pergunta sobre UF específica ──────────────────────────────
-    const uf = detectaUF(t);
+    const uf = detectaUF(t, pergunta);
     if (uf && db.uf_agg[uf]) {
         agbaCtx.uf = uf; agbaCtx.reg = UF_PARA_REGIAO[uf];
         const d = db.uf_agg[uf];
@@ -2765,6 +2798,12 @@ function responderAgba(pergunta) {
         return `📍 ${uf} (região ${UF_PARA_REGIAO[uf]}): ${esc} escolas analisadas, ${form} formulários respondidos.\n` +
                respostaIndicadores(uf, d, modo, extraUF(uf)) +
                sugestoes([`Como está a região ${UF_PARA_REGIAO[uf]}?`, `Quais estados têm mais racismo?`, `${uf} em números absolutos`]);
+    }
+    if (uf && !db.uf_agg[uf]) {
+        const r = UF_PARA_REGIAO[uf];
+        return `📍 ${uf} não teve nenhuma escola analisada nesta edição da pesquisa (2025–2026).` +
+            (r ? ` Posso falar sobre outros estados da região ${r}, ou sobre a região como um todo.` : '') +
+            sugestoes(r ? [`Como está a região ${r}?`] : ['Como está a Bahia?', 'Quais estados têm mais racismo?']);
     }
 
     // ── D. Pergunta sobre região específica ──────────────────────────
@@ -2777,8 +2816,39 @@ function responderAgba(pergunta) {
                sugestoes([`Quais estados do ${reg} têm mais racismo?`, `Como está o transporte no ${reg}?`]);
     }
 
-    // ── E. Total geral / quantas escolas, formulários ────────────────
-    if (t.includes('quantas escolas') || t.includes('quantos formularios') || t.includes('total de escolas') || (t.includes('quantos') && t.includes('formulario'))) {
+    // ── D2. Correlação entre dois indicadores ────────────────────────
+    if (t.includes('correlacao') || t.includes('relacao entre') || t.includes('relacionado') || /\b(causa|influencia)\b/.test(t) || t.includes('tambem tem mais') || t.includes('ligacao entre')) {
+        const PARES_CONHECIDOS = [
+            { chaves: ['racismo','professor'], nome1:'racismo', nome2:'ausência de professores quilombolas',
+              dados: CORR_DATA.rac_prof_scatter, campo1:'racismo', campo2:'sem_prof',
+              texto: 'Estados com mais escolas sem professor quilombola tendem a relatar mais racismo' },
+            { chaves: ['ensino_medio','evasao'], nome1:'falta de Ensino Médio', nome2:'evasão escolar',
+              dados: CORR_DATA.em_ev_bars, campo1:'sem_em', campo2:'evasao',
+              texto: 'Estados com menos oferta de Ensino Médio tendem a ter mais evasão escolar' },
+        ];
+        for (const par of PARES_CONHECIDOS) {
+            if (par.chaves.every(k => t.includes(k.replace('_',' ')) || t.includes(k))) {
+                const xs = par.dados.map(d => d[par.campo1]);
+                const ys = par.dados.map(d => d[par.campo2]);
+                const n = xs.length;
+                const mx = xs.reduce((a,b)=>a+b,0)/n, my = ys.reduce((a,b)=>a+b,0)/n;
+                let num=0, dx2=0, dy2=0;
+                for (let i=0;i<n;i++){ const dx=xs[i]-mx, dy=ys[i]-my; num+=dx*dy; dx2+=dx*dx; dy2+=dy*dy; }
+                const r = num/Math.sqrt(dx2*dy2);
+                const forca = Math.abs(r) > 0.5 ? 'forte' : Math.abs(r) > 0.3 ? 'moderada' : 'fraca';
+                const sentido = r > 0 ? 'positiva (andam juntos)' : 'negativa (um sobe quando o outro desce)';
+                return `📊 Correlação entre ${par.nome1} e ${par.nome2} (entre os ${n} estados com dados): coeficiente de ${r.toFixed(2)} — correlação ${forca} e ${sentido}.\n${par.texto}, segundo os dados desta pesquisa.` +
+                    sugestoes(['Quais estados têm mais racismo?', 'Como está minha região?']);
+            }
+        }
+        // Não achou um par pré-calculado, mas a pergunta claramente pede correlação
+        return `📊 Tenho correlações calculadas para: racismo × ausência de professores quilombolas, e falta de Ensino Médio × evasão escolar. Para outros cruzamentos, consulte os gráficos da seção "Correlações Críticas" no painel.` +
+            sugestoes(['Existe relação entre racismo e professores?', 'Existe relação entre ensino médio e evasão?']);
+    }
+
+    // ── E. Total geral / quantas escolas, formulários (NÃO captura "reserva de vagas" etc.) ──
+    if ((t.includes('quantas escolas') || t.includes('quantos formularios') || t.includes('total de escolas') || (t.includes('quantos') && t.includes('formulario')))
+        && !/(reserva de vaga|concurso|diretriz|laboratorio|biblioteca|internet|agua potavel|acessibilidade|cozinha|refeitorio|sala de aula|merenda|alimentacao|desrespeito|conselho|gestor)/.test(t)) {
         return `📚 A pesquisa reúne ${db.total_formularios} formulários e ${db.total_escolas} escolas analisadas individualmente, coletados entre 2025 e 2026.` +
             sugestoes(['Quantas escolas têm racismo?', 'Como está a Bahia?']);
     }
@@ -2821,14 +2891,30 @@ function responderAgba(pergunta) {
             sugestoes(['Como está o fechamento de escolas na minha região?']);
     }
 
-    // ── K. Consulta / gestão democrática ──────────────────────────────
+    // ── K. Consulta / gestão democrática (3 sub-indicadores) ──────────
+    if (t.includes('escolha de gestor') || t.includes('escolha dos gestor')) {
+        const semGest = db.gest_counts.gestores['Não'] || 0;
+        return `🏛️ ${fmt(modo, p(semGest,db.total_escolas), semGest, db.total_escolas)} escolas relatam que a comunidade NÃO é ouvida na escolha de gestores escolares.` +
+            sugestoes(['Como está a consulta comunitária?', 'Como está o conselho escolar?']);
+    }
+    if (t.includes('conselho escolar') || t.includes('conselho')) {
+        const semCons = db.gest_counts.conselho['Não'] || 0;
+        return `🏛️ ${fmt(modo, p(semCons,db.total_escolas), semCons, db.total_escolas)} escolas relatam que a comunidade NÃO participa do conselho escolar.` +
+            sugestoes(['Como está a consulta comunitária?']);
+    }
     if (t.includes('consulta') || t.includes('gestao')) {
         const semCons = db.gest_counts.consulta['Não'] || 0;
         return `🏛️ ${fmt(modo, p(semCons,db.total_escolas), semCons, db.total_escolas)} escolas relatam que a comunidade quilombola NÃO é consultada em decisões de gestão escolar.` +
             sugestoes(['Quais estados têm menos consulta comunitária?']);
     }
 
-    // ── L. Transporte ────────────────────────────────────────────────
+    // ── L. Transporte (geral + condição específica das estradas) ──────
+    if (t.includes('estrada')) {
+        const d = db.transp_cond['As estradas estão em boas condições'] || {};
+        const discordo = d['Discordo'] || 0;
+        const base = (d['Concordo totalmente']||0) + (d['Concordo parcialmente']||0) + discordo;
+        return `🛣️ ${fmt(modo, p(discordo,base), discordo, base)} escolas com transporte escolar relatam que as estradas NÃO estão em boas condições.`;
+    }
     if (t.includes('transporte')) {
         const discordo = db.transp_cond['As estradas estão em boas condições']?.['Discordo'] || 0;
         const base = (db.transp_cond['As estradas estão em boas condições']?.['Concordo totalmente']||0) +
@@ -2836,21 +2922,126 @@ function responderAgba(pergunta) {
         return `🚌 ${fmt(modo, p(discordo,base), discordo, base)} escolas com transporte escolar relatam que as estradas NÃO estão em boas condições.`;
     }
 
-    // ── M. Infraestrutura ──────────────────────────────────────────────
+    // ── M. Infraestrutura — tabela com todos os itens individuais ─────
+    // Cada item de db.infra tem categorias: Adequada / Insuficiente / Precária / Inexistente / Não sei / Não se aplica
+    const INFRA_TEMAS = [
+        { kw: ['laboratorio','lab de informatica','lab. de informatica'], chave: 'Laboratório de informática', emoji: '💻', desc: 'não possuem laboratório de informática' },
+        { kw: ['biblioteca'], chave: 'Biblioteca', emoji: '📚', desc: 'não possuem biblioteca' },
+        { kw: ['internet','acesso a internet','wifi'], chave: 'Acesso à internet', emoji: '🌐', desc: 'não possuem acesso à internet adequado' },
+        { kw: ['agua potavel','agua'], chave: 'Abastecimento de água potável', emoji: '🚰', desc: 'não possuem abastecimento de água potável adequado' },
+        { kw: ['acessibilidade'], chave: 'Acessibilidade arquitetônica', emoji: '♿', desc: 'não possuem acessibilidade arquitetônica adequada' },
+        { kw: ['espaco cultural','pratica cultural','praticas culturais'], chave: 'Espaço para práticas culturais', emoji: '🎭', desc: 'não possuem espaço para práticas culturais' },
+        { kw: ['espaco esportivo','pratica esportiva','praticas esportivas','quadra'], chave: 'Espaço para práticas esportivas', emoji: '⚽', desc: 'não possuem espaço para práticas esportivas' },
+        { kw: ['sala de aula','salas de aula'], chave: 'Salas de aula', emoji: '🪑', desc: 'não possuem salas de aula adequadas' },
+        { kw: ['cozinha'], chave: 'Cozinha', emoji: '🍳', desc: 'não possuem cozinha adequada' },
+        { kw: ['refeitorio'], chave: 'Refeitório', emoji: '🍽️', desc: 'não possuem refeitório adequado' },
+    ];
+    for (const tema of INFRA_TEMAS) {
+        if (tema.kw.some(k => t.includes(k))) {
+            const d = db.infra[tema.chave] || {};
+            const ruim = (d['Inexistente']||0) + (d['Precária']||0) + (d['Insuficiente']||0);
+            return `${tema.emoji} ${fmt(modo, p(ruim,db.total_escolas), ruim, db.total_escolas)} escolas ${tema.desc} (inexistente, precária ou insuficiente).` +
+                sugestoes(['Como está a infraestrutura geral?', 'Quais estados têm mais escolas sem racismo?']);
+        }
+    }
+    // Infraestrutura geral (sem item específico) — usa laboratório como indicador-síntese
     if (t.includes('infraestrutura') || t.includes('infra')) {
         const lab = db.infra['Laboratório de informática'] || {};
         const inex = lab['Inexistente'] || 0;
-        return `🏗️ ${fmt(modo, p(inex,db.total_escolas), inex, db.total_escolas)} escolas não possuem laboratório de informática.`;
+        return `🏗️ ${fmt(modo, p(inex,db.total_escolas), inex, db.total_escolas)} escolas não possuem laboratório de informática.\n` +
+            `Você pode perguntar também sobre itens específicos: biblioteca, internet, água potável, acessibilidade, salas de aula, cozinha, refeitório, espaço cultural ou esportivo.` +
+            sugestoes(['Como está a biblioteca?', 'Como está o acesso à internet?']);
     }
 
-    // ── N. Saudação ──────────────────────────────────────────────────
-    if (t.includes('oi') || t.includes('ola') || t.includes('bom dia') || t.includes('boa tarde') || t.includes('boa noite')) {
+    // ── N. Alimentação escolar / merenda ───────────────────────────────
+    if (t.includes('alimentacao') || t.includes('merenda')) {
+        const d = db.alim['A alimentação respeita a cultura alimentar quilombola'] || {};
+        const discordo = d['Discordo'] || 0;
+        const base = (d['Concordo totalmente']||0) + (d['Concordo parcialmente']||0) + discordo;
+        return `🍲 ${fmt(modo, p(discordo,base), discordo, base)} escolas relatam que a alimentação escolar NÃO respeita a cultura alimentar quilombola.` +
+            sugestoes(['Como está a infraestrutura da cozinha?']);
+    }
+
+    // ── O. Desrespeito à cultura (separado de racismo) ──────────────────
+    if (t.includes('desrespeito')) {
+        const sim = db.des_counts['Sim'] || 0;
+        return `🚫 ${fmt(modo, p(sim,db.total_escolas), sim, db.total_escolas)} escolas relataram situações de desrespeito à cultura e tradições quilombolas por parte da equipe escolar.` +
+            sugestoes(['Como está o racismo nas escolas?', 'Como está a relação escola-comunidade?']);
+    }
+
+    // ── P. Relação escola-comunidade ────────────────────────────────────
+    if (t.includes('relacao escola') || (t.includes('relacao') && t.includes('comunidade'))) {
+        const ruim = (db.rel_counts['Ruim']||0) + (db.rel_counts['Regular']||0);
+        return `🤝 ${fmt(modo, p(ruim,db.total_escolas), ruim, db.total_escolas)} escolas têm relação Ruim ou Regular entre profissionais da escola e a comunidade quilombola.` +
+            sugestoes(['Como está o desrespeito à cultura?']);
+    }
+
+    // ── Q. Diretrizes curriculares municipais ───────────────────────────
+    if (t.includes('diretriz')) {
+        const semDoc = db.dir_counts['Não há nenhum documento oficial do município que regulamente ou oriente sobre a implementação da Educação Escolar Quilombola.'] || 0;
+        return `📋 ${fmt(modo, p(semDoc,db.total_formularios), semDoc, db.total_formularios)} municípios não possuem nenhum documento oficial (diretrizes, lei ou orientação curricular) sobre Educação Escolar Quilombola.` +
+            sugestoes(['Como está o concurso para professores?']);
+    }
+
+    // ── R. Concurso / reserva de vagas para professores quilombolas ────
+    if (t.includes('reserva de vaga') || t.includes('concurso')) {
+        const semMecanismo = db.conc_counts['Não'] || 0;
+        return `📝 ${fmt(modo, p(semMecanismo,db.total_formularios), semMecanismo, db.total_formularios)} municípios não possuem concurso específico, reserva de vagas ou pontuação extra para professores(as) quilombolas.` +
+            sugestoes(['Como está a presença de professores quilombolas?']);
+    }
+
+    // ── N. Pergunta sobre o próprio assistente / ajuda ──────────────────
+    if (t.includes('quem e voce') || t.includes('o que voce faz') || t === 'ajuda' || t.includes('o que posso perguntar') || t.includes('como voce funciona') || t.includes('o que voce e')) {
+        return `🧠 Sou o Àgbá, assistente da Central de Confluência de Dados da CONAQ. Leio diretamente os dados da pesquisa "Panorama da Educação Escolar Quilombola" (2025–2026) e respondo perguntas sobre eles — sem depender de inteligência artificial externa.\n\n` +
+            `Posso falar sobre: racismo, professores quilombolas, materiais didáticos, Ensino Médio/evasão, fechamento de escolas, consulta comunitária e gestão, transporte, infraestrutura (biblioteca, laboratório, internet, água, acessibilidade etc.), alimentação escolar, diretrizes curriculares, concursos para professores, e dados por estado ou região.\n\n` +
+            `Também entendo rankings ("quais estados têm mais/menos..."), formato de resposta ("em %" ou "em números absolutos") e perguntas de acompanhamento sobre o último estado/região mencionado.` +
+            sugestoes(['Como está a Bahia?', 'Quais estados têm mais racismo?', 'Como está a infraestrutura?']);
+    }
+
+    // ── O. Saudação ──────────────────────────────────────────────────
+    if (t.includes('oi') || t.includes('ola') || t.includes('bom dia') || t.includes('boa tarde') || t.includes('boa noite') || /^e ai/.test(t)) {
         return `Olá! 👋 Sou o Àgbá, assistente da Central de Confluência de Dados da CONAQ. Posso responder perguntas sobre os dados da pesquisa — por exemplo: "Quantas escolas têm racismo?", "Como está a Bahia?", "Quais estados têm mais professores quilombolas?". Você também pode pedir "em %" ou "em números absolutos" para focar o formato da resposta.` +
             sugestoes(['Como está a Bahia?', 'Quantas escolas têm racismo?', 'Quais estados têm mais professores?']);
     }
 
+    // ── P. Despedida / agradecimento ────────────────────────────────────
+    if (/(obrigad|valeu|tchau|ate mais|ate logo|falou|flw)/.test(t)) {
+        return `Disponha! 🙏 Fico à disposição sempre que quiser consultar os dados da pesquisa. Até a próxima!`;
+    }
+
+    // ── Q. Perguntas institucionais sobre a pesquisa/CONAQ ──────────────
+    if (t.includes('quem fez') || t.includes('quem realizou') || (t.includes('conaq') && (t.includes('o que') || t.includes('quem')))) {
+        return `🤝 A pesquisa foi conduzida pela Rede Nacional de Pesquisadoras e Pesquisadores Quilombolas, vinculada ao Coletivo Nacional de Educação da CONAQ (Coordenação Nacional de Articulação das Comunidades Negras Rurais Quilombolas).` +
+            sugestoes(['O que significa quilombola?', 'Qual a metodologia da pesquisa?']);
+    }
+    if (t.includes('metodologia') || (t.includes('como') && t.includes('coletad'))) {
+        return `📐 Os dados foram coletados por meio de formulários online respondidos por lideranças e representantes de comunidades quilombolas entre 2025 e 2026, cobrindo informações sobre território, infraestrutura escolar, corpo docente, racismo, gestão e mais. Veja a Nota Metodológica completa no topo da página para mais detalhes.`;
+    }
+    if (/confiave/.test(t)) {
+        return `✅ Os dados refletem relatos diretos de lideranças e representantes das comunidades quilombolas pesquisadas, coletados de forma sistemática pela Rede Nacional de Pesquisadoras e Pesquisadores Quilombolas. Para detalhes sobre amostragem e limitações, consulte a Nota Metodológica.`;
+    }
+    if (t.includes('baixar') || t.includes('download') || t.includes('exportar')) {
+        return `📥 No momento, este painel não oferece exportação direta dos dados brutos. Para acesso aos microdados ou parcerias de pesquisa, recomendamos contato direto com a CONAQ.`;
+    }
+    if (t.includes('participar da pesquisa') || (t.includes('como') && t.includes('participar'))) {
+        return `📝 A coleta desta edição (2025–2026) já foi encerrada. Para futuras edições ou para saber como sua comunidade pode contribuir, o ideal é entrar em contato com a Rede Nacional de Pesquisadoras e Pesquisadores Quilombolas via CONAQ.`;
+    }
+    if (t.includes('objetivo da pesquisa') || (t.includes('para que') && t.includes('pesquisa'))) {
+        return `🎯 O objetivo é mapear a realidade da Educação Escolar Quilombola no Brasil — infraestrutura, corpo docente, racismo, gestão democrática e mais — para subsidiar políticas públicas e fortalecer a luta das comunidades quilombolas por uma educação digna e culturalmente referenciada.`;
+    }
+    if (t.includes('quantos estados') && t.includes('pesquisa')) {
+        const ufsComDados = Object.keys(db.uf_agg).length;
+        return `🗺️ A pesquisa reúne dados de ${ufsComDados} estados brasileiros, distribuídos pelas 5 regiões do país.`;
+    }
+    if (t.includes('pesquisa') && t.includes('nacional')) {
+        return `🇧🇷 Sim, a pesquisa tem abrangência nacional, com dados coletados em escolas e territórios quilombolas de todas as 5 regiões do Brasil.`;
+    }
+    if (t.includes('o que significa quilombola') || (t.includes('significa') && t.includes('quilombola'))) {
+        return `📖 Quilombolas são comunidades formadas, em sua maioria, por descendentes de povos africanos escravizados que resistiram à escravidão e construíram territórios próprios — os quilombos —, preservando até hoje suas tradições culturais, sociais e religiosas.`;
+    }
+
     // ── Fallback: nenhuma regra reconheceu a pergunta ───────────────────
-    return `Não encontrei essa informação diretamente nos dados. Posso ajudar com perguntas sobre: racismo, professores quilombolas, materiais didáticos, Ensino Médio/evasão, fechamento de escolas, consulta comunitária, transporte, infraestrutura, ou dados de um estado/região específico.` +
+    return `Não encontrei essa informação diretamente nos dados. Posso ajudar com perguntas sobre: racismo, professores quilombolas, materiais didáticos, Ensino Médio/evasão, fechamento de escolas, consulta comunitária, gestão escolar, transporte, infraestrutura (biblioteca, laboratório, internet, água, acessibilidade, salas de aula, cozinha, refeitório, espaços culturais/esportivos), alimentação escolar, desrespeito cultural, relação escola-comunidade, diretrizes curriculares, concurso para professores, ou dados de um estado/região específico.` +
         sugestoes(['Como está a Bahia?', 'Quais estados têm mais racismo?', 'Quantas escolas tem a pesquisa?']);
 }
 
