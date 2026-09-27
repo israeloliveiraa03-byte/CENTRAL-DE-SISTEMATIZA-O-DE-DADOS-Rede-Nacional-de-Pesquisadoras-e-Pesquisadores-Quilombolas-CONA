@@ -59,16 +59,17 @@ body::after{
   background-image:url('espada-sao-jorge.png');background-size:contain;
   background-repeat:no-repeat;opacity:.05;pointer-events:none;z-index:0;
 }
-.ctn{max-width:1180px;margin:0 auto;padding-inline:20px;padding-block:0 60px;position:relative;z-index:1}
+.ctn{max-width:1440px;margin:0 auto;padding-inline:28px;padding-block:0 60px;position:relative;z-index:1}
 
 /* ---------- CABEÇALHO EDITORIAL ---------- */
+
 .hero{
-  position:relative;margin-inline:-20px;margin-bottom:38px;padding:38px 20px 30px;
+  position:relative;margin-inline:-28px;margin-bottom:38px;padding:38px 20px 30px;
   background-color:#132e25;background-image:url('fundo-afro.png');
   background-size:340px;background-repeat:repeat;color:#f4efe3;overflow:hidden;
 }
 .hero::before{content:"";position:absolute;inset:0;background:rgba(14,36,29,.86)}
-.hero-text{position:relative;z-index:1;max-width:1140px;margin:0 auto}
+.hero-text{position:relative;z-index:1;max-width:1384px;margin:0 auto}
 .hero h1{
   font-family:'Source Serif 4',Georgia,serif;font-weight:700;
   font-size:clamp(29px,5vw,44px);line-height:1.08;margin:0 0 8px;
@@ -84,7 +85,7 @@ body::after{
 }
 .hero-lede{max-width:64ch;color:rgba(244,239,227,.88);font-size:14.5px;margin:0 0 20px}
 .hero-logos{
-  position:relative;z-index:1;max-width:1140px;margin:20px auto 0;
+  position:relative;z-index:1;max-width:1384px;margin:20px auto 0;
   display:flex;gap:14px;align-items:center;
   padding-top:18px;border-top:1px solid rgba(244,239,227,.18);
 }
@@ -96,7 +97,7 @@ body::after{
 }
 .mtag:hover{background:rgba(244,239,227,.12);border-color:rgba(244,239,227,.7)}
 .hstats{
-  position:relative;z-index:1;max-width:1140px;margin:22px auto 0;
+  position:relative;z-index:1;max-width:1384px;margin:22px auto 0;
   display:flex;flex-wrap:wrap;gap:0;
   border-top:1px solid rgba(244,239,227,.18);
 }
@@ -151,8 +152,8 @@ body::after{
 
 /* ---------- CARTÕES ---------- */
 .g1{margin-bottom:22px}
-.g2{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:22px;margin-bottom:22px}
-.g3{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:22px;margin-bottom:22px}
+.g2{display:grid;grid-template-columns:repeat(auto-fit,minmax(390px,1fr));gap:24px;margin-bottom:24px}
+.g3{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px;margin-bottom:24px}
 .cc{
   background:var(--card);border:1px solid var(--line);border-radius:4px;
   padding:20px;box-shadow:var(--sombra);
@@ -271,7 +272,7 @@ select:focus-visible,button:focus-visible,input:focus-visible,.mtag:focus-visibl
 
 /* ---------- MAPA ---------- */
 .map-box{
-  height:520px;border-radius:4px;overflow:hidden;border:1px solid var(--line);
+  height:620px;border-radius:4px;overflow:hidden;border:1px solid var(--line);
   background:var(--card);
 }
 .map-legend{
@@ -414,6 +415,46 @@ tbody tr:hover td{background:var(--sel)}
   body::after{display:none}
 }
 
+/* ---------- MAPA: rótulos, legenda e controles ---------- */
+.state-label{
+  font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10.5px;font-weight:500;
+  color:#1a211d;text-align:center;line-height:18px;letter-spacing:.03em;
+  text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 3px #fff;pointer-events:none;
+}
+.map-legend{
+  display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;
+  margin-top:14px;font-size:12px;color:var(--ink-2);
+  font-family:'IBM Plex Mono',ui-monospace,monospace;
+}
+.leg-tit{
+  font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:11.5px;font-weight:600;
+  letter-spacing:.08em;text-transform:uppercase;color:var(--mute);
+  width:100%;margin-bottom:-2px;
+}
+.leg-dot{width:16px;height:11px;border-radius:2px;display:inline-block;border:1px solid rgba(0,0,0,.12)}
+.leaflet-container{font-family:'IBM Plex Sans',system-ui,sans-serif!important;background:var(--card)!important}
+.leaflet-tooltip{
+  background:var(--card)!important;color:var(--ink)!important;
+  border:1px solid var(--line)!important;border-radius:4px!important;
+  box-shadow:0 6px 18px rgba(26,33,29,.16)!important;font-size:13px!important;
+  padding:9px 12px!important;
+}
+.leaflet-tooltip b{color:var(--ink)}
+.leaflet-tooltip-top:before,.leaflet-tooltip-bottom:before,
+.leaflet-tooltip-left:before,.leaflet-tooltip-right:before{border-top-color:var(--line)!important}
+.leaflet-control-layers{
+  border:1px solid var(--line)!important;border-radius:4px!important;
+  box-shadow:0 4px 14px rgba(26,33,29,.14)!important;background:var(--card)!important;
+}
+.leaflet-control-layers-expanded{padding:10px 14px 10px 10px!important;color:var(--ink)!important;font-size:13px!important}
+.leaflet-control-layers label{margin-bottom:4px!important}
+.leaflet-bar a{background:var(--card)!important;color:var(--ink)!important;border-color:var(--line)!important}
+.leaflet-bar a:hover{background:var(--sel)!important}
+.leaflet-control-attribution{
+  background:rgba(255,253,248,.86)!important;color:var(--mute)!important;font-size:10.5px!important;
+}
+.leaflet-control-attribution a{color:var(--verde)!important}
+
 </style>
 </head>
 <body>
@@ -474,7 +515,14 @@ tbody tr:hover td{background:var(--sel)}
   <h2 class="sec">Mapa — Escolas por Estado</h2>
 </div>
 <div class="filters" style="margin-bottom:12px">
-  <div class="fg"><label>Indicador de cor (intensidade)</label>
+  <div class="fg"><label>Tipo de mapa</label>
+    <select id="mapTipo" onchange="atualizarMapa()">
+      <option value="coropletico">Coroplético — cor por intensidade</option>
+      <option value="circulos">Círculos proporcionais — tamanho por nº de escolas</option>
+      <option value="combinado">Combinado — cor e círculos</option>
+    </select>
+  </div>
+  <div class="fg"><label>Indicador de cor</label>
     <select id="mapInd" onchange="atualizarMapa()">
       <option value="racismo">% de escolas com racismo</option>
       <option value="sem_prof">% de escolas sem professor quilombola</option>
@@ -484,17 +532,14 @@ tbody tr:hover td{background:var(--sel)}
       <option value="total_formularios">Nº de formulários</option>
     </select>
   </div>
+  <div class="fg" style="flex:0 0 auto"><button class="rbtn" type="button" onclick="ajustarZoomMapa()">Ajustar zoom ao Brasil</button></div>
 </div>
 <div class="cc g1" style="padding:0 0 12px">
   <div class="map-box" id="map" style="overflow:hidden;background:#e8f4f8;display:flex;align-items:center;justify-content:center;position:relative;"></div>
   <div style="padding:0 14px">
-    <div class="map-legend" id="mapLegend">
-      <span style="font-size:.72rem;color:#aaa">Escala de cor: </span>
-      <div class="leg-item"><div class="leg-dot" style="background:#ffffcc"></div> Baixo</div>
-      <div class="leg-item"><div class="leg-dot" style="background:#fd8d3c"></div> Médio</div>
-      <div class="leg-item"><div class="leg-dot" style="background:#800026"></div> Alto</div>
+    <div class="map-legend" id="mapLegend"></div>
     </div>
-    <div class="nota" style="margin-top:6px">Passe o mouse sobre os estados para ver os dados. Tamanho proporcional ao nº de escolas. Cor indica intensidade do indicador selecionado.</div>
+    <div class="nota" style="margin-top:6px">Escolha o tipo de mapa e o indicador que dá a cor. No coroplético a cor preenche o estado; nos círculos o tamanho corresponde ao número de escolas pesquisadas e a cor ao indicador. Troque o fundo — claro, ruas, satélite ou relevo — no seletor do canto superior direito. Passe o cursor sobre um estado para ver a ficha completa. Estados em cinza não têm escolas nesta pesquisa. O zoom pela rolagem ativa com um clique no mapa.</div>
   </div>
 </div>
 
@@ -2728,144 +2773,199 @@ function renderTabela() {
 // MAPA – LEaFLET com dados de escolas e formulários corretamente separados
 // ══════════════════════════════════════════════════════════════════
 let map = null;
-let stateLabelsLayer = null;
+let geoCache = null;          // GeoJSON carregado uma única vez
+let camadaDados = null;       // polígonos (coroplético)
+let camadaCirculos = null;    // círculos proporcionais
+let camadaRotulos = null;     // siglas das UFs
+let controleCamadas = null;
+
+// Centróides aproximados das UFs (para rótulos e círculos)
+const UF_CENTROIDE = {
+    'AC':[-9.023,-70.811],'AL':[-9.571,-36.782],'AP':[1.998,-51.99],'AM':[-3.465,-62.216],
+    'BA':[-12.579,-41.701],'CE':[-5.498,-39.321],'DF':[-15.799,-47.864],'ES':[-19.183,-40.308],
+    'GO':[-15.934,-50.143],'MA':[-5.425,-45.439],'MT':[-12.682,-56.922],'MS':[-20.442,-54.646],
+    'MG':[-18.512,-44.555],'PA':[-3.416,-52.359],'PB':[-7.276,-36.731],'PR':[-24.625,-51.662],
+    'PE':[-8.284,-40.312],'PI':[-6.876,-42.735],'RJ':[-22.200,-42.867],'RN':[-5.779,-36.591],
+    'RS':[-30.166,-53.497],'RO':[-10.829,-63.458],'RR':[1.987,-61.278],'SC':[-27.242,-50.218],
+    'SP':[-22.000,-48.986],'SE':[-10.574,-37.201],'TO':[-10.184,-48.333]
+};
+
+const MAPA_IND = {
+    racismo:            {rot:'% de escolas com racismo',            pct:true},
+    sem_prof:           {rot:'% sem professor quilombola',          pct:true},
+    sem_mat:            {rot:'% sem materiais didáticos',           pct:true},
+    consulta_nao:       {rot:'% sem consulta à comunidade',         pct:true},
+    total_escolas:      {rot:'Nº de escolas',                       pct:false},
+    total_formularios:  {rot:'Nº de formulários',                   pct:false}
+};
+
+function valorUF(nome, indicador) {
+    const d = DB.uf_agg[nome];
+    if (indicador === 'total_escolas')     return DB.esc_por_uf[nome] || 0;
+    if (indicador === 'total_formularios') return DB.form_por_uf[nome] || 0;
+    if (!d || !d.total) return 0;
+    if (indicador === 'racismo')      return d.racismo / d.total * 100;
+    if (indicador === 'sem_prof')     return d.prof_nenhum / d.total * 100;
+    if (indicador === 'sem_mat')      return d.mat_nao / d.total * 100;
+    if (indicador === 'consulta_nao') return d.consulta_nao / d.total * 100;
+    return 0;
+}
 
 function initMapa() {
     const container = document.getElementById('map');
     if (!container) return;
     if (typeof L === 'undefined') {
-        container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#555;font-size:.85rem;flex-direction:column;gap:8px"><span style="font-size:2rem">🗺️</span><span>Mapa indisponível — verifique sua conexão com a internet.</span></div>';
+        container.innerHTML = '<div class="map-placeholder">Mapa indisponível — verifique sua conexão com a internet.</div>';
         return;
     }
     container.innerHTML = '';
-    map = L.map('map').setView([-14.2, -51.9], 4);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
-    }).addTo(map);
+    container.style.background = 'transparent';
+    container.style.display = 'block';
+    map = L.map('map', {scrollWheelZoom:false}).setView([-14.2,-51.9], 4);
+
+    const fundos = {
+        'Claro': L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+            {attribution:'&copy; OpenStreetMap, &copy; CARTO', maxZoom:18}),
+        'Ruas': L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+            {attribution:'&copy; OpenStreetMap', maxZoom:18}),
+        'Satélite': L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+            {attribution:'&copy; Esri, Maxar, Earthstar Geographics', maxZoom:18}),
+        'Relevo': L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer/tile/{z}/{y}/{x}',
+            {attribution:'&copy; Esri', maxZoom:13})
+    };
+    fundos['Claro'].addTo(map);
+    controleCamadas = L.control.layers(fundos, null, {position:'topright', collapsed:true}).addTo(map);
+    map.on('click', () => map.scrollWheelZoom.enable());
+    map.on('mouseout', () => map.scrollWheelZoom.disable());
+
     updateMap();
 }
 
-function atualizarMapa() {
-    if (map) updateMap();
+function atualizarMapa() { if (map) updateMap(); }
+
+function ajustarZoomMapa() {
+    if (!map) return;
+    if (camadaDados && camadaDados.getBounds) map.fitBounds(camadaDados.getBounds(), {padding:[16,16]});
+    else map.setView([-14.2,-51.9], 4);
 }
 
 function updateMap() {
     if (!map) return;
-    const indicator = document.getElementById('mapInd').value;
-    let maxVal = 1;
-    for (const [sigla, nome] of Object.entries(SIGLA_TO_NOME)) {
-        const esc = DB.esc_por_uf[nome] || 0;
-        const form = DB.form_por_uf[nome] || 0;
-        const ufData = DB.uf_agg[nome];
-        let val = 0;
-        if (indicator === 'racismo') {
-            val = ufData ? (ufData.racismo / ufData.total * 100) : 0;
-        } else if (indicator === 'sem_prof') {
-            val = ufData ? (ufData.prof_nenhum / ufData.total * 100) : 0;
-        } else if (indicator === 'sem_mat') {
-            val = ufData ? (ufData.mat_nao / ufData.total * 100) : 0;
-        } else if (indicator === 'consulta_nao') {
-            val = ufData ? (ufData.consulta_nao / ufData.total * 100) : 0;
-        } else if (indicator === 'total_escolas') {
-            val = esc;
-        } else if (indicator === 'total_formularios') {
-            val = form;
-        }
-        if (val > maxVal) maxVal = val;
+    const indicador = (document.getElementById('mapInd')||{}).value || 'racismo';
+    const tipo      = (document.getElementById('mapTipo')||{}).value || 'coropletico';
+
+    let maxVal = 0;
+    for (const nome of Object.values(SIGLA_TO_NOME)) {
+        const v = valorUF(nome, indicador);
+        if (v > maxVal) maxVal = v;
     }
-    if (maxVal === 0) maxVal = 1;
+    if (!maxVal) maxVal = 1;
 
-    fetch('https://raw.githubusercontent.com/codeforamerica/click_that_hood/master/public/data/brazil-states.geojson')
-        .then(res => res.ok ? res.json() : Promise.reject())
-        .then(geo => {
-            map.eachLayer(l => { if (!!l.feature) map.removeLayer(l); });
-            if (stateLabelsLayer) map.removeLayer(stateLabelsLayer);
+    const desenhar = (geo) => {
+        [camadaDados, camadaCirculos, camadaRotulos].forEach(c => { if (c) map.removeLayer(c); });
+        camadaDados = camadaCirculos = camadaRotulos = null;
 
-            L.geoJSON(geo, {
-                style: (f) => {
-                    const sigla = f.properties.sigla;
-                    const nome = SIGLA_TO_NOME[sigla];
-                    const esc = DB.esc_por_uf[nome] || 0;
-                    const form = DB.form_por_uf[nome] || 0;
-                    const ufData = DB.uf_agg[nome];
-                    const hasData = (esc > 0 || form > 0);
-                    if (!hasData) {
-                        return { fillColor: '#c2c8c2', weight: 1, opacity: 1, color: 'white', fillOpacity: 0.5 };
-                    }
-                    let val = 0;
-                    if (indicator === 'racismo') {
-                        val = ufData ? (ufData.racismo / ufData.total * 100) : 0;
-                    } else if (indicator === 'sem_prof') {
-                        val = ufData ? (ufData.prof_nenhum / ufData.total * 100) : 0;
-                    } else if (indicator === 'sem_mat') {
-                        val = ufData ? (ufData.mat_nao / ufData.total * 100) : 0;
-                    } else if (indicator === 'consulta_nao') {
-                        val = ufData ? (ufData.consulta_nao / ufData.total * 100) : 0;
-                    } else if (indicator === 'total_escolas') {
-                        val = esc;
-                    } else if (indicator === 'total_formularios') {
-                        val = form;
-                    }
-                    const intensity = 0.2 + (val / maxVal) * 0.7;
-                    return { fillColor: '#c98a2e', weight: 1, opacity: 1, color: 'white', fillOpacity: intensity };
-                },
-                onEachFeature: (f, l) => {
-                    const sigla = f.properties.sigla;
-                    const nome = SIGLA_TO_NOME[sigla];
-                    const esc = DB.esc_por_uf[nome] || 0;
-                    const form = DB.form_por_uf[nome] || 0;
-                    const ufData = DB.uf_agg[nome] || {};
-                    let tooltipContent = `<b>${f.properties.nome} (${sigla})</b><br>`;
-                    if (esc > 0 || form > 0) {
-                        const racP = ufData.total ? (ufData.racismo / ufData.total * 100).toFixed(1) : 0;
-                        const profP = ufData.total ? (ufData.prof_nenhum / ufData.total * 100).toFixed(1) : 0;
-                        const matP = ufData.total ? (ufData.mat_nao / ufData.total * 100).toFixed(1) : 0;
-                        const consP = ufData.total ? (ufData.consulta_nao / ufData.total * 100).toFixed(1) : 0;
-                        tooltipContent += `🏫 Escolas: ${esc}<br>`;
-                        tooltipContent += `📋 Formulários: ${form}<br>`;
-                        tooltipContent += `⚠️ Racismo: ${racP}%<br>`;
-                        tooltipContent += `👩🏿‍🏫 Sem prof.: ${profP}%<br>`;
-                        tooltipContent += `📚 Sem materiais: ${matP}%<br>`;
-                        tooltipContent += `🤝 Sem consulta: ${consP}%`;
-                    } else {
-                        tooltipContent += `⚠️ Nenhum dado disponível.`;
-                    }
-                    l.bindTooltip(tooltipContent);
+        const mostraPoli = (tipo === 'coropletico' || tipo === 'combinado');
+        const mostraCirc = (tipo === 'circulos'    || tipo === 'combinado');
+
+        const ficha = (sigla) => {
+            const nome = SIGLA_TO_NOME[sigla];
+            const esc  = DB.esc_por_uf[nome] || 0;
+            const form = DB.form_por_uf[nome] || 0;
+            const d    = DB.uf_agg[nome];
+            if (!esc && !form) return `<b>${nome} (${sigla})</b><br><span style="color:#888">Sem dados nesta pesquisa</span>`;
+            const pc = (x) => d && d.total ? (x / d.total * 100).toFixed(1) + '%' : '–';
+            return `<b>${nome} (${sigla})</b>
+                <div style="margin-top:5px;font-size:12px;line-height:1.7">
+                Escolas: <b>${esc}</b> &nbsp;·&nbsp; Formulários: <b>${form}</b><br>
+                Racismo: <b>${d?pc(d.racismo):'–'}</b><br>
+                Sem professor quilombola: <b>${d?pc(d.prof_nenhum):'–'}</b><br>
+                Sem materiais didáticos: <b>${d?pc(d.mat_nao):'–'}</b><br>
+                Sem consulta à comunidade: <b>${d?pc(d.consulta_nao):'–'}</b></div>`;
+        };
+
+        // ---- polígonos ----
+        camadaDados = L.geoJSON(geo, {
+            style: (f) => {
+                const sigla = f.properties.sigla;
+                const nome  = SIGLA_TO_NOME[sigla];
+                const temDado = (DB.esc_por_uf[nome] || DB.form_por_uf[nome]);
+                if (!mostraPoli) {
+                    return {fillColor:'#ffffff', fillOpacity:0.28, weight:1, color:'#8a9690', opacity:.75};
                 }
-            }).addTo(map);
-
-            // Labels fixos com siglas
-            const stateCentroids = {
-                'AC': [-9.023, -70.811], 'AL': [-9.571, -36.782], 'AP': [1.998, -51.99], 'AM': [-3.465, -62.216],
-                'BA': [-12.579, -41.701], 'CE': [-5.498, -39.321], 'DF': [-15.799, -47.864], 'ES': [-19.183, -40.308],
-                'GO': [-15.934, -50.143], 'MA': [-5.425, -45.439], 'MT': [-12.682, -56.922], 'MS': [-20.442, -54.646],
-                'MG': [-18.512, -44.555], 'PA': [-3.416, -52.359], 'PB': [-7.276, -36.731], 'PR': [-24.625, -51.662],
-                'PE': [-8.284, -40.312], 'PI': [-6.876, -42.735], 'RJ': [-22.200, -42.867], 'RN': [-5.779, -36.591],
-                'RS': [-30.166, -53.497], 'RO': [-10.829, -63.458], 'RR': [1.987, -61.278], 'SC': [-27.242, -50.218],
-                'SP': [-22.000, -48.986], 'SE': [-10.574, -37.201], 'TO': [-10.184, -48.333]
-            };
-            const labelLayer = L.layerGroup();
-            for (let [sigla, coords] of Object.entries(stateCentroids)) {
-                const label = L.marker(coords, {
-                    icon: L.divIcon({
-                        className: 'state-label',
-                        html: sigla,
-                        iconSize: [30, 20],
-                        iconAnchor: [15, 10]
-                    }),
-                    interactive: false
-                });
-                labelLayer.addLayer(label);
+                if (!temDado) {
+                    return {fillColor:'#d8d4c8', fillOpacity:.45, weight:1, color:'#ffffff', opacity:1};
+                }
+                return {fillColor: heatColor(valorUF(nome, indicador) / maxVal * 100),
+                        fillOpacity:.88, weight:1, color:'#ffffff', opacity:1};
+            },
+            onEachFeature: (f, l) => {
+                l.bindTooltip(ficha(f.properties.sigla), {sticky:true});
+                l.on('mouseover', e => e.target.setStyle({weight:2.5, color:'#1a211d'}));
+                l.on('mouseout',  e => camadaDados.resetStyle(e.target));
             }
-            labelLayer.addTo(map);
-            stateLabelsLayer = labelLayer;
-        })
-        .catch(err => {
-            console.warn('Erro ao carregar GeoJSON:', err);
-            map.eachLayer(l => { if (!!l.feature) map.removeLayer(l); });
-            const container = document.getElementById('map');
-            if (container) container.innerHTML = '<div class="map-placeholder">Não foi possível carregar o mapa. Tente novamente mais tarde.</div>';
+        }).addTo(map);
+
+        // ---- círculos proporcionais ----
+        if (mostraCirc) {
+            camadaCirculos = L.layerGroup();
+            const maxEsc = Math.max(1, ...Object.values(DB.esc_por_uf));
+            for (const [sigla, coord] of Object.entries(UF_CENTROIDE)) {
+                const nome = SIGLA_TO_NOME[sigla];
+                const esc  = DB.esc_por_uf[nome] || 0;
+                if (!esc) continue;
+                const raio = 6 + Math.sqrt(esc / maxEsc) * 26;   // área proporcional
+                L.circleMarker(coord, {
+                    radius: raio,
+                    fillColor: heatColor(valorUF(nome, indicador) / maxVal * 100),
+                    color:'#1a211d', weight:1.2, opacity:.85, fillOpacity:.82
+                }).bindTooltip(ficha(sigla), {sticky:true}).addTo(camadaCirculos);
+            }
+            camadaCirculos.addTo(map);
+        }
+
+        // ---- rótulos das siglas ----
+        if (!mostraCirc) {
+            camadaRotulos = L.layerGroup();
+            for (const [sigla, coord] of Object.entries(UF_CENTROIDE)) {
+                const nome = SIGLA_TO_NOME[sigla];
+                if (!DB.esc_por_uf[nome] && !DB.form_por_uf[nome]) continue;
+                camadaRotulos.addLayer(L.marker(coord, {
+                    icon: L.divIcon({className:'state-label', html:sigla, iconSize:[28,18], iconAnchor:[14,9]}),
+                    interactive:false
+                }));
+            }
+            camadaRotulos.addTo(map);
+        }
+
+        desenharLegenda(indicador, maxVal, tipo);
+    };
+
+    if (geoCache) { desenhar(geoCache); return; }
+    fetch('https://raw.githubusercontent.com/codeforamerica/click_that_hood/master/public/data/brazil-states.geojson')
+        .then(r => r.ok ? r.json() : Promise.reject())
+        .then(geo => { geoCache = geo; desenhar(geo); })
+        .catch(() => {
+            const c = document.getElementById('map');
+            if (c) c.innerHTML = '<div class="map-placeholder">Não foi possível carregar o contorno dos estados. Verifique a conexão e recarregue a página.</div>';
         });
+}
+
+function desenharLegenda(indicador, maxVal, tipo) {
+    const el = document.getElementById('mapLegend');
+    if (!el) return;
+    const cfg = MAPA_IND[indicador] || {rot:'Indicador', pct:true};
+    const fmt = (v) => cfg.pct ? v.toFixed(0) + '%' : Math.round(v).toLocaleString('pt-BR');
+    let faixas = '';
+    for (let i = 0; i < 5; i++) {
+        const de = maxVal * i / 5, ate = maxVal * (i + 1) / 5;
+        faixas += `<div class="leg-item"><span class="leg-dot" style="background:${heatColor((i+0.5)/5*100)}"></span>${fmt(de)}–${fmt(ate)}</div>`;
+    }
+    let extra = '<div class="leg-item"><span class="leg-dot" style="background:#d8d4c8"></span>sem dados</div>';
+    if (tipo === 'circulos' || tipo === 'combinado') {
+        extra += '<div class="leg-item" style="margin-left:auto;color:var(--mute)">Tamanho do círculo = nº de escolas</div>';
+    }
+    el.innerHTML = `<span class="leg-tit">${cfg.rot}</span>${faixas}${extra}`;
 }
 
 // ══════════════════════════════════════════════════════════════════
