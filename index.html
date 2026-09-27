@@ -19,47 +19,68 @@
    Sistema visual editorial (redesenho set/2026)
    ============================================================ */
 :root{
-  --paper:#faf7f0; --card:#fffdf8; --ink:#1a211d; --ink-2:#44514a; --mute:#6d7a72;
-  --line:#e0dbcf; --line-2:#efebe1;
+  /* Base terrosa: o fundo da pagina e uma terracota clara (matiz ~25 graus,
+     saturacao baixa) e o cartao e a mesma familia, mais claro, para os
+     graficos continuarem sobre uma superficie quase neutra. Todos os tons
+     abaixo foram conferidos por razao de contraste, nao a olho. */
+  --paper:#edddd0; --card:#faf0e8; --ink:#1a211d; --ink-2:#44514a; --mute:#5b665f;
+  --line:#d8c4b6; --line-2:#e6d6c9;
   --verde:#1d4a3a; --verde-2:#2f6d55; --verde-3:#5a9078;
-  --terra:#b0503a; --terra-2:#8f3d2c; --ocre:#c98a2e; --ocre-2:#d9a441;
-  --azul:#2c6b8f; --roxo:#7d5a96; --cinza:#9aa39d;
-  --sel:rgba(29,74,58,.09);
-  --sombra:0 1px 2px rgba(26,33,29,.04);
+  --terra:#b0503a; --terra-2:#8f3d2c; --ocre:#bf8429; --ocre-2:#d9a441;
+  /* --ocre-3 e --terra-2 sao as versoes para TEXTO: preenchimento precisa
+     de 3:1, texto precisa de 4,5:1, entao pedem tons diferentes */
+  --ocre-3:#845b1c; --roxo-2:#6b4a82; --azul-2:#245a78;
+  /* superficie verde escura: NAO inverte com o tema, porque quem a usa
+     (balao do chat, cabecalho do Agba) escreve com texto claro em cima */
+  --verde-fundo:#1d4a3a;
+  --azul:#2c6b8f; --roxo:#7d5a96; --cinza:#838e86;
+  --sel:rgba(139,74,48,.10);
+  --sombra:0 1px 2px rgba(74,48,36,.06);
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   color-scheme:dark;
-  --paper:#141815; --card:#1b201c; --ink:#eae6dc; --ink-2:#bcc4bd; --mute:#8e9a92;
-  --line:#2e3631; --line-2:#242b26;
+  /* o escuro acompanha: terra queimada em vez de verde-preto */
+  --paper:#17120f; --card:#211a16; --ink:#ede3d8; --ink-2:#c5b7aa; --mute:#968779;
+  --line:#3a2f27; --line-2:#2b231d;
   --verde:#5fa287; --verde-2:#7dbca1; --verde-3:#9ed0b8;
-  --terra:#d97a60; --terra-2:#e8937a; --ocre:#e0ab52; --ocre-2:#eec072;
-  --azul:#6aa5c7; --roxo:#a98cc0; --cinza:#7d8781;
-  --sel:rgba(95,162,135,.14);
-  --sombra:0 1px 2px rgba(0,0,0,.2);
+  --terra:#d97a60; --terra-2:#e8937a; --ocre:#e0ab52; --ocre-2:#eec072; --ocre-3:#e0ab52; --roxo-2:#a98cc0; --azul-2:#6aa5c7;
+  --verde-fundo:#1d4a3a;
+  --azul:#6aa5c7; --roxo:#a98cc0; --cinza:#9c8f82;
+  --sel:rgba(217,122,96,.14);
+  --sombra:0 1px 2px rgba(0,0,0,.3);
 }}
 :root[data-theme="dark"]{
   color-scheme:dark;
-  --paper:#141815; --card:#1b201c; --ink:#eae6dc; --ink-2:#bcc4bd; --mute:#8e9a92;
-  --line:#2e3631; --line-2:#242b26;
+  /* o escuro acompanha: terra queimada em vez de verde-preto */
+  --paper:#17120f; --card:#211a16; --ink:#ede3d8; --ink-2:#c5b7aa; --mute:#968779;
+  --line:#3a2f27; --line-2:#2b231d;
   --verde:#5fa287; --verde-2:#7dbca1; --verde-3:#9ed0b8;
-  --terra:#d97a60; --ocre:#e0ab52; --ocre-2:#eec072;
-  --azul:#6aa5c7; --roxo:#a98cc0; --cinza:#7d8781;
-  --sel:rgba(95,162,135,.14);
-  --sombra:0 1px 2px rgba(0,0,0,.2);
+  --terra:#d97a60; --terra-2:#e8937a; --ocre:#e0ab52; --ocre-2:#eec072; --ocre-3:#e0ab52; --roxo-2:#a98cc0; --azul-2:#6aa5c7;
+  --verde-fundo:#1d4a3a;
+  --azul:#6aa5c7; --roxo:#a98cc0; --cinza:#9c8f82;
+  --sel:rgba(217,122,96,.14);
+  --sombra:0 1px 2px rgba(0,0,0,.3);
 }
 *{box-sizing:border-box}
 body{
   margin:0;background:var(--paper);color:var(--ink);
   font-family:'IBM Plex Sans',system-ui,-apple-system,sans-serif;
-  font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased;position:relative;
+  font-size:16px;line-height:1.65;-webkit-font-smoothing:antialiased;position:relative;
 }
 /* marca d'água discreta — espada de São Jorge */
 body::after{
   content:"";position:fixed;bottom:18px;right:18px;width:150px;height:150px;
   background-image:url('espada-sao-jorge.png');background-size:contain;
-  background-repeat:no-repeat;opacity:.05;pointer-events:none;z-index:0;
+  background-repeat:no-repeat;opacity:.05;pointer-events:none;
+  /* z-index:-1 põe a marca d'água atrás do conteúdo sem obrigar o
+     contêiner a criar um contexto de empilhamento próprio (ver .ctn) */
+  z-index:-1;
 }
-.ctn{max-width:1440px;margin:0 auto;padding-inline:28px;padding-block:0 60px;position:relative;z-index:1}
+/* sem z-index de propósito: um valor numérico aqui cria um contexto de
+   empilhamento, e tudo dentro do contêiner passa a ser comparado só
+   entre si. Foi o que escondeu a janela do Àgbá (z-index 1001) atrás
+   da barra de navegação (300), que vive no nível da página. */
+.ctn{max-width:1440px;margin:0 auto;padding-inline:28px;padding-block:0 60px;position:relative}
 
 /* ---------- CABEÇALHO EDITORIAL ---------- */
 
@@ -77,13 +98,14 @@ body::after{
 }
 .hero-org{
   font-size:11.5px;letter-spacing:.11em;text-transform:uppercase;font-weight:600;
-  color:rgba(244,239,227,.72);margin-bottom:16px;
+  color:rgba(244,239,227,.78);margin-bottom:16px;font-size:12.5px;
 }
 .hero-tag{
   font-family:'Source Serif 4',Georgia,serif;font-size:clamp(16px,2.3vw,20px);
   font-style:italic;color:var(--ocre-2);margin:0 0 18px;
 }
-.hero-lede{max-width:64ch;color:rgba(244,239,227,.88);font-size:14.5px;margin:0 0 20px}
+.hero-lede{max-width:70ch;color:rgba(244,239,227,.9);font-size:16px;line-height:1.65;
+  text-align:justify;hyphens:auto;margin:0 0 20px}
 .hero-logos{
   position:relative;z-index:1;max-width:1384px;margin:20px auto 0;
   display:flex;gap:14px;align-items:center;
@@ -93,7 +115,7 @@ body::after{
 .mtag{
   cursor:pointer;display:inline-flex;align-items:center;gap:6px;
   background:transparent;border:1px solid rgba(244,239,227,.4);color:#f4efe3;
-  border-radius:3px;padding:7px 14px;font-size:12.5px;font-weight:500;transition:.15s;
+  border-radius:3px;padding:8px 15px;font-size:13.5px;font-weight:500;transition:.15s;
 }
 .mtag:hover{background:rgba(244,239,227,.12);border-color:rgba(244,239,227,.7)}
 .hstats{
@@ -107,17 +129,17 @@ body::after{
 }
 .hstat:last-child{border-right:0}
 .hstat b,.hstat .n,.hstat strong{
-  font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:24px;font-weight:500;
+  font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:26px;font-weight:500;
   display:block;line-height:1.1;color:#fffdf8;font-variant-numeric:tabular-nums;
 }
 .hstat span,.hstat small{
-  font-size:11.5px;color:rgba(244,239,227,.72);display:block;margin-top:4px;line-height:1.3;
+  font-size:13px;color:rgba(244,239,227,.8);display:block;margin-top:5px;line-height:1.35;
 }
 
 /* ---------- IMAGEM CENTRAL + APRESENTAÇÃO ---------- */
 .foto-capa{width:100%;height:auto;display:block;border-radius:4px;border:1px solid var(--line)}
 .foto-legenda{
-  font-size:12px;color:var(--mute);margin-top:9px;
+  font-size:13px;color:var(--mute);margin-top:9px;
   font-family:'IBM Plex Mono',ui-monospace,monospace;
 }
 .apresenta{
@@ -125,18 +147,22 @@ body::after{
   border-radius:0 4px 4px 0;padding:26px 28px;margin-top:26px;
 }
 .apresenta h2{
-  font-family:'Source Serif 4',Georgia,serif;font-size:24px;font-weight:600;
+  font-family:'Source Serif 4',Georgia,serif;font-size:26px;font-weight:600;
   color:var(--ink);margin:0 0 14px;letter-spacing:-.01em;
 }
-.apresenta p{margin:0 0 13px;color:var(--ink-2);max-width:74ch;font-size:14.5px}
+.apresenta-corpo{column-width:400px;column-gap:40px}
+.apresenta p{margin:0 0 14px;color:var(--ink-2);font-size:16px;line-height:1.7;
+  text-align:justify;hyphens:auto;orphans:2;widows:2;break-inside:avoid-column}
 .apresenta p:last-child{margin-bottom:0}
 
 /* ---------- SEÇÕES ---------- */
 .sechead{margin:52px 0 22px}
 .sechead:first-of-type{margin-top:0}
 .kicker{
-  font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;
-  color:var(--terra);font-weight:600;margin-bottom:7px;
+  /* --terra puro tem so 3,9:1 sobre o fundo terracota (matizes vizinhos);
+     --terra-2, mais escuro, sobe para 5,5:1 e mantem a mesma familia */
+  font-size:12.5px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--terra-2);font-weight:600;margin-bottom:8px;
 }
 .sec{
   font-family:'Source Serif 4',Georgia,serif;font-weight:600;
@@ -145,37 +171,40 @@ body::after{
   display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;
 }
 .badge{
-  font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11.5px;font-weight:400;
+  font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:12.5px;font-weight:400;
   background:transparent;color:var(--mute);border:1px solid var(--line);
   border-radius:3px;padding:3px 9px;letter-spacing:0;white-space:nowrap;
 }
 
 /* ---------- CARTÕES ---------- */
 .g1{margin-bottom:22px}
-.g2{display:grid;grid-template-columns:repeat(auto-fit,minmax(390px,1fr));gap:24px;margin-bottom:24px}
-.g3{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px;margin-bottom:24px}
+/* min(390px,100%) em vez de 390px puro: o minmax impoe um MINIMO rigido, e
+   numa tela de 390px com margem a coluna nao cabia e a pagina ganhava
+   rolagem lateral. O min() deixa a coluna encolher quando precisa. */
+.g2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(390px,100%),1fr));gap:24px;margin-bottom:24px}
+.g3{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr));gap:24px;margin-bottom:24px}
 .cc{
   background:var(--card);border:1px solid var(--line);border-radius:4px;
   padding:20px;box-shadow:var(--sombra);
 }
 .cc h3{
-  font-family:'Source Serif 4',Georgia,serif;font-size:17.5px;font-weight:600;
+  font-family:'Source Serif 4',Georgia,serif;font-size:19px;font-weight:600;
   margin:0 0 5px;line-height:1.25;color:var(--ink);letter-spacing:-.005em;
 }
 .sub{
-  font-size:13px;color:var(--ink-2);margin:0 0 16px;line-height:1.5;
-  font-style:normal;max-width:66ch;
+  font-size:14.5px;color:var(--ink-2);margin:0 0 16px;line-height:1.6;
+  font-style:normal;max-width:74ch;
 }
 canvas{max-width:100%}
 
 /* ---------- NOTAS METODOLÓGICAS ---------- */
 .nota{
-  font-size:13px;color:var(--ink-2);text-align:left;line-height:1.55;
-  margin-top:16px;padding:12px 15px;background:transparent;
+  font-size:14px;color:var(--ink-2);text-align:left;line-height:1.65;
+  margin-top:16px;padding:13px 17px;max-width:92ch;background:transparent;
   border-left:3px solid var(--ocre);border-radius:0;
 }
 .nota h4{
-  font-size:11px;letter-spacing:.11em;text-transform:uppercase;color:var(--ocre);
+  font-size:12px;letter-spacing:.11em;text-transform:uppercase;color:var(--ocre-3);
   margin:0 0 6px;font-weight:600;
 }
 .nota strong{color:var(--ink);font-weight:600}
@@ -191,13 +220,13 @@ canvas{max-width:100%}
 }
 .kpi:last-child{border-right:0}
 .kpi .n{
-  font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:30px;font-weight:500;
-  line-height:1;letter-spacing:-.02em;display:block;color:var(--terra);
+  font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:32px;font-weight:500;
+  line-height:1;letter-spacing:-.02em;display:block;color:var(--terra-2);
   font-variant-numeric:tabular-nums;
 }
-.kpi .p{font-size:12.5px;color:var(--mute);display:block;margin-top:6px;
+.kpi .p{font-size:13.5px;color:var(--mute);display:block;margin-top:6px;
   font-family:'IBM Plex Mono',ui-monospace,monospace}
-.kpi .l{font-size:13px;color:var(--ink-2);display:block;margin-top:6px;line-height:1.35}
+.kpi .l{font-size:14px;color:var(--ink-2);display:block;margin-top:6px;line-height:1.35}
 
 /* ---------- DESTAQUES CRÍTICOS (único bloco escuro da página) ---------- */
 .hl{
@@ -205,7 +234,7 @@ canvas{max-width:100%}
   padding:24px 26px;margin-bottom:26px;
 }
 .hl h3{
-  font-family:'Source Serif 4',Georgia,serif;font-size:19px;font-weight:600;
+  font-family:'Source Serif 4',Georgia,serif;font-size:21px;font-weight:600;
   color:#fffdf8;margin:0 0 18px;letter-spacing:-.005em;
 }
 .hl-row{
@@ -217,7 +246,7 @@ canvas{max-width:100%}
 }
 .hl-stat:last-child{border-right:0;margin-right:0;padding-right:0}
 .hl-stat .v{
-  font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:29px;font-weight:500;
+  font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:31px;font-weight:500;
   line-height:1;letter-spacing:-.02em;color:var(--ocre-2);
   font-variant-numeric:tabular-nums;
 }
@@ -226,7 +255,7 @@ canvas{max-width:100%}
   color:rgba(244,239,227,.72);margin-top:6px;
 }
 .hl-stat .l{
-  font-size:12.5px;color:rgba(244,239,227,.86);margin-top:5px;line-height:1.35;display:block;
+  font-size:13.5px;color:rgba(244,239,227,.88);margin-top:6px;line-height:1.4;display:block;
 }
 
 /* ---------- AUXILIARES ---------- */
@@ -237,7 +266,8 @@ canvas{max-width:100%}
 .cls:hover{color:var(--terra)}
 .map-placeholder{
   display:flex;align-items:center;justify-content:center;height:100%;
-  padding:40px 24px;text-align:center;color:var(--mute);font-size:14px;
+  padding:40px 24px;text-align:center;color:var(--ink-2);font-size:14px;
+  background:var(--card);
 }
 
 /* ---------- FILTROS ---------- */
@@ -246,17 +276,21 @@ canvas{max-width:100%}
   padding:18px 20px;margin-bottom:22px;display:flex;flex-wrap:wrap;gap:16px;
   align-items:flex-end;box-shadow:var(--sombra);
 }
-.fg{display:flex;flex-direction:column;gap:5px;flex:1 1 180px;min-width:150px}
+/* min-width:0 e o detalhe que faz a diferenca: um item flex nao encolhe
+   abaixo do proprio conteudo por padrao (min-width:auto), e um <select>
+   mede pela opcao mais longa — por isso ele estourava a tela estreita. */
+.fg{display:flex;flex-direction:column;gap:5px;flex:1 1 180px;min-width:0}
 .fg label{
-  font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;
+  font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;
   color:var(--mute);font-weight:600;
 }
 .fg select{
-  font:inherit;font-size:13.5px;padding:8px 10px;border:1px solid var(--line);
-  border-radius:3px;background:var(--paper);color:var(--ink);width:100%;
+  font:inherit;font-size:14.5px;padding:9px 11px;border:1px solid var(--line);
+  border-radius:3px;background:var(--paper);color:var(--ink);
+  width:100%;max-width:100%;min-width:0;
 }
 .rbtn,button{
-  font:inherit;font-size:13px;padding:9px 16px;border:1px solid var(--verde);
+  font:inherit;font-size:14px;padding:10px 17px;border:1px solid var(--verde);
   background:transparent;color:var(--verde);border-radius:3px;cursor:pointer;
   font-weight:500;transition:.15s;
 }
@@ -265,7 +299,7 @@ select:focus-visible,button:focus-visible,input:focus-visible,.mtag:focus-visibl
   outline:2px solid var(--verde);outline-offset:2px;
 }
 .filter-notice{
-  font-size:12.5px;color:var(--mute);padding:10px 14px;margin-bottom:20px;
+  font-size:14px;color:var(--mute);padding:10px 14px;margin-bottom:20px;
   border-left:3px solid var(--line);background:transparent;border-radius:0;
 }
 .filter-notice.active{border-left-color:var(--ocre);color:var(--ink-2)}
@@ -294,9 +328,9 @@ select:focus-visible,button:focus-visible,input:focus-visible,.mtag:focus-visibl
   background:var(--card);border:1px solid var(--line);border-radius:4px;
   padding:0;overflow-x:auto;box-shadow:var(--sombra);
 }
-table{border-collapse:collapse;width:100%;font-size:13px;min-width:820px}
+table{border-collapse:collapse;width:100%;font-size:14px;min-width:880px}
 thead th{
-  background:var(--paper);color:var(--ink);font-weight:600;font-size:11.5px;
+  background:var(--paper);color:var(--ink);font-weight:600;font-size:12.5px;
   letter-spacing:.04em;text-transform:uppercase;text-align:left;
   padding:13px 14px;border-bottom:2px solid var(--ink);white-space:nowrap;
   position:sticky;top:0;z-index:1;
@@ -319,12 +353,13 @@ tbody tr:hover td{background:var(--sel)}
   border:1px solid var(--line);
 }
 .modal-c h3{
-  font-family:'Source Serif 4',Georgia,serif;font-size:24px;font-weight:600;
+  font-family:'Source Serif 4',Georgia,serif;font-size:26px;font-weight:600;
   margin:0 0 16px;color:var(--ink);
 }
-.modal-c p{color:var(--ink-2);margin:0 0 13px;max-width:72ch}
+.modal-c p{color:var(--ink-2);margin:0 0 14px;max-width:78ch;font-size:15.5px;
+  line-height:1.7;text-align:justify;hyphens:auto}
 .modal-c strong{color:var(--ink)}
-.modal-c ul{color:var(--ink-2);padding-left:22px;margin:0 0 13px}
+.modal-c ul{color:var(--ink-2);padding-left:22px;margin:0 0 14px;font-size:15.5px;line-height:1.7}
 .modal-c li{margin-bottom:6px}
 
 /* ---------- RODAPÉ ---------- */
@@ -332,28 +367,29 @@ tbody tr:hover td{background:var(--sel)}
   text-align:left;margin-top:56px;padding-top:28px;background:transparent;
   border-top:2px solid var(--ink);border-radius:0;
 }
-.fcols{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:30px;margin-bottom:26px}
+.fcols{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(215px,100%),1fr));gap:30px;margin-bottom:26px}
 .fcol h5{
-  font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--terra);
+  font-size:12.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--terra-2);
   margin:0 0 9px;font-weight:600;
 }
-.fcol p{margin:0;font-size:13px;color:var(--ink-2);line-height:1.55;max-width:46ch}
+.fcol p{margin:0;font-size:14px;color:var(--ink-2);line-height:1.6;max-width:48ch;
+  text-align:justify;hyphens:auto}
 .fl{display:flex;gap:14px;align-items:center;margin-bottom:24px}
 .fl img{height:44px;width:auto;border-radius:3px}
-.footer p{font-size:13px;color:var(--ink-2);margin:5px 0;line-height:1.55}
+.footer p{font-size:14px;color:var(--ink-2);margin:5px 0;line-height:1.55}
 .fbase{
-  padding-top:16px;border-top:1px solid var(--line-2);font-size:12px;color:var(--mute);
+  padding-top:16px;border-top:1px solid var(--line-2);font-size:13px;color:var(--mute);
   font-family:'IBM Plex Mono',ui-monospace,monospace;
 }
 
 /* ---------- CHAT ÀGBÁ ---------- */
 .cbtn{
-  position:fixed;bottom:20px;right:20px;background:var(--verde);color:#fffdf8;
-  border:1px solid var(--verde);border-radius:3px;padding:11px 18px;font-weight:600;
-  font-size:13.5px;cursor:pointer;box-shadow:0 4px 14px rgba(14,36,29,.26);
+  position:fixed;bottom:20px;right:20px;background:var(--verde-fundo);color:#fffdf8;
+  border:1px solid var(--verde);border-radius:3px;padding:12px 19px;font-weight:600;
+  font-size:14.5px;cursor:pointer;box-shadow:0 4px 14px rgba(14,36,29,.26);
   z-index:1000;display:flex;align-items:center;gap:7px;transition:.15s;
 }
-.cbtn:hover{background:var(--verde-2);border-color:var(--verde-2)}
+.cbtn:hover{background:#2f6d55;border-color:#2f6d55}
 .cwin{
   position:fixed;bottom:76px;right:20px;width:390px;max-width:calc(100vw - 32px);
   height:540px;max-height:calc(100vh - 116px);background:var(--card);
@@ -362,7 +398,7 @@ tbody tr:hover td{background:var(--sel)}
   z-index:1001;overflow:hidden;font-size:14px;
 }
 .chdr{
-  background:var(--verde);color:#fffdf8;padding:13px 16px;font-weight:600;font-size:14px;
+  background:var(--verde-fundo);color:#fffdf8;padding:13px 16px;font-weight:600;font-size:14px;
   display:flex;justify-content:space-between;align-items:center;flex-shrink:0;
   font-family:'Source Serif 4',Georgia,serif;
 }
@@ -372,19 +408,21 @@ tbody tr:hover td{background:var(--sel)}
   display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth;
 }
 .msg{
-  border-radius:4px;padding:10px 13px;max-width:88%;line-height:1.5;font-size:13.5px;
+  border-radius:4px;padding:11px 14px;max-width:88%;line-height:1.6;font-size:14.5px;
   white-space:pre-wrap;word-wrap:break-word;
 }
 .msg.bot{background:var(--card);border:1px solid var(--line);align-self:flex-start;color:var(--ink-2)}
-.msg.user{background:var(--verde);color:#fffdf8;align-self:flex-end}
+.msg.user{background:var(--verde-fundo);color:#fffdf8;align-self:flex-end}
 .cinp{display:flex;border-top:1px solid var(--line);flex-shrink:0;background:var(--card)}
 .cinp input{
-  flex:1;border:0;padding:13px 15px;font:inherit;font-size:13.5px;
+  flex:1;border:0;padding:14px 16px;font:inherit;font-size:14.5px;
   background:transparent;color:var(--ink);outline:none;
 }
 .cinp button{border:0;border-radius:0;border-left:1px solid var(--line);padding:0 18px;
-  background:var(--ocre);color:#1a211d;font-weight:600}
-.cinp button:hover{background:var(--ocre-2)}
+  /* mesmo caso do cabecalho: --ocre clareia no tema escuro e o texto
+     escuro fixo deixa de se ler. Tom fixo nos dois temas. */
+  background:#c98a2e;color:#1a211d;font-weight:600}
+.cinp button:hover{background:#d9a441}
 .typing{display:flex;align-items:center;gap:4px;padding:10px 13px;align-self:flex-start}
 .typing span{
   width:6px;height:6px;background:var(--mute);border-radius:50%;
@@ -398,6 +436,9 @@ tbody tr:hover td{background:var(--sel)}
 }
 
 /* ---------- RESPONSIVO ---------- */
+@media (min-width:641px){
+  .fg{min-width:150px}
+}
 @media (max-width:640px){
   .ctn{padding-inline:16px}
   .hero{margin-inline:-16px;padding:30px 16px 24px}
@@ -407,6 +448,7 @@ tbody tr:hover td{background:var(--sel)}
     border-bottom:1px solid rgba(244,239,227,.12);width:100%}
   .sechead{margin-top:40px}
   .apresenta{padding:20px}
+  .apresenta-corpo{column-width:auto;column-count:1}
   .hl-stat{border-right:0;margin-right:0;padding-right:0;
     border-bottom:1px solid rgba(244,239,227,.14);padding-bottom:14px;margin-bottom:14px}
   .hl-stat:last-child{border-bottom:0;padding-bottom:0;margin-bottom:0}
@@ -423,12 +465,12 @@ tbody tr:hover td{background:var(--sel)}
 }
 .map-legend{
   display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;
-  margin-top:14px;font-size:12px;color:var(--ink-2);
+  margin-top:14px;font-size:13px;color:var(--ink-2);
   font-family:'IBM Plex Mono',ui-monospace,monospace;
 }
 .leg-tit{
   font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:11.5px;font-weight:600;
-  letter-spacing:.08em;text-transform:uppercase;color:var(--mute);
+  letter-spacing:.08em;text-transform:uppercase;color:var(--mute);font-size:12.5px;
   width:100%;margin-bottom:-2px;
 }
 .leg-dot{width:16px;height:11px;border-radius:2px;display:inline-block;border:1px solid rgba(0,0,0,.12)}
@@ -451,14 +493,103 @@ tbody tr:hover td{background:var(--sel)}
 .leaflet-bar a{background:var(--card)!important;color:var(--ink)!important;border-color:var(--line)!important}
 .leaflet-bar a:hover{background:var(--sel)!important}
 .leaflet-control-attribution{
-  background:rgba(255,253,248,.86)!important;color:var(--mute)!important;font-size:10.5px!important;
+  background:color-mix(in srgb, var(--card) 88%, transparent)!important;color:var(--mute)!important;font-size:10.5px!important;
 }
 .leaflet-control-attribution a{color:var(--verde)!important}
+
+/* ---------- CAIXAS DE GRÁFICO ----------
+   O Chart.js herda a altura do elemento pai. Como desligamos a trava de
+   proporção (maintainAspectRatio:false), é esta caixa que define o tamanho:
+   todas as roscas ficam na mesma altura, grandes ou pequenas. As barras
+   horizontais recebem altura calculada em JS pelo nº de categorias. */
+.cbox{position:relative;width:100%}
+.cbox>canvas{display:block!important;width:100%!important;height:100%!important}
+.cbox.donut{height:300px}
+.cbox.media{height:340px}
+.cbox.alta {height:420px}
+.cbox.xalta{height:520px}
+.cbox.flex {height:340px}        /* valor inicial; o JS ajusta ao renderizar */
+
+/* ---------- CARTÕES DE LARGURA TOTAL ----------
+   21 estados num cartão de meia largura giram os rótulos e ficam ilegíveis.
+   grid-column:1/-1 faz o cartão ocupar a linha inteira da grade. */
+.g2>.cc.wide,.g3>.cc.wide{grid-column:1/-1}
+
+/* ---------- NAVEGAÇÃO ENTRE SEÇÕES ---------- */
+/* Duas camadas: a de fora atravessa a janela (o fundo e as linhas vão de
+   ponta a ponta); a de dentro respeita a mesma largura máxima do conteúdo,
+   para os links nascerem alinhados com os cartões abaixo. */
+.navsec{
+  position:sticky;top:0;z-index:300;
+  /* --paper e o fundo da pagina; com o backdrop-filter, o que passa por
+     tras chega esmaecido em vez de atravessar a barra */
+  background:color-mix(in srgb, var(--paper) 88%, transparent);
+  border-block:1px solid var(--line);
+  backdrop-filter:saturate(140%) blur(6px);
+}
+.navsec-in{
+  max-width:1440px;margin:0 auto;padding-inline:28px;
+  display:flex;gap:2px;overflow-x:auto;scrollbar-width:thin;
+}
+.navsec a{
+  flex:0 0 auto;padding:13px 15px;text-decoration:none;white-space:nowrap;
+  font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:14px;font-weight:500;
+  color:var(--mute);border-bottom:2px solid transparent;transition:color .15s,border-color .15s;
+}
+.navsec a:hover{color:var(--ink)}
+.navsec a.on{color:var(--verde);border-bottom-color:var(--terra);font-weight:600}
+/* no escuro o verde escuro nao se le; o ocre claro sim. A regra antiga usava
+   :not([data-theme="light"]) sem media query e, como nada define data-theme,
+   ela valia tambem no tema claro — deixando o item ativo em 2,4:1. */
+:root[data-theme="dark"] .navsec a.on{color:var(--ocre)}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]) .navsec a.on{color:var(--ocre)}
+}
+.sechead{scroll-margin-top:64px}
+.navsec-in::-webkit-scrollbar{height:3px}
+.navsec-in::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:2px}
+
+/* botão de voltar ao topo — só aparece depois de rolar */
+.tbtn{
+  position:fixed;left:22px;bottom:22px;z-index:320;
+  width:42px;height:42px;padding:0;border-radius:50%;
+  border:1px solid var(--line);background:var(--card);color:var(--ink);
+  font-size:19px;line-height:1;cursor:pointer;
+  box-shadow:0 4px 14px rgba(26,33,29,.14);
+  opacity:0;visibility:hidden;transform:translateY(8px);
+  transition:opacity .2s,visibility .2s,transform .2s;
+}
+.tbtn.on{opacity:1;visibility:visible;transform:translateY(0)}
+.tbtn:hover{background:var(--sel)}
+
+@media (max-width:640px){
+  .navsec-in{padding-inline:16px}
+  .navsec a{padding:11px 12px;font-size:13.5px}
+  .cbox.donut{height:280px}
+  .cbox.media{height:300px}
+  .cbox.alta {height:340px}
+  .cbox.xalta{height:400px}
+  .tbtn{left:12px;bottom:12px}
+}
+
+/* Controles soltos que nasceram com estilo embutido no HTML.
+   max-width é o que impede um <select> de estourar a tela estreita: sem ele
+   o elemento mede pela opção mais longa e não encolhe. */
+.sel-inline{
+  font:inherit;font-size:14px;padding:7px 10px;
+  border:1px solid var(--line);border-radius:3px;
+  background:var(--paper);color:var(--ink);
+  max-width:100%;min-width:0;
+}
+
+/* O contêiner do topo acaba logo após o cabeçalho; sem conteúdo depois dele,
+   o preenchimento inferior vira um vão vazio antes da barra de navegação. */
+.ctn-topo{padding-bottom:0}
 
 </style>
 </head>
 <body>
-<div class="ctn">
+<div class="ctn ctn-topo">
 
 <!-- HERO -->
 <div class="hero">
@@ -475,6 +606,10 @@ tbody tr:hover td{background:var(--sel)}
     <img src="169343814_166123889136321_2708613905794257662_n.5c918fc1708f4d409dfc.webp" alt="Coletivo Nacional de Educação" onerror="this.style.display='none'">
   </div>
 </div>
+</div><!-- fecha o .ctn para a barra ficar no nivel da pagina -->
+<nav class="navsec" aria-label="Secoes do painel"><div class="navsec-in"><a href="#s-mapa">Mapa</a><a href="#s-territorio">Território</a><a href="#s-medio">Ensino Médio</a><a href="#s-infra">Infraestrutura</a><a href="#s-transporte">Transporte</a><a href="#s-alimentacao">Alimentação</a><a href="#s-docentes">Docentes</a><a href="#s-racismo">Racismo</a><a href="#s-gestao">Gestão</a><a href="#s-comparacoes">Comparações</a><a href="#s-correlacoes">Correlações</a><a href="#s-comparador">Comparador</a><a href="#s-tabela">Tabela</a></div></nav>
+<div class="ctn">
+
 
 <!-- IMAGEM CENTRAL + APRESENTAÇÃO -->
 <div style="margin-bottom:38px">
@@ -482,11 +617,13 @@ tbody tr:hover td{background:var(--sel)}
   <div class="foto-legenda">Rede Nacional de Pesquisadoras e Pesquisadores Quilombolas · Congresso Nacional, Brasília</div>
   <div class="apresenta">
     <h2>Apresentação</h2>
-    <p>Bem-vindo(a) à <strong>CENTRAL DE CONFLUÊNCIA DE DADOS — CONAQ</strong>, uma plataforma criada para reunir, sistematizar e disponibilizar os dados produzidos pelas pesquisas desenvolvidas pela Rede Nacional de Pesquisadoras e Pesquisadores Quilombolas, iniciativa vinculada ao Coletivo Nacional de Educação da Coordenação Nacional de Articulação das Comunidades Negras Rurais Quilombolas (CONAQ).</p>
-    <p>A plataforma surge como um espaço de convergência entre dados, territórios, saberes e experiências, fortalecendo a produção de conhecimentos comprometidos com as realidades vivenciadas pelas comunidades quilombolas em todo o Brasil.</p>
-    <p>Seu principal objetivo é transformar as informações produzidas pelas pesquisas em instrumentos de análise, monitoramento, incidência política e fortalecimento institucional, contribuindo para a formulação, o acompanhamento e o aprimoramento de políticas públicas voltadas à garantia de direitos da população quilombola.</p>
-    <p>Mais do que armazenar informações, a CENTRAL DE CONFLUÊNCIA DE DADOS reafirma o protagonismo das próprias comunidades quilombolas na produção e na circulação do conhecimento, valorizando metodologias participativas, perspectivas territorializadas e a construção coletiva de evidências sobre suas realidades.</p>
-    <p>Os dados aqui apresentados representam um esforço contínuo de pesquisa, articulação e compromisso social, tornando-se uma ferramenta estratégica para comunidades, pesquisadores(as), gestores(as), organizações parceiras e toda a sociedade interessada na promoção da equidade, da justiça social e do fortalecimento dos territórios quilombolas.</p>
+    <div class="apresenta-corpo">
+      <p>Bem-vindo(a) à <strong>CENTRAL DE CONFLUÊNCIA DE DADOS — CONAQ</strong>, uma plataforma criada para reunir, sistematizar e disponibilizar os dados produzidos pelas pesquisas desenvolvidas pela Rede Nacional de Pesquisadoras e Pesquisadores Quilombolas, iniciativa vinculada ao Coletivo Nacional de Educação da Coordenação Nacional de Articulação das Comunidades Negras Rurais Quilombolas (CONAQ).</p>
+      <p>A plataforma surge como um espaço de convergência entre dados, territórios, saberes e experiências, fortalecendo a produção de conhecimentos comprometidos com as realidades vivenciadas pelas comunidades quilombolas em todo o Brasil.</p>
+      <p>Seu principal objetivo é transformar as informações produzidas pelas pesquisas em instrumentos de análise, monitoramento, incidência política e fortalecimento institucional, contribuindo para a formulação, o acompanhamento e o aprimoramento de políticas públicas voltadas à garantia de direitos da população quilombola.</p>
+      <p>Mais do que armazenar informações, a CENTRAL DE CONFLUÊNCIA DE DADOS reafirma o protagonismo das próprias comunidades quilombolas na produção e na circulação do conhecimento, valorizando metodologias participativas, perspectivas territorializadas e a construção coletiva de evidências sobre suas realidades.</p>
+      <p>Os dados aqui apresentados representam um esforço contínuo de pesquisa, articulação e compromisso social, tornando-se uma ferramenta estratégica para comunidades, pesquisadores(as), gestores(as), organizações parceiras e toda a sociedade interessada na promoção da equidade, da justiça social e do fortalecimento dos territórios quilombolas.</p>
+    </div>
   </div>
 </div><!-- FILTROS -->
 <div class="filters">
@@ -510,7 +647,7 @@ tbody tr:hover td{background:var(--sel)}
 <div class="hl"><h3>Destaques críticos da pesquisa</h3><div class="hl-row" id="hlRow"></div></div>
 
 <!-- MAPA -->
-<div class="sechead">
+<div class="sechead" id="s-mapa">
   <div class="kicker">Distribuição territorial</div>
   <h2 class="sec">Mapa — Escolas por Estado</h2>
 </div>
@@ -542,11 +679,15 @@ tbody tr:hover td{background:var(--sel)}
     <div class="nota" style="margin-top:6px">Escolha o tipo de mapa e o indicador que dá a cor. No coroplético a cor preenche o estado; nos círculos o tamanho corresponde ao número de escolas pesquisadas e a cor ao indicador. Troque o fundo — claro, ruas, satélite ou relevo — no seletor do canto superior direito. Passe o cursor sobre um estado para ver a ficha completa. Estados em cinza não têm escolas nesta pesquisa. O zoom pela rolagem ativa com um clique no mapa.</div>
   </div>
 </div>
+<!-- o restante da pagina tambem dentro da largura maxima: sem isto
+     os graficos encostam na borda da janela e ficam esticados -->
+<div class="ctn ctn-corpo">
+
 
 <!-- ════════════════════════════════════════
      TERRITÓRIO / FORMULÁRIOS
      ════════════════════════════════════════ -->
-<div class="sechead">
+<div class="sechead" id="s-territorio">
   <div class="kicker">Política pública municipal</div>
   <h2 class="sec">Dados do Território e Município<span class="badge">Base: 522 formulários</span></h2>
 </div>
@@ -555,14 +696,14 @@ tbody tr:hover td{background:var(--sel)}
   <div class="cc">
     <h3>Q14 – Fechamento de escolas nos últimos 10 anos (classificação revisada)</h3>
     <p class="sub">Classificação revisada (Base Mestre v1.2): cada território tem uma única categoria. Só “Houve fechamento” conta como fechamento efetivo da escola.</p>
-    <canvas id="cFechCats"></canvas>
+    <div class="cbox flex"><canvas id="cFechCats"></canvas></div>
     <div class="nota"><h4>Base e critério</h4>Base: 522 territórios. Cada território conta uma vez — os percentuais somam 100%.</div>
   </div>
   <div class="cc">
     <h3>Q14 – % com fechamento de escola por Região</h3>
     <p class="sub">Percentual de territórios em cada região com fechamento efetivo de escola nos últimos 10 anos (classificação revisada).</p>
-    <canvas id="cFechReg"></canvas>
-    <div class="nota"><h4>Fonte</h4>Fonte: Q14 (fechamento_escola_10anos_rec) × Q4. Base: 522 formulários — 100 com fechamento (19,2%).</div>
+    <div class="cbox media"><canvas id="cFechReg"></canvas></div>
+    <div class="nota"><h4>Fonte</h4>Q14 (fechamento_escola_10anos_rec) × Q4. Base: 522 formulários — 100 com fechamento (19,2%).</div>
   </div>
 </div>
 
@@ -570,14 +711,14 @@ tbody tr:hover td{background:var(--sel)}
   <div class="cc">
     <h3>Q15 – Impactos percebidos após fechamento/nucleação</h3>
     <p class="sub">Categorias exatas do formulário (múltipla escolha). % sobre o total de 522 territórios.</p>
-    <canvas id="cImpactos"></canvas>
-    <div class="nota"><h4>Fonte</h4>Fonte: Q15. Inclui todos os territórios (inclusive os sem fechamento).</div>
+    <div class="cbox flex"><canvas id="cImpactos"></canvas></div>
+    <div class="nota"><h4>Fonte</h4>Q15. Inclui todos os territórios (inclusive os sem fechamento).</div>
   </div>
   <div class="cc">
     <h3>Q10 – Diretrizes Curriculares para Educação Escolar Quilombola</h3>
     <p class="sub">Classificação revisada (Base Mestre v1.2) — resposta única por território. % sobre 522 formulários.</p>
-    <canvas id="cDiretrizes"></canvas>
-    <div class="nota"><h4>Fonte</h4>Fonte: Q10 (normativa_municipal_status_rec). 290 municípios (55,6%) não possuem nenhuma normativa municipal. Referências estaduais/nacionais são contabilizadas à parte.</div>
+    <div class="cbox flex"><canvas id="cDiretrizes"></canvas></div>
+    <div class="nota"><h4>Fonte</h4>Q10 (normativa_municipal_status_rec). 290 municípios (55,6%) não possuem nenhuma normativa municipal. Referências estaduais/nacionais são contabilizadas à parte.</div>
   </div>
 </div>
 
@@ -585,14 +726,14 @@ tbody tr:hover td{background:var(--sel)}
   <div class="cc">
     <h3>Q11 – Processo seletivo/concurso para professores quilombolas</h3>
     <p class="sub">Classificação revisada (Base Mestre v1.2) — resposta única por território. Distingue mecanismo municipal específico de ação racial geral, mecanismo estadual e simples referência normativa.</p>
-    <canvas id="cConcurso"></canvas>
-    <div class="nota"><h4>Fonte</h4>Fonte: Q11 (acao_afirmativa_status_rec). 404/522 municípios (77,4%) não possuem nenhum mecanismo. "Não sabe informar" (26) é contabilizado à parte, nunca como "não".</div>
+    <div class="cbox donut"><canvas id="cConcurso"></canvas></div>
+    <div class="nota"><h4>Fonte</h4>Q11 (acao_afirmativa_status_rec). 404/522 municípios (77,4%) não possuem nenhum mecanismo. "Não sabe informar" (26) é contabilizado à parte, nunca como "não".</div>
   </div>
   <div class="cc">
     <h3>Q17 – Acionamento de órgãos externos (MP, Defensoria, etc.)</h3>
     <p class="sub">Territórios que precisaram recorrer a órgãos externos para garantir o direito à educação.</p>
-    <canvas id="cOrgaos"></canvas>
-    <div class="nota"><h4>Fonte</h4>Fonte: Q17. Base: 522 formulários.</div>
+    <div class="cbox donut"><canvas id="cOrgaos"></canvas></div>
+    <div class="nota"><h4>Fonte</h4>Q17. Base: 522 formulários.</div>
   </div>
 </div>
 
@@ -600,21 +741,21 @@ tbody tr:hover td{background:var(--sel)}
   <div class="cc">
     <h3>Q9 – Estimativa de famílias por território</h3>
     <p class="sub">Distribuição dos territórios respondentes por porte (número estimado de famílias).</p>
-    <canvas id="cFamilias"></canvas>
-    <div class="nota"><h4>Fonte</h4>Fonte: Q9. Base: 522 territórios.</div>
+    <div class="cbox donut"><canvas id="cFamilias"></canvas></div>
+    <div class="nota"><h4>Fonte</h4>Q9. Base: 522 territórios.</div>
   </div>
   <div class="cc">
     <h3>Q23 – Avaliação da qualidade da Educação Escolar Quilombola</h3>
     <p class="sub">Como as comunidades avaliam a qualidade da Educação Escolar Quilombola no município.</p>
-    <canvas id="cAvalQual"></canvas>
-    <div class="nota"><h4>Fonte</h4>Fonte: Q23. Base: 522 formulários. Resposta única.</div>
+    <div class="cbox donut"><canvas id="cAvalQual"></canvas></div>
+    <div class="nota"><h4>Fonte</h4>Q23. Base: 522 formulários. Resposta única.</div>
   </div>
 </div>
 
 <!-- ════════════════════════════════════════
      ENSINO MÉDIO
      ════════════════════════════════════════ -->
-<div class="sechead">
+<div class="sechead" id="s-medio">
   <div class="kicker">Continuidade dos estudos</div>
   <h2 class="sec">Ensino Médio e Evasão Escolar<span class="badge">Base: 522 formulários</span></h2>
 </div>
@@ -623,14 +764,14 @@ tbody tr:hover td{background:var(--sel)}
   <div class="cc">
     <h3>Q19 – Modalidades de oferta de Ensino Médio</h3>
     <p class="sub">Classificação revisada (Base Mestre v1.2): resposta única por território. Cada território tem uma forma de oferta.</p>
-    <canvas id="cEmCats"></canvas>
-    <div class="nota"><h4>Fonte</h4>Fonte: Q19 (ensino_medio_localizacao_rec). Base: 522 territórios, resposta única.</div>
+    <div class="cbox flex"><canvas id="cEmCats"></canvas></div>
+    <div class="nota"><h4>Fonte</h4>Q19 (ensino_medio_localizacao_rec). Base: 522 territórios, resposta única.</div>
   </div>
-  <div class="cc">
+  <div class="cc wide">
     <h3>Q19 – Oferta de Ensino Médio por Estado (Dentro / Próximo / Sem oferta)</h3>
     <p class="sub">Quantidade de territórios com cada tipo de oferta de Ensino Médio por estado.</p>
-    <canvas id="cEmUF"></canvas>
-    <div class="nota"><h4>Fonte</h4>Fonte: Q19 × Q5. Base: formulários por estado.</div>
+    <div class="cbox alta"><canvas id="cEmUF"></canvas></div>
+    <div class="nota"><h4>Fonte</h4>Q19 × Q5. Base: formulários por estado.</div>
   </div>
 </div>
 
@@ -638,14 +779,14 @@ tbody tr:hover td{background:var(--sel)}
   <div class="cc">
     <h3>Q20 – Jovens que param de estudar no Ensino Médio</h3>
     <p class="sub">Categorias exatas do formulário. Situação da evasão dos jovens no Ensino Médio.</p>
-    <canvas id="cEvasao"></canvas>
-    <div class="nota"><h4>Fonte</h4>Fonte: Q20. Base: 522 formulários. Resposta única por território.</div>
+    <div class="cbox donut"><canvas id="cEvasao"></canvas></div>
+    <div class="nota"><h4>Fonte</h4>Q20 (jovens_param_estudar). Base aplicável: territórios com oferta de Ensino Médio identificada — <b id="evBase">—</b> formulários. Excluídos <b id="evNA">—</b> formulários marcados como <i>não se aplica</i> (sem Ensino Médio no território ou proximidades): a pergunta não incide sobre eles, como em Q15 e Q21. Respostas <i>não sei</i> nunca são convertidas em <i>não</i>.</div>
   </div>
   <div class="cc">
     <h3>Q20 × Q19 – Evasão por tipo de oferta de Ensino Médio</h3>
     <p class="sub">Correlação entre o tipo de oferta de Ensino Médio e a evasão reportada.</p>
-    <canvas id="cEvasaoEM"></canvas>
-    <div class="nota"><h4>Fonte</h4>Fonte: Q20 × Q19. % de evasão por tipo de oferta.</div>
+    <div class="cbox media"><canvas id="cEvasaoEM"></canvas></div>
+    <div class="nota"><h4>Fonte</h4>Q20 × Q19. % de evasão por tipo de oferta.</div>
   </div>
 </div>
 
@@ -653,14 +794,14 @@ tbody tr:hover td{background:var(--sel)}
   <div class="cc">
     <h3>Q21 – Motivos de interrupção dos estudos no Ensino Médio (total)</h3>
     <p class="sub">Categorias exatas do formulário (múltipla escolha). % sobre 522 formulários.</p>
-    <canvas id="cMotivos"></canvas>
-    <div class="nota"><h4>Fonte</h4>Fonte: Q21. Múltiplos motivos por respondente.</div>
+    <div class="cbox flex"><canvas id="cMotivos"></canvas></div>
+    <div class="nota"><h4>Fonte</h4>Q21. Múltiplos motivos por respondente.</div>
   </div>
   <div class="cc">
     <h3>Q21 – Motivos de evasão por Região (%)</h3>
     <p class="sub">% de escolas de cada região que citam cada motivo de interrupção dos estudos no Ensino Médio.</p>
-    <canvas id="cMotivosReg"></canvas>
-    <div class="nota"><h4>Fonte</h4>Fonte: Q21 × Q4. Base: cada região.</div>
+    <div class="cbox media"><canvas id="cMotivosReg"></canvas></div>
+    <div class="nota"><h4>Fonte</h4>Q21 × Q4. Base: cada região.</div>
   </div>
 </div>
 
@@ -668,13 +809,13 @@ tbody tr:hover td{background:var(--sel)}
   <div class="cc">
     <h3>Correlação Ensino Médio × Evasão por Estado (scatter)</h3>
     <p class="sub">Relação entre percentual de territórios com oferta de Ensino Médio e percentual com evasão, por estado.</p>
-    <canvas id="cCorrUF"></canvas>
+    <div class="cbox media"><canvas id="cCorrUF"></canvas></div>
     <div class="nota"><h4>Como ler</h4>Eixo X: % com oferta de Ensino Médio. Eixo Y: % com evasão (Alguns + Maioria). Todos os 21 estados.</div>
   </div>
   <div class="cc">
     <h3>Etapas de ensino: DENTRO vs FORA do território (%)</h3>
     <p class="sub">% das escolas de cada localização que oferecem cada etapa de ensino.</p>
-    <canvas id="cEtapasLoc"></canvas>
+    <div class="cbox media"><canvas id="cEtapasLoc"></canvas></div>
     <div class="nota"><h4>Como ler</h4>Dentro=350 escolas | Fora=374 escolas. Múltiplas etapas por escola.</div>
   </div>
 </div>
@@ -682,41 +823,41 @@ tbody tr:hover td{background:var(--sel)}
 <!-- ════════════════════════════════════════
      ESCOLAS – INFRAESTRUTURA
      ════════════════════════════════════════ -->
-<div class="sechead">
+<div class="sechead" id="s-infra">
   <div class="kicker">Condições de funcionamento</div>
   <h2 class="sec">Infraestrutura Escolar<span class="badge" id="badgeEsc">724 escolas</span></h2>
 </div>
 
 <div class="g2">
-  <div class="cc">
+  <div class="cc wide">
     <h3>% de escolas com inadequação por item de infraestrutura</h3>
     <p class="sub">Categorias agrupadas: Precária + Insuficiente + Inexistente. Ordenado do mais crítico ao menos crítico.</p>
-    <canvas id="cInfraGeral"></canvas>
+    <div class="cbox flex"><canvas id="cInfraGeral"></canvas></div>
     <div class="nota"><h4>Base e critério</h4>Escala exata: Adequada / Precária / Inexistente / Insuficiente / Não se aplica / Não sei.</div>
   </div>
-  <div class="cc">
+  <div class="cc wide">
     <h3>Infraestrutura: DENTRO vs FORA do território (%)</h3>
     <p class="sub">% com inadequação (Precária + Insuficiente + Inexistente) por item, comparando escolas dentro e fora da comunidade.</p>
-    <canvas id="cInfraLoc" style="max-height:560px"></canvas>
+    <div class="cbox xalta"><canvas id="cInfraLoc"></canvas></div>
     <div class="nota"><h4>Como ler</h4>Dentro=350 escolas | Fora=374 escolas.</div>
   </div>
 </div>
 
 <div class="g3">
-  <div class="cc"><h3>Salas de aula – Avaliação completa</h3><p class="sub">Todas as categorias da escala de infraestrutura.</p><canvas id="cISalas"></canvas></div>
-  <div class="cc"><h3>Biblioteca – Avaliação completa</h3><p class="sub">Situação das bibliotecas nas escolas quilombolas.</p><canvas id="cIBib"></canvas></div>
-  <div class="cc"><h3>Laboratório de informática – Avaliação</h3><p class="sub">Condição do laboratório de informática.</p><canvas id="cILab"></canvas></div>
+  <div class="cc"><h3>Salas de aula – Avaliação completa</h3><p class="sub">Todas as categorias da escala de infraestrutura.</p><div class="cbox donut"><canvas id="cISalas"></canvas></div></div>
+  <div class="cc"><h3>Biblioteca – Avaliação completa</h3><p class="sub">Situação das bibliotecas nas escolas quilombolas.</p><div class="cbox donut"><canvas id="cIBib"></canvas></div></div>
+  <div class="cc"><h3>Laboratório de informática – Avaliação</h3><p class="sub">Condição do laboratório de informática.</p><div class="cbox donut"><canvas id="cILab"></canvas></div></div>
 </div>
 <div class="g3">
-  <div class="cc"><h3>Acesso à internet – Avaliação completa</h3><p class="sub">Condição do acesso à internet.</p><canvas id="cIInternet"></canvas></div>
-  <div class="cc"><h3>Espaço para práticas culturais – Avaliação</h3><p class="sub">Espaço para práticas e apresentações culturais.</p><canvas id="cICultural"></canvas></div>
-  <div class="cc"><h3>Acessibilidade arquitetônica – Avaliação</h3><p class="sub">Adequação da acessibilidade arquitetônica.</p><canvas id="cIAcess"></canvas></div>
+  <div class="cc"><h3>Acesso à internet – Avaliação completa</h3><p class="sub">Condição do acesso à internet.</p><div class="cbox donut"><canvas id="cIInternet"></canvas></div></div>
+  <div class="cc"><h3>Espaço para práticas culturais – Avaliação</h3><p class="sub">Espaço para práticas e apresentações culturais.</p><div class="cbox donut"><canvas id="cICultural"></canvas></div></div>
+  <div class="cc"><h3>Acessibilidade arquitetônica – Avaliação</h3><p class="sub">Adequação da acessibilidade arquitetônica.</p><div class="cbox donut"><canvas id="cIAcess"></canvas></div></div>
 </div>
 
 <!-- ════════════════════════════════════════
      TRANSPORTE
      ════════════════════════════════════════ -->
-<div class="sechead">
+<div class="sechead" id="s-transporte">
   <div class="kicker">Deslocamento até a escola</div>
   <h2 class="sec">Transporte Escolar<span class="badge">724 escolas</span></h2>
 </div>
@@ -725,13 +866,13 @@ tbody tr:hover td{background:var(--sel)}
   <div class="cc">
     <h3>Uso de transporte escolar – Categorias exatas</h3>
     <p class="sub">Tipo de transporte utilizado para acessar a escola, com as categorias originais do formulário.</p>
-    <canvas id="cTranspUso"></canvas>
-    <div class="nota"><h4>Fonte</h4>Fonte: Q29/49/69/89. Inclui Escolas 1 a 4.</div>
+    <div class="cbox donut"><canvas id="cTranspUso"></canvas></div>
+    <div class="nota"><h4>Fonte</h4>Q29/49/69/89. Inclui Escolas 1 a 4.</div>
   </div>
   <div class="cc">
     <h3>Transporte precário: DENTRO vs FORA do território</h3>
     <p class="sub">% de escolas com transporte que apresentam ao menos uma avaliação negativa (Discordo em: segurança, veículo ou estradas).</p>
-    <canvas id="cTranspLoc"></canvas>
+    <div class="cbox media"><canvas id="cTranspLoc"></canvas></div>
     <div class="nota"><h4>Como ler</h4>Dentro com transporte=313 | Fora com transporte=333.</div>
   </div>
 </div>
@@ -740,13 +881,13 @@ tbody tr:hover td{background:var(--sel)}
   <div class="cc">
     <h3>% avaliação negativa (Discordo) por aspecto do transporte</h3>
     <p class="sub">Percentual de "Discordo" sobre a base que respondeu (excluindo "Não se aplica"). Maior = pior condição.</p>
-    <canvas id="cTranspCond"></canvas>
+    <div class="cbox flex"><canvas id="cTranspCond"></canvas></div>
     <div class="nota"><h4>Base e critério</h4>Escala Likert: Concordo totalmente / Concordo parcialmente / Discordo / Não sei informar / Não se aplica.</div>
   </div>
   <div class="cc">
     <h3>As estradas estão em boas condições – Avaliação completa</h3>
     <p class="sub">Distribuição completa de respostas para o item mais crítico do transporte.</p>
-    <canvas id="cTEstradas"></canvas>
+    <div class="cbox donut"><canvas id="cTEstradas"></canvas></div>
     <div class="nota"><h4>Base e critério</h4>Categorias exatas da escala Likert do formulário.</div>
   </div>
 </div>
@@ -754,7 +895,7 @@ tbody tr:hover td{background:var(--sel)}
 <!-- ════════════════════════════════════════
      ALIMENTAÇÃO
      ════════════════════════════════════════ -->
-<div class="sechead">
+<div class="sechead" id="s-alimentacao">
   <div class="kicker">Alimentação e cultura alimentar</div>
   <h2 class="sec">Alimentação Escolar<span class="badge">724 escolas</span></h2>
 </div>
@@ -763,21 +904,21 @@ tbody tr:hover td{background:var(--sel)}
   <div class="cc">
     <h3>Avaliação dos 6 itens de alimentação escolar (% Discordo)</h3>
     <p class="sub">Percentual de "Discordo" por item de alimentação. Quanto maior, pior a avaliação.</p>
-    <canvas id="cAlimItens"></canvas>
+    <div class="cbox flex"><canvas id="cAlimItens"></canvas></div>
     <div class="nota"><h4>Base e critério</h4>Escala: Concordo totalmente / Concordo parcialmente / Discordo / Não sei.</div>
   </div>
   <div class="cc">
     <h3>Alimentação respeita a cultura quilombola × Região</h3>
     <p class="sub">% que concordam (total+parcial) e % que discordam, por região do Brasil.</p>
-    <canvas id="cAlimReg"></canvas>
-    <div class="nota"><h4>Fonte</h4>Fonte: Item "A alimentação respeita a cultura alimentar quilombola?" × Região.</div>
+    <div class="cbox media"><canvas id="cAlimReg"></canvas></div>
+    <div class="nota"><h4>Fonte</h4>Item "A alimentação respeita a cultura alimentar quilombola?" × Região.</div>
   </div>
 </div>
 
 <!-- ════════════════════════════════════════
      DOCENTES E MATERIAIS
      ════════════════════════════════════════ -->
-<div class="sechead">
+<div class="sechead" id="s-docentes">
   <div class="kicker">Quem ensina e com o quê</div>
   <h2 class="sec">Docentes e Material Didático<span class="badge">724 escolas</span></h2>
 </div>
@@ -786,28 +927,28 @@ tbody tr:hover td{background:var(--sel)}
   <div class="cc">
     <h3>Presença de professoras(es) quilombolas – Categorias exatas</h3>
     <p class="sub">Distribuição percentual da quantidade de professores quilombolas por escola. Categorias do formulário.</p>
-    <canvas id="cProfCats"></canvas>
+    <div class="cbox donut"><canvas id="cProfCats"></canvas></div>
     <div class="nota"><h4>Como ler</h4>Formulário: Muitos / Alguns / Poucos / Nenhum / Não sei / Todos.</div>
   </div>
   <div class="cc">
     <h3>Professoras(es) quilombolas × Materiais didáticos</h3>
     <p class="sub">Relação entre presença de professores quilombolas e adequação dos materiais didáticos.</p>
-    <canvas id="cProfMat"></canvas>
+    <div class="cbox media"><canvas id="cProfMat"></canvas></div>
     <div class="nota"><h4>Como ler</h4>Materiais: Não / Parcialmente / Sim / Não sei informar.</div>
   </div>
 </div>
 
 <div class="g2">
-  <div class="cc">
+  <div class="cc wide">
     <h3>Tipos de professores quilombolas por Estado (%)</h3>
     <p class="sub">Distribuição de Nenhum / Poucos / Alguns / Muitos / Todos por estado, ordenado por % sem professor quilombola.</p>
-    <canvas id="cProfUF"></canvas>
+    <div class="cbox alta"><canvas id="cProfUF"></canvas></div>
     <div class="nota"><h4>Como ler</h4>Todas as 21 UFs. Base: 724 escolas. Categorias exatas do formulário.</div>
   </div>
   <div class="cc">
     <h3>Materiais didáticos com conteúdo quilombola – Distribuição</h3>
     <p class="sub">As aulas e materiais incluem conteúdos sobre história, cultura e saberes quilombolas?</p>
-    <canvas id="cMateriais"></canvas>
+    <div class="cbox donut"><canvas id="cMateriais"></canvas></div>
     <div class="nota"><h4>Como ler</h4>Formulário: Não / Parcialmente / Sim / Não sei informar. Base: 724 escolas.</div>
   </div>
 </div>
@@ -815,7 +956,7 @@ tbody tr:hover td{background:var(--sel)}
 <!-- ════════════════════════════════════════
      RACISMO
      ════════════════════════════════════════ -->
-<div class="sechead">
+<div class="sechead" id="s-racismo">
   <div class="kicker">Violações de direitos</div>
   <h2 class="sec">Racismo nas Escolas<span class="badge">724 escolas</span></h2>
 </div>
@@ -824,28 +965,28 @@ tbody tr:hover td{background:var(--sel)}
   <div class="cc">
     <h3>Tipos de racismo reportados – Categorias exatas do formulário</h3>
     <p class="sub">Cada escola pode reportar múltiplos tipos. % sobre 724 escolas.</p>
-    <canvas id="cTiposRac"></canvas>
+    <div class="cbox flex"><canvas id="cTiposRac"></canvas></div>
     <div class="nota"><h4>Como ler</h4>Formulário: Não há relatos / Entre estudantes / Prof → Estudante / Prof → Prof / Prof → Familiares.</div>
   </div>
   <div class="cc">
     <h3>% de escolas com racismo por Região</h3>
     <p class="sub">Percentual de escolas com qualquer relato de racismo em cada região.</p>
-    <canvas id="cRacReg"></canvas>
+    <div class="cbox media"><canvas id="cRacReg"></canvas></div>
     <div class="nota"><h4>Como ler</h4>Sul (65,2%) e Norte (50%) têm os maiores índices. Base: 724 escolas.</div>
   </div>
 </div>
 
 <div class="g2">
-  <div class="cc">
+  <div class="cc wide">
     <h3>Racismo por Estado – % de escolas (todas as 21 UFs)</h3>
     <p class="sub">Percentual de escolas com algum relato de racismo por unidade federativa.</p>
-    <canvas id="cRacUF"></canvas>
+    <div class="cbox flex"><canvas id="cRacUF"></canvas></div>
     <div class="nota"><h4>Como ler</h4>Todas as 21 UFs presentes na base. Ordenado por percentual.</div>
   </div>
   <div class="cc">
     <h3>Racismo: escolas DENTRO vs FORA do território</h3>
     <p class="sub">Comparação do % de racismo entre escolas dentro da comunidade e fora.</p>
-    <canvas id="cRacLoc"></canvas>
+    <div class="cbox media"><canvas id="cRacLoc"></canvas></div>
     <div class="nota"><h4>Como ler</h4>Dentro=350 | Fora=374 escolas.</div>
   </div>
 </div>
@@ -854,13 +995,13 @@ tbody tr:hover td{background:var(--sel)}
   <div class="cc">
     <h3>Desrespeito à cultura quilombola pela escola</h3>
     <p class="sub">Categorias exatas do formulário: Sim / Não / Não sei.</p>
-    <canvas id="cDesrespeito"></canvas>
-    <div class="nota"><h4>Fonte</h4>Fonte: "Há relatos de situações de desrespeito com a cultura e tradições?" – 724 escolas.</div>
+    <div class="cbox donut"><canvas id="cDesrespeito"></canvas></div>
+    <div class="nota"><h4>Fonte</h4>"Há relatos de situações de desrespeito com a cultura e tradições?" – 724 escolas.</div>
   </div>
   <div class="cc">
     <h3>Relação escola-comunidade – Categorias exatas</h3>
     <p class="sub">Como a comunidade avalia a relação com os profissionais da escola.</p>
-    <canvas id="cRelacao"></canvas>
+    <div class="cbox donut"><canvas id="cRelacao"></canvas></div>
     <div class="nota"><h4>Como ler</h4>Formulário: Muito boa / Boa / Regular / Ruim / Não sabe. Base: 724 escolas.</div>
   </div>
 </div>
@@ -868,7 +1009,7 @@ tbody tr:hover td{background:var(--sel)}
 <!-- ════════════════════════════════════════
      GESTÃO DEMOCRÁTICA
      ════════════════════════════════════════ -->
-<div class="sechead">
+<div class="sechead" id="s-gestao">
   <div class="kicker">Participação da comunidade</div>
   <h2 class="sec">Gestão Democrática e Participação<span class="badge">724 escolas</span></h2>
 </div>
@@ -877,21 +1018,21 @@ tbody tr:hover td{background:var(--sel)}
   <div class="cc">
     <h3>3 dimensões da gestão democrática – Distribuição completa</h3>
     <p class="sub">Categorias exatas: Sim / Às vezes / Não / Não sei. Stacked 100%.</p>
-    <canvas id="cGestao3"></canvas>
+    <div class="cbox media"><canvas id="cGestao3"></canvas></div>
     <div class="nota"><h4>Como ler</h4>Formulário Q41/61/81/101: Consulta em decisões | Conselho escolar | Escolha de gestores.</div>
   </div>
   <div class="cc">
     <h3>Comunidade consultada em decisões × Região</h3>
     <p class="sub">% de Sim / Às vezes / Não para a consulta à comunidade, por região.</p>
-    <canvas id="cConsultaReg"></canvas>
-    <div class="nota"><h4>Fonte</h4>Fonte: Participação na gestão × Região. Base: 724 escolas.</div>
+    <div class="cbox media"><canvas id="cConsultaReg"></canvas></div>
+    <div class="nota"><h4>Fonte</h4>Participação na gestão × Região. Base: 724 escolas.</div>
   </div>
 </div>
 
 <!-- ════════════════════════════════════════
      ANÁLISES AVANÇADAS
      ════════════════════════════════════════ -->
-<div class="sechead">
+<div class="sechead" id="s-comparacoes">
   <div class="kicker">Comparações entre recortes</div>
   <h2 class="sec">Análises Comparativas Avançadas</h2>
 </div>
@@ -899,14 +1040,14 @@ tbody tr:hover td{background:var(--sel)}
 <div class="cc g1">
   <h3>Heatmap Regional – 7 indicadores críticos</h3>
   <p class="sub">Comparação de indicadores por região. Quanto maior o valor, pior a situação. Base mista: escolas para indicadores de escola, formulários para indicadores territoriais.</p>
-  <canvas id="cHeatmap" style="max-height:360px"></canvas>
+  <div class="cbox alta"><canvas id="cHeatmap"></canvas></div>
   <div class="nota"><h4>Como ler</h4>Indicadores: % Racismo | % Fechamento | % Sem diretrizes | % Sem concurso | % Sem professor quilombola | % Sem materiais | % Sem Ensino Médio.</div>
 </div>
 
 <div class="cc g1">
   <h3>Radar comparativo – 5 indicadores por Região</h3>
   <p class="sub">Visão multidimensional dos 5 principais indicadores por região. Quanto maior a área, pior a situação.</p>
-  <canvas id="cRadar" style="max-height:420px"></canvas>
+  <div class="cbox alta"><canvas id="cRadar"></canvas></div>
 </div>
 
 <!-- COMPARADOR -->
@@ -914,7 +1055,7 @@ tbody tr:hover td{background:var(--sel)}
 <!-- ════════════════════════════════════════
      CORRELAÇÕES CRÍTICAS
      ════════════════════════════════════════ -->
-<div class="sechead">
+<div class="sechead" id="s-correlacoes">
   <div class="kicker">Duas variáveis ao mesmo tempo</div>
   <h2 class="sec">Correlações Críticas — Evidências de Violação de Direitos</h2>
 </div>
@@ -923,8 +1064,8 @@ tbody tr:hover td{background:var(--sel)}
   <h3>Racismo × Professores quilombolas — 1 ponto por escola (jitter)</h3>
   <p class="sub">Cada ponto é uma escola. Eixo X = presença de professores quilombolas. Eixo Y = tipo de racismo relatado (escolas sem racismo ficam na base). Uma escola com múltiplos tipos gera um ponto por tipo.</p>
   <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;align-items:center">
-    <span style="font-size:.8rem;font-weight:600;color:#5a6e7c">Filtrar por nível de ensino:</span>
-    <select id="filtroEtapa" onchange="renderEscolaScatter()" style="font-size:.8rem;padding:4px 8px;border:1px solid #ddd;border-radius:6px;background:#fff;color:#1e2a3e">
+    <span style="font-size:.8rem;font-weight:600;color:var(--mute)">Filtrar por nível de ensino:</span>
+    <select id="filtroEtapa" class="sel-inline" onchange="renderEscolaScatter()">
       <option value="all">Todas as escolas</option>
       <option value="Creche">Creche</option>
       <option value="Pré-escola">Pré-escola</option>
@@ -938,25 +1079,25 @@ tbody tr:hover td{background:var(--sel)}
       <option value="EJA EF1">EJA (Anos Iniciais do Ensino Fundamental)</option>
       <option value="EJA EF2">EJA (Anos Finais do Ensino Fundamental)</option>
     </select>
-    <span id="escScatterN" style="font-size:.78rem;color:#888"></span>
+    <span id="escScatterN" style="font-size:.78rem;color:var(--mute)"></span>
   </div>
-  <canvas id="cCorrRacProfEsc" style="max-height:480px"></canvas>
+  <div class="cbox xalta"><canvas id="cCorrRacProfEsc"></canvas></div>
   <div id="escScatterNota" style="margin-top:6px"></div>
   <div class="nota"><h4>Como ler</h4>580 escolas com dados válidos → 675 pontos (escolas com múltiplos tipos geram um ponto por tipo). Tendência: mais professores quilombolas → menos racismo (Nenhum: 50,8% | Todos: 13,3%).</div>
 </div>
 
 <div class="g2">
-  <div class="cc">
+  <div class="cc wide">
     <h3>Racismo × Ausência de professores quilombolas por UF (scatter)</h3>
     <p class="sub">Correlação entre % de escolas com racismo e % sem nenhum professor quilombola, por estado. Quanto mais acima e à direita, pior.</p>
-    <canvas id="cCorrRacProf"></canvas>
-    <div class="nota"><h4>Fonte</h4>Fonte: Racismo × Professores quilombolas. Todos os 21 estados. Eixo X = % sem professor quilombola | Eixo Y = % com racismo.</div>
+    <div class="cbox alta"><canvas id="cCorrRacProf"></canvas></div>
+    <div class="nota"><h4>Fonte</h4>Racismo × Professores quilombolas. Todos os 21 estados. Eixo X = % sem professor quilombola | Eixo Y = % com racismo.</div>
   </div>
   <div class="cc">
     <h3>Gestão democrática × Racismo por Região</h3>
     <p class="sub">Relação entre a falta de consulta à comunidade e a ocorrência de racismo nas escolas, por região.</p>
-    <canvas id="cCorrGestaoRac"></canvas>
-    <div class="nota"><h4>Fonte</h4>Fonte: Consulta comunitária × Racismo por região. Barras lado a lado.</div>
+    <div class="cbox media"><canvas id="cCorrGestaoRac"></canvas></div>
+    <div class="nota"><h4>Fonte</h4>Consulta comunitária × Racismo por região. Barras lado a lado.</div>
   </div>
 </div>
 
@@ -964,52 +1105,52 @@ tbody tr:hover td{background:var(--sel)}
   <div class="cc">
     <h3>Ausência de prof. quilombola × Materiais culturais × Racismo (3 dimensões)</h3>
     <p class="sub">Comparação por categoria de presença docente: % sem materiais didáticos e % com racismo — evidenciando o ciclo de exclusão pedagógica.</p>
-    <canvas id="cCorrProfMatRac"></canvas>
-    <div class="nota"><h4>Fonte</h4>Fonte: Professores quilombolas × Materiais × Racismo. Base: 724 escolas.</div>
+    <div class="cbox media"><canvas id="cCorrProfMatRac"></canvas></div>
+    <div class="nota"><h4>Fonte</h4>Professores quilombolas × Materiais × Racismo. Base: 724 escolas.</div>
   </div>
   <div class="cc">
     <h3>Infra precária × Racismo por localização (DENTRO vs FORA)</h3>
     <p class="sub">Comparação entre % de infraestrutura inadequada e % de racismo nas escolas dentro e fora do território quilombola.</p>
-    <canvas id="cCorrInfraRac" style="max-height:480px"></canvas>
-    <div class="nota"><h4>Fonte</h4>Fonte: Infra × Racismo × Localização. Dentro=350 escolas (racismo: 32.3%) | Fora=374 escolas (racismo: 47.3%). Itens ordenados do mais ao menos precário.</div>
+    <div class="cbox xalta"><canvas id="cCorrInfraRac"></canvas></div>
+    <div class="nota"><h4>Fonte</h4>Infra × Racismo × Localização. Dentro=350 escolas (racismo: 32.3%) | Fora=374 escolas (racismo: 47.3%). Itens ordenados do mais ao menos precário.</div>
   </div>
 </div>
 
 <div class="g2">
-  <div class="cc">
+  <div class="cc wide">
     <h3>Sem Ensino Médio × Evasão por Estado (barras comparativas)</h3>
     <p class="sub">Estados ordenados pelo % sem oferta de Ensino Médio. Quanto mais alto o percentual sem Ensino Médio, maior tende a ser a evasão.</p>
-    <canvas id="cCorrEmEvasaoBars"></canvas>
-    <div class="nota"><h4>Fonte</h4>Fonte: Q19 × Q20 por estado. Apenas estados com 5 ou mais formulários. Todos os 21 estados.</div>
+    <div class="cbox alta"><canvas id="cCorrEmEvasaoBars"></canvas></div>
+    <div class="nota"><h4>Fonte</h4>Q19 × Q20 por estado. Apenas estados com 5 ou mais formulários. Todos os 21 estados.</div>
   </div>
   <div class="cc">
     <h3>Ausência de consulta comunitária × Desrespeito cultural por Região</h3>
     <p class="sub">Relação entre a não-participação da comunidade na gestão e os relatos de desrespeito à cultura quilombola.</p>
-    <canvas id="cCorrConsultaDes"></canvas>
-    <div class="nota"><h4>Fonte</h4>Fonte: Consulta × Desrespeito × Região. Evidencia que exclusão na gestão e desrespeito andam juntos.</div>
+    <div class="cbox media"><canvas id="cCorrConsultaDes"></canvas></div>
+    <div class="nota"><h4>Fonte</h4>Consulta × Desrespeito × Região. Evidencia que exclusão na gestão e desrespeito andam juntos.</div>
   </div>
 </div>
 
 <div class="g2">
-  <div class="cc">
+  <div class="cc wide">
     <h3>Todos os indicadores críticos por Estado (barras agrupadas)</h3>
     <p class="sub">Visão panorâmica dos 4 principais indicadores de violação por estado: racismo, sem professor quilombola, sem materiais didáticos e sem Ensino Médio.</p>
-    <canvas id="cPanoramaUF"></canvas>
-    <div class="nota"><h4>Fonte</h4>Fonte: Múltiplos indicadores × UF. Base: 724 escolas + 522 formulários.</div>
+    <div class="cbox alta"><canvas id="cPanoramaUF"></canvas></div>
+    <div class="nota"><h4>Fonte</h4>Múltiplos indicadores × UF. Base: 724 escolas + 522 formulários.</div>
   </div>
   <div class="cc">
     <h3>Relação escola-comunidade × Racismo × Desrespeito</h3>
     <p class="sub">Distribuição de racismo e desrespeito cultural por qualidade da relação escola-comunidade. Escolas com relação "Ruim" têm mais violações?</p>
-    <canvas id="cCorrRelacaoViolacoes"></canvas>
-    <div class="nota"><h4>Fonte</h4>Fonte: Relação escola-comunidade × Racismo × Desrespeito. Base: 724 escolas.</div>
+    <div class="cbox media"><canvas id="cCorrRelacaoViolacoes"></canvas></div>
+    <div class="nota"><h4>Fonte</h4>Relação escola-comunidade × Racismo × Desrespeito. Base: 724 escolas.</div>
   </div>
 </div>
-<div class="sechead">
+<div class="sechead" id="s-comparador">
   <div class="kicker">Explore por conta própria</div>
   <h2 class="sec">Comparador Dinâmico</h2>
 </div>
 <div class="comp">
-  <p style="font-size:.81rem;margin-bottom:12px;color:#5a6e7c">Selecione dois indicadores e compare as <strong>724 escolas individuais</strong> — cada ponto é uma escola, colorido por região. Passe o mouse para ver detalhes.</p>
+  <p style="font-size:.81rem;margin-bottom:12px;color:var(--mute)">Selecione dois indicadores e compare as <strong>724 escolas individuais</strong> — cada ponto é uma escola, colorido por região. Passe o mouse para ver detalhes.</p>
   <div class="comp-row">
     <div class="fg"><label>Eixo X</label>
       <select id="compA">
@@ -1033,12 +1174,12 @@ tbody tr:hover td{background:var(--sel)}
     </div>
     <div class="fg" style="flex:0 0 auto"><button onclick="atualizarComp()">📊 Comparar</button></div>
   </div>
-  <canvas id="compChart" style="max-height:420px"></canvas>
+  <div class="cbox alta"><canvas id="compChart"></canvas></div>
   <div id="compNota" style="margin-top:6px"></div>
 </div>
 
 <!-- TABELA POR UF -->
-<div class="sechead">
+<div class="sechead" id="s-tabela">
   <div class="kicker">Registros</div>
   <h2 class="sec">Tabela Consolidada por Estado</h2>
 </div>
@@ -1054,7 +1195,7 @@ tbody tr:hover td{background:var(--sel)}
 <div class="modal" id="modalMet" onclick="if(event.target===this)this.style.display='none'">
   <div class="modal-c" style="max-width:760px">
     <h3>Nota Metodológica</h3>
-    <div style="font-size:.82rem;line-height:1.75;color:#1e2a3e">
+    <div style="font-size:.82rem;line-height:1.75;color:var(--ink)">
 
       <p><strong>1. Origem dos dados</strong><br>
       Os dados apresentados nesta plataforma foram coletados por meio de um formulário estruturado (Google Forms), respondido por lideranças, pesquisadoras(es) e membros de comunidades quilombolas de todo o Brasil, no âmbito da Rede Nacional de Pesquisadoras e Pesquisadores Quilombolas — iniciativa vinculada ao Coletivo Nacional de Educação da CONAQ. A coleta ocorreu entre 2025 e 2026.</p>
@@ -1116,7 +1257,7 @@ tbody tr:hover td{background:var(--sel)}
       <p><strong>7. Limitações</strong><br>
       Os dados refletem as percepções de lideranças, pesquisadoras(es) e membros das comunidades quilombolas respondentes, não constituindo um censo oficial. A cobertura territorial depende da adesão voluntária ao formulário, podendo haver maior concentração de respostas em determinadas regiões ou estados.</p>
 
-      <p style="margin-top:14px;font-size:.74rem;color:#888">Base de dados: 522 formulários · 724 escolas analisadas individualmente · Coleta 2025–2026 · Versão: Setembro/2026.</p>
+      <p style="margin-top:14px;font-size:.74rem;color:var(--mute)">Base de dados: 522 formulários · 724 escolas analisadas individualmente · Coleta 2025–2026 · Versão: Setembro/2026.</p>
     </div>
     <button onclick="document.getElementById('modalMet').style.display='none'" style="margin-top:16px">Fechar</button>
   </div>
@@ -1167,10 +1308,10 @@ tbody tr:hover td{background:var(--sel)}
   <div class="modal-c">
     <span class="cls" onclick="document.getElementById('modalMet').style.display='none'">✕</span>
     <h3>Nota Metodológica</h3>
-    <div style="font-size:.82rem;line-height:1.65;margin-top:10px;color:#2c3e50">
+    <div style="font-size:.82rem;line-height:1.65;margin-top:10px;color:var(--ink-2)">
       <p><strong>Base primária:</strong> 522 formulários Google Forms coletados por pesquisadoras(es) da Rede CONAQ (2025–2026). Cada formulário representa um território/comunidade quilombola.</p><br>
       <p><strong>Escolas:</strong> O formulário prevê registro de até 4 escolas por formulário. Todos os dados de escola foram extraídos e consolidados em uma base única de <strong>724 escolas</strong>, processando os campos equivalentes das Escolas 1 a 4.</p><br>
-      <p><strong>Bases distintas:</strong> Dados territoriais (Q1–Q23: fechamento, EM, evasão, diretrizes, concurso, famílias, avaliação) têm base de <strong>522 formulários</strong>. Dados de escola (infraestrutura, transporte, alimentação, docentes, racismo, gestão) têm base de <strong>724 escolas</strong>.</p><br>
+      <p><strong>Bases distintas:</strong> Dados territoriais (Q1–Q23: fechamento, EM, diretrizes, concurso, famílias, avaliação) têm base de <strong>522 formulários</strong>. Três variáveis usam <strong>base aplicável</strong>, menor que 522, porque a pergunta não incide sobre parte dos territórios: evasão no Ensino Médio (Q20, só onde há oferta), impactos do fechamento (Q15) e motivos de interrupção (Q21). Cada gráfico declara a sua base na nota. Dados de escola (infraestrutura, transporte, alimentação, docentes, racismo, gestão) têm base de <strong>724 escolas</strong>.</p><br>
       <p><strong>Categorias:</strong> Preservadas exatamente como no formulário original, sem fusão ou simplificação.</p><br>
       <p><strong>Escala de infraestrutura:</strong> Adequada / Precária / Inexistente / Insuficiente / Não se aplica / Não sei.</p><br>
       <p><strong>Escala Likert (transporte/alimentação):</strong> Concordo totalmente / Concordo parcialmente / Discordo / Não sei informar / Não se aplica.</p><br>
@@ -1203,12 +1344,41 @@ window.addEventListener('error', function(e) {
 });
 
 Chart.register(ChartDataLabels);
-if (window.Chart) {
-    Chart.defaults.font.family = "'IBM Plex Sans',system-ui,-apple-system,sans-serif";
-    Chart.defaults.font.size = 11.5;
-    Chart.defaults.color = '#6d7a72';
-    Chart.defaults.borderColor = '#efebe1';
+// A moldura do grafico — grade, eixos, rotulos — passa a ler os tokens do
+// CSS em vez de carregar hexadecimais fixos. Com isso ha uma fonte unica de
+// verdade para a cor: mudar o token muda o CSS e o grafico juntos. Antes os
+// valores estavam presos ao tema claro, entao no modo escuro a grade era
+// clara sobre cartao escuro.
+function tokenCor(nome, alternativa){
+    try {
+        var v = getComputedStyle(document.documentElement).getPropertyValue(nome).trim();
+        return v || alternativa;
+    } catch(e) { return alternativa; }
 }
+var COR_GRADE = tokenCor('--line-2', '#e6d6c9');
+function aplicaTemaNosGraficos(){
+    if (!window.Chart) return;
+    COR_GRADE = tokenCor('--line-2', '#e6d6c9');
+    Chart.defaults.font.family = "'IBM Plex Sans',system-ui,-apple-system,sans-serif";
+    Chart.defaults.font.size = 12.5;
+    Chart.defaults.color = tokenCor('--mute', '#5b665f');
+    Chart.defaults.borderColor = COR_GRADE;
+    // a caixa .cbox do CSS define a altura; sem isto o Chart.js impoe
+    // proporcao 1:1 e as roscas viram quadrados enormes em cartoes largos
+    Chart.defaults.maintainAspectRatio = false;
+}
+aplicaTemaNosGraficos();
+// se o sistema trocar de claro para escuro com a pagina aberta, a moldura
+// acompanha: atualiza os padroes e manda redesenhar
+try {
+    var _mq = window.matchMedia('(prefers-color-scheme: dark)');
+    var _aoTrocarTema = function(){
+        aplicaTemaNosGraficos();
+        if (typeof aplicarFiltros === 'function') { try { aplicarFiltros(); } catch(e) {} }
+    };
+    if (_mq.addEventListener) _mq.addEventListener('change', _aoTrocarTema);
+    else if (_mq.addListener) _mq.addListener(_aoTrocarTema);
+} catch(e) {}
 
 const CI = {};
 
@@ -1237,10 +1407,77 @@ function heatColor(pct) {
     return `rgb(${c.join(',')})`;
 }
 
-function dc(id){ if(CI[id]){CI[id].destroy();delete CI[id];} }
+function dc(id){ if(CI[id]){CI[id].destroy();delete CI[id];} cxLimpa(id); }
+// "Nao sei" e resposta e fica no grafico; mas nao deve interromper a leitura
+// das categorias substantivas. Aqui ela e empurrada para o fim da ordem.
+function poeResiduaisNoFim(labels, vals, cores, absVals){
+    var idx = labels.map(function(_,i){ return i; });
+    idx.sort(function(a,b){
+        var ra = RX_RESIDUAL.test(String(labels[a])) ? 1 : 0;
+        var rb = RX_RESIDUAL.test(String(labels[b])) ? 1 : 0;
+        return ra - rb || a - b;                      // estavel: so move residuais
+    });
+    function f(arr){ return Array.isArray(arr) ? idx.map(function(i){ return arr[i]; }) : arr; }
+    return { labels:f(labels), vals:f(vals), cores:f(cores), absVals:f(absVals) };
+}
+
+// Categorias residuais ("Nao sei", "Nao se aplica") aparecem no formulario
+// mesmo quando ninguem as marcou. Se o valor e zero, a categoria nao informa
+// nada e so ocupa legenda/eixo: sai. Se tem qualquer caso, fica — a
+// metodologia da base proibe silenciar "Nao sei".
+var RX_RESIDUAL = /n[aã]o\s+sei|n[aã]o\s+sabe\s+informar|n[aã]o\s+se\s+aplica|n[aã]o\s+informad|sem\s+informa/i;
+function limpaResiduais(labels, vals, cores, absVals){
+    var keep = labels.map(function(l,i){
+        var v = parseFloat(vals[i]); if (isNaN(v)) v = 0;
+        return !(v === 0 && RX_RESIDUAL.test(String(l)));
+    });
+    if (keep.every(function(k){ return k; })) return null;   // nada a remover
+    function f(arr){ return Array.isArray(arr) ? arr.filter(function(_,i){ return keep[i]; }) : arr; }
+    return { labels:f(labels), vals:f(vals), cores:f(cores), absVals:f(absVals) };
+}
+// Nas barras empilhadas cada serie e uma categoria: some a serie inteira
+// so quando ela e residual E esta zerada em todas as barras.
+function limpaSeries(datasets){
+    return datasets.filter(function(ds){
+        if (!RX_RESIDUAL.test(String(ds.label||''))) return true;
+        return (ds.data||[]).some(function(v){ return (parseFloat(v)||0) > 0; });
+    });
+}
+
+// Valor de grafico: numero finito, ou null (o Chart.js simplesmente nao
+// desenha). Evita que um NaN vindo de divisao sem base vire rotulo "NaN%".
+function num(v){ var n = parseFloat(v); return isFinite(n) ? n : null; }
+function saneia(datasets){
+    return datasets.map(function(ds){
+        var d = Object.assign({}, ds);
+        d.data = (ds.data||[]).map(num);
+        if (Array.isArray(ds.absData)) d.absData = ds.absData.map(function(a){
+            var n = parseFloat(a); return isFinite(n) ? n : null; });
+        return d;
+    });
+}
+
+// Altura da caixa para barras horizontais: cada categoria precisa de uma
+// faixa minima, senao 21 estados viram 21 tracos ilegiveis. Recalculado a
+// cada render porque os filtros mudam quantas categorias aparecem.
+function cxAlt(id, n, porItem, base){
+    var bx = cxCaixa(id); if (!bx) return;
+    bx.style.height = Math.max(220, Math.round(n*(porItem||30) + (base||76))) + 'px';
+}
+function cxCaixa(id){
+    var cv = document.getElementById(id); if (!cv) return null;
+    var bx = cv.parentElement;
+    return (bx && bx.classList.contains('cbox')) ? bx : null;
+}
+// Ao destruir um grafico, a altura calculada na renderizacao anterior e
+// apagada: sem isso um grafico que passa a nao ter dados (ou que encolhe
+// com o filtro) deixaria para tras uma caixa vazia da altura antiga.
+// Apagado o valor em linha, volta a valer a altura da classe no CSS.
+function cxLimpa(id){ var bx = cxCaixa(id); if (bx) bx.style.height = ''; }
+
 
 const INFRA_COR = {
-    'Adequada':'#2f6d55','Precária':'#c98a2e','Inexistente':'#b0503a',
+    'Adequada':'#2f6d55','Precária':'#bf8429','Inexistente':'#b0503a',
     'Insuficiente':'#d9a441','Não se aplica':'#9aa39d','Não sei':'#c2c8c2'
 };
 const LIKERT_COR = {
@@ -1250,25 +1487,34 @@ const LIKERT_COR = {
 
 // Formata label combinado: "X% (N)" para datalabels de barras
 function fmtBarLabel(pct, abs) {
-    if (!pct || pct <= 0) return '';
+    if (!isFinite(pct) || !pct || pct <= 0) return '';
     if (abs != null && abs > 0) return pct + '%\n(' + abs.toLocaleString('pt-BR') + ')';
     return pct + '%';
 }
 
 function hbar(id, labels, vals, cores, maxV=100, absVals=null) {
     dc(id); const ctx=document.getElementById(id); if(!ctx)return;
+    const _lr = limpaResiduais(labels, vals, cores, absVals);
+    if (_lr) { labels=_lr.labels; vals=_lr.vals; cores=_lr.cores; absVals=_lr.absVals; }
+    const _ro = poeResiduaisNoFim(labels, vals, cores, absVals);
+    labels=_ro.labels; vals=_ro.vals; cores=_ro.cores; absVals=_ro.absVals;
     if(!labels||!labels.length) return;
+    cxAlt(id, labels.length, 30, 76);
     const nv = vals.map(v=>parseFloat(v)||0);
     const mx = Math.max(maxV, Math.ceil(Math.max(0,...nv)*1.18), 5);
     CI[id]=new Chart(ctx,{type:'bar',data:{labels,datasets:[{data:nv,backgroundColor:cores||'#1d4a3a',absData:absVals}]},
         options:{indexAxis:'y',responsive:true,
             plugins:{legend:{display:false},datalabels:{anchor:'end',align:'right',
                 formatter:(v,c)=>fmtBarLabel(v>0?v:null, absVals?absVals[c.dataIndex]:null),
-                font:{size:9,weight:'700'},color:'#1a211d'}},
-            scales:{x:{max:mx,title:{display:true,text:'%'},grid:{color:'#efebe1'}},y:{ticks:{font:{size:9}}}}}});
+                font:{size:10.5,weight:'600'},color:'#1a211d'}},
+            scales:{x:{max:mx,title:{display:true,text:'%'},grid:{color:COR_GRADE}},y:{ticks:{font:{size:11}}}}}});
 }
 function vbar(id, labels, vals, cores, maxV=100, absVals=null) {
     dc(id); const ctx=document.getElementById(id); if(!ctx)return;
+    const _lr = limpaResiduais(labels, vals, cores, absVals);
+    if (_lr) { labels=_lr.labels; vals=_lr.vals; cores=_lr.cores; absVals=_lr.absVals; }
+    const _ro = poeResiduaisNoFim(labels, vals, cores, absVals);
+    labels=_ro.labels; vals=_ro.vals; cores=_ro.cores; absVals=_ro.absVals;
     if(!labels||!labels.length) return;
     const nv = vals.map(v=>parseFloat(v)||0);
     const mx = Math.max(maxV, Math.ceil(Math.max(0,...nv)*1.18), 5);
@@ -1276,8 +1522,8 @@ function vbar(id, labels, vals, cores, maxV=100, absVals=null) {
         options:{responsive:true,
             plugins:{legend:{display:false},datalabels:{anchor:'end',align:'top',
                 formatter:(v,c)=>fmtBarLabel(v>0?v:null, absVals?absVals[c.dataIndex]:null),
-                font:{size:9,weight:'700'},color:'#1a211d'}},
-            scales:{y:{max:mx,title:{display:true,text:'%'},grid:{color:'#efebe1'}}}}});
+                font:{size:10.5,weight:'600'},color:'#1a211d'}},
+            scales:{y:{max:mx,title:{display:true,text:'%'},grid:{color:COR_GRADE}}}}});
 }
 function donut(id, labels, vals, cores) {
     dc(id); const ctx=document.getElementById(id); if(!ctx)return;
@@ -1293,37 +1539,45 @@ function donut(id, labels, vals, cores) {
     });
     CI[id]=new Chart(ctx,{type:'doughnut',data:{labels:richLabels,datasets:[{data:filtered.map(x=>x.v),backgroundColor:filtered.map(x=>x.c)}]},
         options:{responsive:true,
-            plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:13,padding:8}},
-                datalabels:{formatter:(v,c)=>{const t=c.chart.data.datasets[0].data.reduce((a,b)=>a+b,0);return t>0&&v>0?(v/t*100).toFixed(1)+'%\n('+v.toLocaleString('pt-BR')+')':'';},font:{size:10,weight:'700'},color:'#fff'}}}});
+            plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:13,padding:9}},
+                datalabels:{formatter:(v,c)=>{const t=c.chart.data.datasets[0].data.reduce((a,b)=>a+b,0);if(!(t>0&&v>0))return '';const pc=v/t*100;if(pc<4)return '';return pc.toFixed(1)+'%\n('+v.toLocaleString('pt-BR')+')';},font:{size:10,weight:'700'},color:'#fff'}}}});
 }
 function grouped(id, labels, datasets, maxV=100, horiz=false) {
     dc(id); const ctx=document.getElementById(id); if(!ctx)return;
     if(!labels||!labels.length||!datasets||!datasets.length) return;
+    datasets = limpaSeries(datasets);
+    if(!datasets.length) return;
+    datasets = saneia(datasets);
+    if(horiz) cxAlt(id, labels.length*Math.max(1,datasets.length), 16, 96);
     const allVals=datasets.flatMap(ds=>(ds.data||[]).map(v=>parseFloat(v)||0));
     const mx=Math.max(maxV, Math.ceil(Math.max(0,...allVals)*1.18), 5);
     CI[id]=new Chart(ctx,{type:'bar',data:{labels,datasets},
         options:{indexAxis:horiz?'y':'x',responsive:true,
-            plugins:{legend:{position:'bottom',labels:{boxWidth:12,font:{size:9}}},
+            plugins:{legend:{position:'bottom',labels:{boxWidth:12,font:{size:11}}},
                 datalabels:{anchor:'end',align:horiz?'right':'top',
                     formatter:(v,c)=>fmtBarLabel(v>0?v:null, c.dataset.absData?c.dataset.absData[c.dataIndex]:null),
-                    font:{size:8,weight:'700'},color:'#1a211d'}},
+                    font:{size:10,weight:'700'},color:'#1a211d'}},
             scales:{[horiz?'x':'y']:{max:mx,title:{display:true,text:'%'}},
-                    [horiz?'y':'x']:{ticks:{font:{size:9}}}}}});
+                    [horiz?'y':'x']:{ticks:{font:{size:11}}}}}});
 }
 
 function stacked100(id, labels, datasets, horiz=false) {
     dc(id); const ctx=document.getElementById(id); if(!ctx)return;
     if(!labels||!labels.length||!datasets||!datasets.length) return;
+    datasets = limpaSeries(datasets);
+    if(!datasets.length) return;
+    datasets = saneia(datasets);
+    if(horiz) cxAlt(id, labels.length, 30, 92);
     CI[id]=new Chart(ctx,{type:'bar',data:{labels,datasets},
         options:{indexAxis:horiz?'y':'x',responsive:true,
             scales:{x:{stacked:true,max:horiz?100:undefined,title:{display:horiz,text:'%'}},
                     y:{stacked:true,max:horiz?undefined:100,title:{display:!horiz,text:'%'}}},
-            plugins:{legend:{position:'bottom',labels:{boxWidth:12,font:{size:9}}},
+            plugins:{legend:{position:'bottom',labels:{boxWidth:12,font:{size:11}}},
                 datalabels:{formatter:(v,c)=>{
-                    if(v<=5) return '';
+                    if(!isFinite(v) || v<=5) return '';
                     const abs = c.dataset.absData ? c.dataset.absData[c.dataIndex] : null;
                     return abs!=null ? v.toFixed(0)+'%\n('+abs.toLocaleString('pt-BR')+')' : v.toFixed(0)+'%';
-                },color:'#fff',font:{size:8,weight:'700'}}}}});
+                },color:'#fff',font:{size:10,weight:'700'}}}}});
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -1562,14 +1816,14 @@ function renderKPIs(fd) {
     const estD = estObj['Discordo']||0;
     const estBase = estD+(estObj['Concordo totalmente']||0)+(estObj['Concordo parcialmente']||0);
     const kpis = [
-        {n:racN,pp:p(racN,tot)+'%',l:'Escolas com relatos de racismo',c:'#b0503a'},
-        {n:semProf,pp:p(semProf,tot)+'%',l:'Escolas sem nenhum prof. quilombola',c:'#c98a2e'},
-        {n:semMat,pp:p(semMat,tot)+'%',l:'Escolas sem materiais didáticos quilombolas',c:'#8f3d2c'},
-        {n:cNao,pp:p(cNao,tot)+'%',l:'Escolas onde comunidade NÃO é consultada',c:'#7d5a96'},
-        {n:desS,pp:p(desS,tot)+'%',l:'Escolas com desrespeito à cultura quilombola',c:'#6b4a82'},
-        {n:alimD,pp:p(alimD,tot)+'%',l:'Alimentação não respeita cultura quilombola',c:'#c98a2e'},
-        {n:labInex,pp:p(labInex,tot)+'%',l:'Escolas sem laboratório de informática',c:'#8f3d2c'},
-        {n:estD,pp:p(estD,estBase)+'%',l:'Estradas em más condições (do total com transporte)',c:'#b0503a'},
+        {n:racN,pp:p(racN,tot)+'%',l:'Escolas com relatos de racismo',c:'var(--terra-2)'},
+        {n:semProf,pp:p(semProf,tot)+'%',l:'Escolas sem nenhum prof. quilombola',c:'var(--ocre-3)'},
+        {n:semMat,pp:p(semMat,tot)+'%',l:'Escolas sem materiais didáticos quilombolas',c:'var(--terra-2)'},
+        {n:cNao,pp:p(cNao,tot)+'%',l:'Escolas onde comunidade NÃO é consultada',c:'var(--roxo-2)'},
+        {n:desS,pp:p(desS,tot)+'%',l:'Escolas com desrespeito à cultura quilombola',c:'var(--roxo-2)'},
+        {n:alimD,pp:p(alimD,tot)+'%',l:'Alimentação não respeita cultura quilombola',c:'var(--ocre-3)'},
+        {n:labInex,pp:p(labInex,tot)+'%',l:'Escolas sem laboratório de informática',c:'var(--terra-2)'},
+        {n:estD,pp:p(estD,estBase)+'%',l:'Estradas em más condições (do total com transporte)',c:'var(--terra-2)'},
     ];
     document.getElementById('kpiGrid').innerHTML=kpis.map(k=>`
         <div class="kpi"><span class="n" style="color:${k.c}">${k.n.toLocaleString('pt-BR')}</span>
@@ -1597,10 +1851,10 @@ function renderTerritorio(fd) {
     };
     const FECH_LBL = {
         'Sim': 'Houve fechamento de escola',
-        'Não': '✅ Sem fechamento',
+        'Não': 'Sem fechamento',
         'Não / evento distinto': 'Sem fechamento (outro evento na oferta)',
         'Não — nunca teve escola': 'Nunca teve escola no território',
-        'Não sabe informar': '❓ Não sabe informar',
+        'Não sabe informar': 'Não sabe informar',
     };
     hbar('cFechCats', fcL.map(l=>FECH_LBL[l]||l), fcL.map(l=>p(fc[l],totF)),
         fcL.map(l=>FECH_COR[l]||'#c2c8c2'), 80, fcL.map(l=>fc[l]));
@@ -1609,7 +1863,7 @@ function renderTerritorio(fd) {
     const fr = DB.fech_por_reg;
     const frL = Object.keys(fr).sort();
     vbar('cFechReg', frL, frL.map(r=>p(fr[r].sim,fr[r].total)),
-        frL.map(r=>p(fr[r].sim,fr[r].total) > 40 ? '#b0503a' : '#c98a2e'), 100,
+        frL.map(r=>p(fr[r].sim,fr[r].total) > 40 ? '#b0503a' : '#bf8429'), 100,
         frL.map(r=>fr[r].sim));
 
     const imp = fa.imp || {};
@@ -1618,7 +1872,7 @@ function renderTerritorio(fd) {
         'Risco no trajeto':                    '#8f3d2c',
         'Cansaço extremo':                     '#b0503a',
         'Perda de vínculo comunitário':        '#7d5a96',
-        'Queda/piora na aprendizagem':         '#c98a2e',
+        'Queda/piora na aprendizagem':         '#bf8429',
         'Aumento de casos de racismo/bullying':'#6b4a82',
         'Aumento custos às famílias':          '#d9a441',
         'Melhoria na aprendizagem':            '#2f6d55',
@@ -1642,11 +1896,11 @@ function renderTerritorio(fd) {
         'Não sabe informar': '#9aa39d',        // sem informação
     };
     const DIR_LBL = {
-        'Vigente municipal': '✅ Normativa municipal vigente',
+        'Vigente municipal': 'Normativa municipal vigente',
         'Em construção': '🔄 Documento em construção',
         'Referência não municipal': '📄 Só referência estadual/nacional',
-        'Inexistente': '❌ Sem normativa municipal',
-        'Não sabe informar': '❓ Não sabe informar',
+        'Inexistente': 'Sem normativa municipal',
+        'Não sabe informar': 'Não sabe informar',
     };
     hbar('cDiretrizes', dirSorted.map(d=>DIR_LBL[d.l]||d.l), dirSorted.map(d=>d.v),
         dirSorted.map(d=>DIR_COR[d.l]||'#c2c8c2'), 60,
@@ -1685,14 +1939,14 @@ function renderTerritorio(fd) {
     const famV = famL.map(l=>fam[l]||0);
     const famTot = famV.reduce((a,b)=>a+b,0);
     donut('cFamilias', famL.map((l,i)=>l+' ('+p(famV[i],famTot)+'%)'), famV,
-        ['#1d4a3a','#2f6d55','#a9c9b6','#d9a441','#c98a2e','#b0503a']);
+        ['#1d4a3a','#2f6d55','#a9c9b6','#d9a441','#bf8429','#b0503a']);
 
     const aq = fa.aval || {};
     const aqL = ['Excelente','Boa','Regular','Ruim','Péssima'];
     const aqV = aqL.map(l=>aq[l]||0);
     const aqTot = aqV.reduce((a,b)=>a+b,0);
     donut('cAvalQual', aqL.map((l,i)=>l+' ('+p(aqV[i],aqTot)+'%)'), aqV,
-        ['#1d4a3a','#2f6d55','#d9a441','#c98a2e','#b0503a']);
+        ['#1d4a3a','#2f6d55','#d9a441','#bf8429','#b0503a']);
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -1706,10 +1960,10 @@ function renderEM(fd) {
     const emL = Object.keys(em).filter(k=>em[k]>0);
     const emV = emL.map(l=>p(em[l],totF));
     hbar('cEmCats', emL.map(l=>l
-        .replace('Sim, é ofertado o Ensino Médio presencial dentro do território.','✅ Presencial DENTRO do território')
+        .replace('Sim, é ofertado o Ensino Médio presencial dentro do território.','Presencial DENTRO do território')
         .replace('Sim, é ofertado o Ensino Médio no território em formato virtual.','📺 Virtual/EaD no território')
         .replace('Sim, é ofertado o Ensino Médio presencial em escolas próximas ao território.','🏫 Presencial NAS PROXIMIDADES')
-        .replace('Não há oferta de Ensino Médio no território ou nas proximidades.','❌ Sem oferta de Ensino Médio')
+        .replace('Não há oferta de Ensino Médio no território ou nas proximidades.','Sem oferta de Ensino Médio')
         .replace('A oferta do Ensino Médio é  por meio de uma turma "anexa" ou "extensão" de outra escola fora do território.','🔗 Turma anexa/extensão')
         .replace('A escola onde é ofertado o Ensino Médio tem autonomia adminstrativa (direção, coordenação, secretaria)','🏛️ Escola c/ autonomia administrativa')
     ), emV, emL.map(l=>l.includes('Não há')?'#b0503a':l.includes('dentro')?'#2f6d55':l.includes('próximas')?'#d9a441':'#2c6b8f'), 45,
@@ -1727,27 +1981,33 @@ function renderEM(fd) {
         {label:'Virtual/Anexo',data:ufsEM.map((u,i)=>p((emUF[u].virtual||0)+(emUF[u].anexo||0),emTotais[i])),backgroundColor:'#2c6b8f',absData:ufsEM.map(u=>(emUF[u].virtual||0)+(emUF[u].anexo||0))},
         {label:'Sem oferta',data:ufsEM.map((u,i)=>p(emUF[u].sem,emTotais[i])),backgroundColor:'#b0503a',absData:ufsEM.map(u=>emUF[u].sem)},
     ]},options:{indexAxis:'y',responsive:true,
-        scales:{x:{stacked:true,max:100,title:{display:true,text:'%'}},y:{stacked:true,ticks:{font:{size:8}}}},
-        plugins:{legend:{position:'bottom',labels:{boxWidth:12,font:{size:9}}},
+        scales:{x:{stacked:true,max:100,title:{display:true,text:'%'}},y:{stacked:true,ticks:{font:{size:10}}}},
+        plugins:{legend:{position:'bottom',labels:{boxWidth:12,font:{size:11}}},
             datalabels:{formatter:(v,c)=>{
                 if(v<=5) return '';
                 const abs = c.dataset.absData ? c.dataset.absData[c.dataIndex] : null;
                 return abs!=null ? v.toFixed(0)+'%\n('+abs+')' : v.toFixed(0)+'%';
-            },color:'#fff',font:{size:8,weight:'700'}}}}});
+            },color:'#fff',font:{size:10,weight:'700'}}}}});
 
     const ev = fa.ev || {};
-    const evL = ['Não se aplica','Não param de estudar','Alguns param de estudar','A maioria para de estudar','Outro/não classificado'].filter(k=>ev[k]>0);
+    // 'Nao se aplica' = territorio sem Ensino Medio: a pergunta da evasao no EM
+    // nao se aplica a ele. Fica fora do anel, como em Q15 e Q21, e o N excluido
+    // aparece na nota. As demais fatias passam a somar 100% da base aplicavel.
+    const evNA = ev['Não se aplica'] || 0;
+    const evL = ['Não param de estudar','Alguns param de estudar','A maioria para de estudar','Outro/não classificado'].filter(k=>ev[k]>0);
     const evV = evL.map(l=>ev[l]||0);
     const evTot = evV.reduce((a,b)=>a+b,0);
+    var _eb=document.getElementById('evBase'); if(_eb) _eb.textContent=evTot.toLocaleString('pt-BR');
+    var _en=document.getElementById('evNA'); if(_en) _en.textContent=evNA.toLocaleString('pt-BR');
     donut('cEvasao', evL.map((l,i)=>l+' ('+p(evV[i],evTot)+'%)'), evV,
-        ['#9aa39d','#2f6d55','#c98a2e','#b0503a','#c2c8c2']);
+        ['#2f6d55','#bf8429','#b0503a','#c2c8c2']);
 
     const eev = DB.evasao_em || {};
     const eevL = Object.keys(eev);
     if (!eevL.length) { console.warn('evasao_em empty'); }
     stacked100('cEvasaoEM', eevL.map(l=>l+' (n='+(eev[l]?eev[l].total:0)+')'), [
         {label:'Não param',data:eevL.map(l=>p(eev[l]['Não param'],eev[l].total)),backgroundColor:'#2f6d55'},
-        {label:'Alguns param',data:eevL.map(l=>p(eev[l]['Alguns param'],eev[l].total)),backgroundColor:'#c98a2e'},
+        {label:'Alguns param',data:eevL.map(l=>p(eev[l]['Alguns param'],eev[l].total)),backgroundColor:'#bf8429'},
         {label:'A maioria para',data:eevL.map(l=>p(eev[l]['A maioria para'],eev[l].total)),backgroundColor:'#b0503a'},
         {label:'Não se aplica',data:eevL.map(l=>p(eev[l]['Não se aplica'],eev[l].total)),backgroundColor:'#9aa39d'},
     ], false);
@@ -1756,7 +2016,7 @@ function renderEM(fd) {
     const motL = Object.keys(mot).filter(k=>k!=='Não se aplica'&&mot[k]>0);
     const motSorted = motL.map(l=>({l,v:p(mot[l],totF)})).sort((a,b)=>b.v-a.v);
     hbar('cMotivos', motSorted.map(s=>s.l), motSorted.map(s=>s.v),
-        ['#b0503a','#7d5a96','#c98a2e','#d9a441','#8f3d2c','#2c6b8f','#2c8f76'], 55,
+        ['#b0503a','#7d5a96','#bf8429','#d9a441','#8f3d2c','#2c6b8f','#2c8f76'], 55,
         motSorted.map(s=>mot[s.l]));
 
     // Motivos por região — sempre global
@@ -1764,7 +2024,7 @@ function renderEM(fd) {
     const regsM = Object.keys(mpr).sort();
     if (!regsM.length) return;
     const motivos7 = ['Distância/transporte','Trabalho','Falta de apoio financeiro','Gravidez/cuidado familiar','Racismo/discriminação','Violência/insegurança','Falta de internet'];
-    const mColors = ['#b0503a','#c98a2e','#d9a441','#2c8f76','#7d5a96','#8f3d2c','#2c6b8f'];
+    const mColors = ['#b0503a','#bf8429','#d9a441','#2c8f76','#7d5a96','#8f3d2c','#2c6b8f'];
     grouped('cMotivosReg', regsM, motivos7.map((m,i)=>({
         label:m, data:regsM.map(r=>p(mpr[r].motivos[m]||0,mpr[r].total)),
         backgroundColor:mColors[i]
@@ -1777,7 +2037,7 @@ function renderEM(fd) {
     CI['cCorrUF']=new Chart(ctxC,{type:'scatter',data:{datasets:[{label:'UFs',data:corrArr.map(c=>({x:c.x,y:c.y})),backgroundColor:'#1d4a3a',pointRadius:7,pointHoverRadius:9}]},
         options:{responsive:true,scales:{x:{title:{display:true,text:'% com oferta de EM'},min:0,max:105},y:{title:{display:true,text:'% com evasão'},min:0,max:105}},
             plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>{const i=c.dataIndex;return corrArr[i]?`${corrArr[i].uf}: EM=${c.raw.x}% | Evasão=${c.raw.y}%`:'';}}},
-                datalabels:{formatter:(v,c)=>{const i=c.dataIndex;return corrArr[i]?corrArr[i].uf:'';},align:'top',offset:5,font:{size:8},color:'#1d4a3a'}}}});
+                datalabels:{formatter:(v,c)=>{const i=c.dataIndex;return corrArr[i]?corrArr[i].uf:'';},align:'top',offset:5,font:{size:10},color:'#1d4a3a'}}}});
 
     const etL = Object.keys(DB.etapas_loc);
     const etNames = etL.map(e=>{
@@ -1798,7 +2058,7 @@ function renderEM(fd) {
     const nFora   = (DB.infra_loc?.['Salas de aula']?.fora?.total)   || 365;
     grouped('cEtapasLoc', etNames, [
         {label:`Dentro (n=${nDentro})`,data:etL.map(e=>p(DB.etapas_loc[e].dentro,nDentro)),backgroundColor:'#1d4a3a'},
-        {label:`Fora (n=${nFora})`,  data:etL.map(e=>p(DB.etapas_loc[e].fora,  nFora)),  backgroundColor:'#c98a2e'},
+        {label:`Fora (n=${nFora})`,  data:etL.map(e=>p(DB.etapas_loc[e].fora,  nFora)),  backgroundColor:'#bf8429'},
     ], 80, true);
 }
 
@@ -1819,7 +2079,7 @@ function renderInfra(fd) {
     }
     const iArr = infL.map(l=>({l,v:precPct(l),a:precAbs(l)})).sort((a,b)=>b.v-a.v);
     hbar('cInfraGeral', iArr.map(i=>i.l), iArr.map(i=>i.v),
-        iArr.map(i=>i.v>=70?'#8f3d2c':i.v>=50?'#b0503a':i.v>=35?'#c98a2e':'#d9a441'), 100,
+        iArr.map(i=>i.v>=70?'#8f3d2c':i.v>=50?'#b0503a':i.v>=35?'#bf8429':'#d9a441'), 100,
         iArr.map(i=>i.a));
 
     // Infra Dentro vs Fora — stacked 100% com todas as categorias de avaliação
@@ -1829,7 +2089,7 @@ function renderInfra(fd) {
 
     // Ordem das avaliações e cores
     const AVAL_CATS = ['Adequada','Insuficiente','Precária','Inexistente','Não sei','Não se aplica'];
-    const AVAL_COLS = {'Adequada':'#2f6d55','Insuficiente':'#d9a441','Precária':'#c98a2e','Inexistente':'#b0503a','Não sei':'#9aa39d','Não se aplica':'#c2c8c2'};
+    const AVAL_COLS = {'Adequada':'#2f6d55','Insuficiente':'#d9a441','Precária':'#bf8429','Inexistente':'#b0503a','Não sei':'#9aa39d','Não se aplica':'#c2c8c2'};
 
     // Para cada item de infra, monta um stacked 100% horizontal com dentro/fora
     // Labels do eixo Y: "Salas – Dentro", "Salas – Fora", etc.
@@ -1866,14 +2126,14 @@ function renderInfra(fd) {
             indexAxis: 'y',
             responsive: true,
             scales: {
-                x: { stacked:true, max:100, title:{display:true,text:'%'}, grid:{color:'#efebe1'} },
-                y: { stacked:true, ticks:{font:{size:8}} }
+                x: { stacked:true, max:100, title:{display:true,text:'%'}, grid:{color:COR_GRADE} },
+                y: { stacked:true, ticks:{font:{size:10}} }
             },
             plugins: {
-                legend: {position:'bottom', labels:{boxWidth:12,font:{size:9}}},
+                legend: {position:'bottom', labels:{boxWidth:12,font:{size:11}}},
                 datalabels: {
                     formatter: v => v>=8 ? v.toFixed(0)+'%' : '',
-                    color: '#fff', font:{size:7.5,weight:'700'}
+                    color: '#fff', font:{size:10,weight:'700'}
                 }
             }
         }
@@ -1922,7 +2182,7 @@ function renderTransp(fd) {
     grouped('cTranspLoc',
         tlKeys.map((k,i)=>k+' (n='+tlTranN[i]+')'),
         [{label:'% com problemas',data:tlData.map((e,i)=>{const tc=e.tc||{};let disc=0,tot=0;Object.values(tc).forEach(d=>{disc+=(d['Discordo']||0);tot+=(d['Discordo']||0)+(d['Concordo totalmente']||0)+(d['Concordo parcialmente']||0);});return p(disc,tot);}),
-          backgroundColor:['#1d4a3a','#c98a2e'],absData:tlProbN}]);
+          backgroundColor:['#1d4a3a','#bf8429'],absData:tlProbN}]);
 
     const tc = ea.tc || {};
     const tcL = Object.keys(tc);
@@ -1932,7 +2192,7 @@ function renderTransp(fd) {
         return {l,v:p(disc,base),a:disc};
     }).sort((a,b)=>b.v-a.v);
     hbar('cTranspCond', tcArr.map(t=>t.l), tcArr.map(t=>t.v),
-        tcArr.map(t=>t.v>=40?'#b0503a':t.v>=25?'#c98a2e':'#d9a441'), 100,
+        tcArr.map(t=>t.v>=40?'#b0503a':t.v>=25?'#bf8429':'#d9a441'), 100,
         tcArr.map(t=>t.a));
 
     const est = (ea.tc||{})['As estradas estão em boas condições']||{};
@@ -1957,7 +2217,7 @@ function renderAlim(fd) {
         return {l,v:p(disc,base),a:disc};
     }).sort((a,b)=>b.v-a.v);
     hbar('cAlimItens', alimArr.map(a=>a.l), alimArr.map(a=>a.v),
-        alimArr.map(a=>a.v>=50?'#b0503a':a.v>=30?'#c98a2e':'#d9a441'), 80,
+        alimArr.map(a=>a.v>=50?'#b0503a':a.v>=30?'#bf8429':'#d9a441'), 80,
         alimArr.map(a=>a.a));
 
     // Por região — sempre global
@@ -1995,7 +2255,7 @@ function renderDocentes(fd) {
     const puUFs = Object.keys(pu).sort((a,b)=>p(pu[b]['Nenhum'],pu[b].total)-p(pu[a]['Nenhum'],pu[a].total));
     stacked100('cProfUF', puUFs.map(u=>u+' (n='+pu[u].total+')'), [
         {label:'Nenhum',data:puUFs.map(u=>p(pu[u]['Nenhum'],pu[u].total)),backgroundColor:'#b0503a',absData:puUFs.map(u=>pu[u]['Nenhum'])},
-        {label:'Poucos',data:puUFs.map(u=>p(pu[u]['Poucos'],pu[u].total)),backgroundColor:'#c98a2e',absData:puUFs.map(u=>pu[u]['Poucos'])},
+        {label:'Poucos',data:puUFs.map(u=>p(pu[u]['Poucos'],pu[u].total)),backgroundColor:'#bf8429',absData:puUFs.map(u=>pu[u]['Poucos'])},
         {label:'Alguns',data:puUFs.map(u=>p(pu[u]['Alguns'],pu[u].total)),backgroundColor:'#d9a441',absData:puUFs.map(u=>pu[u]['Alguns'])},
         {label:'Muitos',data:puUFs.map(u=>p(pu[u]['Muitos'],pu[u].total)),backgroundColor:'#2f6d55',absData:puUFs.map(u=>pu[u]['Muitos'])},
         {label:'Todos',data:puUFs.map(u=>p(pu[u]['Todos'],pu[u].total)),backgroundColor:'#1d4a3a',absData:puUFs.map(u=>pu[u]['Todos'])},
@@ -2006,7 +2266,7 @@ function renderDocentes(fd) {
     const matV = matL.map(l=>matCounts[l]||0);
     const matTot = matV.reduce((a,b)=>a+b,0);
     donut('cMateriais', matL.map((l,i)=>l+' ('+p(matV[i],matTot)+'%)'), matV,
-        ['#b0503a','#c98a2e','#2f6d55','#9aa39d']);
+        ['#b0503a','#bf8429','#2f6d55','#9aa39d']);
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -2032,7 +2292,7 @@ function renderRacismo(fd) {
     const rr = DB.rac_por_reg;
     const rrL = Object.keys(rr).sort();
     vbar('cRacReg', rrL, rrL.map(r=>p(rr[r].sim,rr[r].total)),
-        rrL.map(r=>p(rr[r].sim,rr[r].total)>50?'#b0503a':'#c98a2e'), 100,
+        rrL.map(r=>p(rr[r].sim,rr[r].total)>50?'#b0503a':'#bf8429'), 100,
         rrL.map(r=>rr[r].sim));
 
     const ru = DB.rac_por_uf;
@@ -2047,7 +2307,7 @@ function renderRacismo(fd) {
     const rlKeys = ['Na própria comunidade quilombola','Fora da comunidade'];
     const rlData = [eaDentro, eaFora];
     grouped('cRacLoc', rlKeys.map((l,i)=>`${l} (n=${rlData[i].total})`),
-        [{label:'% com racismo',data:rlData.map(e=>p(e.rac.sim||0,e.total)),backgroundColor:['#1d4a3a','#c98a2e'],absData:rlData.map(e=>e.rac.sim||0)}]);
+        [{label:'% com racismo',data:rlData.map(e=>p(e.rac.sim||0,e.total)),backgroundColor:['#1d4a3a','#bf8429'],absData:rlData.map(e=>e.rac.sim||0)}]);
 
     const des = ea.des || {};
     const desL = ['Sim','Não','Não sei'].filter(k=>(des[k]||0)>0);
@@ -2105,7 +2365,7 @@ function renderAvancado() {
     const hmRegs = Object.keys(hm).sort();
     const hmInds = ['racismo_pct','fechamento_pct','sem_dir_pct','sem_conc_pct','sem_prof_pct','sem_mat_pct','sem_em_pct'];
     const hmNames = ['% Racismo','% Fechamento','% Sem diretrizes','% Sem concurso','% Sem prof. quilombola','% Sem materiais','% Sem EM'];
-    const hmColors = ['#b0503a','#7d5a96','#c98a2e','#8f3d2c','#d9a441','#a9552b','#2c6b8f'];
+    const hmColors = ['#b0503a','#7d5a96','#bf8429','#8f3d2c','#d9a441','#a9552b','#2c6b8f'];
     // Horizontal grouped: cada indicador é um dataset, regiões no eixo Y
     dc('cHeatmap');
     const hCtx=document.getElementById('cHeatmap'); if(!hCtx) return;
@@ -2123,15 +2383,15 @@ function renderAvancado() {
             indexAxis:'y',
             responsive:true,
             scales:{
-                x:{max:100,title:{display:true,text:'%'},grid:{color:'#efebe1'}},
+                x:{max:100,title:{display:true,text:'%'},grid:{color:COR_GRADE}},
                 y:{ticks:{font:{size:11}}}
             },
             plugins:{
-                legend:{position:'bottom',labels:{boxWidth:12,font:{size:9}}},
+                legend:{position:'bottom',labels:{boxWidth:12,font:{size:11}}},
                 datalabels:{
                     anchor:'end',align:'right',
                     formatter:v=>v>5?v+'%':'',
-                    font:{size:8,weight:'700'},color:'#1a211d'
+                    font:{size:10,weight:'700'},color:'#1a211d'
                 }
             }
         }
@@ -2149,9 +2409,9 @@ function renderAvancado() {
                 backgroundColor:`hsla(${i*72},70%,50%,.18)`,borderColor:`hsl(${i*72},70%,50%)`,
                 pointBackgroundColor:`hsl(${i*72},70%,50%)`,borderWidth:2,pointRadius:4};
         })},
-        options:{responsive:true,scales:{r:{beginAtZero:true,max:100,ticks:{stepSize:25,font:{size:9}}}},
+        options:{responsive:true,scales:{r:{beginAtZero:true,max:100,ticks:{stepSize:25,font:{size:10}}}},
             plugins:{legend:{position:'bottom',labels:{boxWidth:12,font:{size:10}}},
-                datalabels:{formatter:v=>v.toFixed(0)+'%',font:{size:8},backgroundColor:'rgba(255,255,255,.7)',borderRadius:3}}}});
+                datalabels:{formatter:v=>v.toFixed(0)+'%',font:{size:10},backgroundColor:'rgba(255,255,255,.7)',borderRadius:3}}}});
 }
 
 
@@ -2229,16 +2489,16 @@ function renderEscolaScatter() {
 
         const pct = (n, d) => d ? Math.round(n/d*100) : 0;
 
-        let html = `<div style="margin-top:10px;font-size:.78rem;color:#1a211d;line-height:1.9">`;
+        let html = `<div style="margin-top:10px;font-size:.78rem;color:var(--ink);line-height:1.9">`;
         html += `<strong>Resumo: ${totalUniq} escolas no filtro atual · ${totalComRac} com racismo (${pct(totalComRac,totalUniq)}%) · ${totalUniq-totalComRac} sem racismo (${pct(totalUniq-totalComRac,totalUniq)}%)</strong><br>`;
-        html += `<span style="font-size:.72rem;color:#888">⚠ Das 724 escolas, 77 não aparecem no gráfico por dado ausente: 49 responderam "Não sei" na pergunta sobre professores quilombolas, e 28 responderam "Não sei informar" ou usaram texto livre não identificável na pergunta sobre racismo. O KPI global (38,8%) inclui todas as 724 escolas.</span><br>`;
+        html += `<span style="font-size:.72rem;color:var(--mute)">⚠ Das 724 escolas, 77 não aparecem no gráfico por dado ausente: 49 responderam "Não sei" na pergunta sobre professores quilombolas, e 28 responderam "Não sei informar" ou usaram texto livre não identificável na pergunta sobre racismo. O KPI global (38,8%) inclui todas as 724 escolas.</span><br>`;
 
         // Por categoria de prof
         html += `<span style="font-weight:600">Por presença de professor quilombola:</span> `;
         html += PROF_ORDER.filter(k => porProf[k].total > 0).map(k => {
             const {total: n, rac: r} = porProf[k];
             const pctR = pct(r, n);
-            const cor = pctR >= 50 ? '#b0503a' : pctR >= 30 ? '#c98a2e' : '#2f6d55';
+            const cor = pctR >= 50 ? 'var(--terra-2)' : pctR >= 30 ? 'var(--ocre-3)' : 'var(--verde)';
             return `<strong>${k}</strong>: ${n} escola${n>1?'s':''}, <span style="color:${cor};font-weight:600">${r} com racismo (${pctR}%)</span>`;
         }).join(' &nbsp;·&nbsp; ');
 
@@ -2246,7 +2506,7 @@ function renderEscolaScatter() {
         html += `<br><span style="font-weight:600">Tipos de racismo (pontos — 1 escola pode ter múltiplos):</span> `;
         html += TIPO_LABELS.map((t, i) => {
             const n = porTipo[i + 1] || 0;  // y_idx = i+1
-            const cor = n > 0 ? '#1a211d' : '#bbb';
+            const cor = n > 0 ? 'var(--ink)' : 'var(--mute)';
             return `<span style="color:${cor}"><strong>${t}</strong>: ${n}</span>`;
         }).join(' &nbsp;·&nbsp; ');
         html += `</div>`;
@@ -2255,7 +2515,7 @@ function renderEscolaScatter() {
         if (notaEl) notaEl.innerHTML = html;
 
         const Y_LABELS = [
-            '❌ Sem racismo',
+            'Sem racismo',
             '👦 Entre estudantes',
             '🧑‍🏫 Prof. → Estudante',
             '👥 Prof. → Profissional',
@@ -2321,7 +2581,7 @@ function renderEscolaScatter() {
                     }
                 },
                 plugins: {
-                    legend: { position:'bottom', labels:{ boxWidth:12, font:{size:9}, filter: i => !i.text.includes('(0)') } },
+                    legend: { position:'bottom', labels:{ boxWidth:12, font:{size:10}, filter: i => !i.text.includes('(0)') } },
                     tooltip: { callbacks: { label: c => {
                         const d = c.raw;
                         return ` ${d.uf} · ${d.loc==='D'?'dentro':'fora'} · ${d.prof} prof. · ${d.tipo}${d.etapas?' · '+d.etapas:''}`;
@@ -2359,7 +2619,7 @@ function renderEscolaScatter() {
                     }} },
                     datalabels: { formatter: (v,c) => {
                         const d = data[c.dataIndex]; return d ? data[c.dataIndex].uf.substring(0,2) : '';
-                    }, font:{size:8}, color:'#1a211d', align:'top', offset:4 }
+                    }, font:{size:10}, color:'#1a211d', align:'top', offset:4 }
                 }
             }
         });
@@ -2385,7 +2645,7 @@ function renderEscolaScatter() {
                 labels: cats.map(c => c + ' (n=' + pm[c].total + ')'),
                 datasets: [
                     {label:'% Sem materiais', data:cats.map(c=>pm[c].sem_mat), backgroundColor:'#b0503a'},
-                    {label:'% Parcialmente', data:cats.map(c=>pm[c].parcial_mat), backgroundColor:'#c98a2e'},
+                    {label:'% Parcialmente', data:cats.map(c=>pm[c].parcial_mat), backgroundColor:'#bf8429'},
                     {label:'% Com materiais', data:cats.map(c=>pm[c].com_mat), backgroundColor:'#2f6d55'},
                 ]
             },
@@ -2397,7 +2657,7 @@ function renderEscolaScatter() {
                 },
                 plugins: {
                     legend: {position:'bottom', labels:{boxWidth:12, font:{size:10}}},
-                    datalabels: { formatter: v => v>8?v.toFixed(0)+'%':'', color:'#fff', font:{size:9,weight:'700'} }
+                    datalabels: { formatter: v => v>8?v.toFixed(0)+'%':'', color:'#fff', font:{size:10,weight:'700'} }
                 }
             }
         });
@@ -2456,7 +2716,7 @@ function renderEscolaScatter() {
                     {
                         label: `Racismo Fora (${racF}%)`,
                         data: Array(n).fill(racF),
-                        type: 'line', borderColor: '#c98a2e', borderWidth: 2,
+                        type: 'line', borderColor: '#bf8429', borderWidth: 2,
                         borderDash: [6,3], pointRadius: 0, fill: false,
                         datalabels: { display: false },
                     },
@@ -2466,7 +2726,7 @@ function renderEscolaScatter() {
                 indexAxis: 'y',
                 responsive: true,
                 scales: {
-                    x: { max: 100, title: {display:true, text:'% (infra precária/insuf./inex. e % racismo como referência)'}, grid:{color:'#efebe1'} },
+                    x: { max: 100, title: {display:true, text:'% (infra precária/insuf./inex. e % racismo como referência)'}, grid:{color:COR_GRADE} },
                     y: { ticks: {font:{size:10}} }
                 },
                 plugins: {
@@ -2510,7 +2770,7 @@ function renderEscolaScatter() {
                 responsive: true,
                 scales: {
                     y: { max:100, title:{display:true,text:'%'} },
-                    x: { ticks:{font:{size:9}} }
+                    x: { ticks:{font:{size:10}} }
                 },
                 plugins: {
                     legend: {position:'bottom', labels:{boxWidth:12, font:{size:10}}},
@@ -2538,7 +2798,7 @@ function renderEscolaScatter() {
         });
         grouped('cPanoramaUF', ufs, [
             {label:'% Racismo',         data:ufs.map(u=>data[u].racismo),  backgroundColor:'#b0503a'},
-            {label:'% Sem prof. quilombola', data:ufs.map(u=>data[u].sem_prof), backgroundColor:'#c98a2e'},
+            {label:'% Sem prof. quilombola', data:ufs.map(u=>data[u].sem_prof), backgroundColor:'#bf8429'},
             {label:'% Sem materiais',   data:ufs.map(u=>data[u].sem_mat),  backgroundColor:'#d9a441'},
             {label:'% Sem EM',          data:ufs.map(u=>data[u].sem_em),   backgroundColor:'#2c6b8f'},
         ], 105, false);
@@ -2567,8 +2827,8 @@ function renderEscolaScatter() {
                 scales: { y: { max:80, title:{display:true,text:'% (estimado)'} } },
                 plugins: {
                     legend: {position:'bottom', labels:{boxWidth:12, font:{size:10}}},
-                    datalabels: { anchor:'end', align:'top', formatter:v=>v+'%', font:{size:9,weight:'700'}, color:'#1a211d' },
-                    subtitle: { display:true, text:'* Estimativa baseada em padrões observados na base global', font:{size:9}, color:'#999', padding:{bottom:10} }
+                    datalabels: { anchor:'end', align:'top', formatter:v=>v+'%', font:{size:10,weight:'700'}, color:'#1a211d' },
+                    subtitle: { display:true, text:'* Estimativa baseada em padrões observados na base global', font:{size:10}, color:tokenCor('--mute','#5b665f'), padding:{bottom:10} }
                 }
             }
         });
@@ -2684,10 +2944,10 @@ function atualizarComp() {
     };
     const totalCriticoB = validPts.filter(e => isCriticoB(e[cfgB.field])).length;
 
-    let html = `<div style="margin-top:10px;font-size:.78rem;color:#1a211d;line-height:1.9">`;
+    let html = `<div style="margin-top:10px;font-size:.78rem;color:var(--ink);line-height:1.9">`;
     html += `<strong>Resumo: ${totalUniq} escolas no cruzamento atual · ${totalCriticoB} em situação crítica de "${cfgB.label}" (${pct(totalCriticoB,totalUniq)}%) · ${totalUniq-totalCriticoB} fora dessa situação (${pct(totalUniq-totalCriticoB,totalUniq)}%)</strong><br>`;
     if (excluidas > 0) {
-        html += `<span style="font-size:.72rem;color:#888">⚠ Das ${totalEscolas} escolas, ${excluidas} não aparecem no gráfico por dado ausente em "${cfgA.label}" ou "${cfgB.label}".</span><br>`;
+        html += `<span style="font-size:.72rem;color:var(--mute)">⚠ Das ${totalEscolas} escolas, ${excluidas} não aparecem no gráfico por dado ausente em "${cfgA.label}" ou "${cfgB.label}".</span><br>`;
     }
 
     // Por categoria do eixo A (ex.: Nenhum/Poucos/Alguns/Muitos/Todos)
@@ -2706,7 +2966,7 @@ function atualizarComp() {
         const i = cfgA.cats.indexOf(cat);
         const {total: n, critico: r} = porCatA[i];
         const pctR = pct(r, n);
-        const cor = pctR >= 50 ? '#b0503a' : pctR >= 30 ? '#c98a2e' : '#2f6d55';
+        const cor = pctR >= 50 ? 'var(--terra-2)' : pctR >= 30 ? 'var(--ocre-3)' : 'var(--verde)';
         return `<strong>${cat}</strong>: ${n} escola${n>1?'s':''}, <span style="color:${cor};font-weight:600">${r} em "${cfgB.label}" crítico (${pctR}%)</span>`;
     }).join(' &nbsp;·&nbsp; ');
 
@@ -2718,7 +2978,7 @@ function atualizarComp() {
     html += `<br><span style="font-weight:600">Distribuição de "${cfgB.label}" (escolas):</span> `;
     html += cfgB.cats.map((cat, i) => {
         const n = porCatB[i] || 0;
-        const cor = n > 0 ? '#1a211d' : '#bbb';
+        const cor = n > 0 ? 'var(--ink)' : 'var(--mute)';
         return `<span style="color:${cor}"><strong>${cat}</strong>: ${n}</span>`;
     }).join(' &nbsp;·&nbsp; ');
     html += `</div>`;
@@ -2740,7 +3000,8 @@ function renderTabela() {
         'Rio Grande do Norte':'Nordeste','Rio Grande do Sul':'Sul',
         'Rio de Janeiro':'Sudeste','Rondônia':'Norte','Santa Catarina':'Sul',
         'Sergipe':'Nordeste','São Paulo':'Sudeste','Tocantins':'Norte'};
-    const rc = v=>v>=60?'#8f3d2c':v>=40?'#b0503a':v>=20?'#c98a2e':'#2f6d55';
+    // tons para TEXTO (4,5:1 minimo), nao para preenchimento
+    const rc = v=>v>=60?'var(--terra-2)':v>=40?'var(--terra)':v>=20?'var(--ocre-3)':'var(--verde)';
     const rows = Object.keys(ru).sort().map(uf => {
         const esc_n=ru[uf].total, form_n=parseInt(fu[uf]||0);
         const racPct=p(ru[uf].sim,esc_n);
@@ -2756,12 +3017,12 @@ function renderTabela() {
         const dirPct=hmR.sem_dir_pct||'–';
         const cNaoPct=p(uagg.consulta_nao||0,uagg.total);
         return `<tr>
-            <td><strong>${uf}</strong> <small style="color:#999;font-size:.65rem">(${reg.substring(0,3)})</small></td>
+            <td><strong>${uf}</strong> <small style="color:var(--mute);font-size:.65rem">(${reg.substring(0,3)})</small></td>
             <td style="text-align:center">${form_n}</td><td style="text-align:center">${esc_n}</td>
             <td style="text-align:center;color:${rc(racPct)};font-weight:700">${racPct}%</td>
             <td style="text-align:center;color:${rc(semEmPct)};font-weight:700">${semEmPct}%</td>
-            <td style="text-align:center;color:${typeof fechPct==='number'?rc(fechPct):'#999'};font-weight:700">${typeof fechPct==='number'?fechPct+'%':fechPct}</td>
-            <td style="text-align:center;color:${typeof dirPct==='number'?rc(dirPct):'#999'};font-weight:700">${typeof dirPct==='number'?dirPct+'%':dirPct}</td>
+            <td style="text-align:center;color:${typeof fechPct==='number'?rc(fechPct):'#5b665f'};font-weight:700">${typeof fechPct==='number'?fechPct+'%':fechPct}</td>
+            <td style="text-align:center;color:${typeof dirPct==='number'?rc(dirPct):'#5b665f'};font-weight:700">${typeof dirPct==='number'?dirPct+'%':dirPct}</td>
             <td style="text-align:center;color:${rc(semProfPct)};font-weight:700">${semProfPct}%</td>
             <td style="text-align:center;color:${rc(semMatPct)};font-weight:700">${semMatPct}%</td>
         </tr>`;
@@ -2824,8 +3085,6 @@ function initMapa() {
     map = L.map('map', {scrollWheelZoom:false}).setView([-14.2,-51.9], 4);
 
     const fundos = {
-        'Claro': L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-            {attribution:'&copy; OpenStreetMap, &copy; CARTO', maxZoom:18}),
         'Ruas': L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
             {attribution:'&copy; OpenStreetMap', maxZoom:18}),
         'Satélite': L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
@@ -2833,7 +3092,7 @@ function initMapa() {
         'Relevo': L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer/tile/{z}/{y}/{x}',
             {attribution:'&copy; Esri', maxZoom:13})
     };
-    fundos['Claro'].addTo(map);
+    fundos['Ruas'].addTo(map);
     controleCamadas = L.control.layers(fundos, null, {position:'topright', collapsed:true}).addTo(map);
     map.on('click', () => map.scrollWheelZoom.enable());
     map.on('mouseout', () => map.scrollWheelZoom.disable());
@@ -2873,7 +3132,7 @@ function updateMap() {
             const esc  = DB.esc_por_uf[nome] || 0;
             const form = DB.form_por_uf[nome] || 0;
             const d    = DB.uf_agg[nome];
-            if (!esc && !form) return `<b>${nome} (${sigla})</b><br><span style="color:#888">Sem dados nesta pesquisa</span>`;
+            if (!esc && !form) return `<b>${nome} (${sigla})</b><br><span style="color:var(--mute)">Sem dados nesta pesquisa</span>`;
             const pc = (x) => d && d.total ? (x / d.total * 100).toFixed(1) + '%' : '–';
             return `<b>${nome} (${sigla})</b>
                 <div style="margin-top:5px;font-size:12px;line-height:1.7">
@@ -2961,7 +3220,7 @@ function desenharLegenda(indicador, maxVal, tipo) {
         const de = maxVal * i / 5, ate = maxVal * (i + 1) / 5;
         faixas += `<div class="leg-item"><span class="leg-dot" style="background:${heatColor((i+0.5)/5*100)}"></span>${fmt(de)}–${fmt(ate)}</div>`;
     }
-    let extra = '<div class="leg-item"><span class="leg-dot" style="background:#d8d4c8"></span>sem dados</div>';
+    let extra = '<div class="leg-item"><span class="leg-dot" style="background:var(--line)"></span>sem dados</div>';
     if (tipo === 'circulos' || tipo === 'combinado') {
         extra += '<div class="leg-item" style="margin-left:auto;color:var(--mute)">Tamanho do círculo = nº de escolas</div>';
     }
@@ -3155,8 +3414,154 @@ function aplicaSinonimos(txt) {
     return r;
 }
 
+// ══════════════════════════════════════════════════════════════════
+// CONVERSA BÁSICA DA ÀGBÁ
+// A Àgbá responde dados. Mas quem abre um chat costuma cumprimentar
+// antes de perguntar, e uma resposta seca ("não encontrei essa
+// informação") logo no primeiro "oi" dá a impressão de que ela não
+// funciona. Esta camada cobre saudação, identidade e apresentação.
+//
+// Duas regras de projeto:
+//  1) Ela NUNCA pode sequestrar uma pergunta de dados. "Bom dia,
+//     quantas escolas têm racismo?" tem de cair na resposta de dados.
+//     Por isso a checagem é: tirado o que é cortesia, sobrou assunto?
+//  2) Palavra inteira, nunca pedaço. O código antigo usava
+//     t.includes('oi'), e "oi" mora dentro de foi, dois, depois,
+//     coisa, noite, oito, pois — "o que foi feito" virava saudação.
+// ══════════════════════════════════════════════════════════════════
+
+// Faixas de horário do relógio de quem está lendo a página.
+function saudacaoDoMomento() {
+    const h = new Date().getHours();
+    if (h >= 5  && h < 12) return 'Bom dia';
+    if (h >= 12 && h < 18) return 'Boa tarde';
+    return 'Boa noite';
+}
+
+// Expressões de cortesia, para poder removê-las e ver o que sobra.
+// Duas cópias de propósito: uma regex com /g guarda estado interno
+// (lastIndex) entre chamadas, e usar a MESMA em .test() e .replace()
+// faz um "oi" ser reconhecido numa mensagem e ignorado na seguinte.
+// A sem /g serve para testar; a com /g, para substituir.
+const SAUDACOES = '(oi+|ola|opa|eai|e ai|eae|salve|alo|bom dia|boa tarde|boa noite|boas|saudacoes)';
+const RX_SAUDACAO   = new RegExp('\\b' + SAUDACOES + '\\b');
+const RX_SAUDACAO_G = new RegExp('\\b' + SAUDACOES + '\\b', 'g');
+const RX_CORTESIA = /\b(por favor|pf|obrigad[oa]|valeu|vlw|entao|beleza|blz|ok|okay|certo|ne|entendi|hum+|ah+|eh+|ai|pois|bem|tudo|td|como vai|como voce esta|como esta voce|tranquilo|tranquila|firme|ai sim)\b/g;
+
+// Sobrou assunto depois de tirar a cortesia? Se sim, a pergunta segue
+// para as regras de dados e esta camada nem opina.
+function soCortesia(t) {
+    const resto = t
+        .replace(RX_SAUDACAO_G, ' ')
+        .replace(RX_CORTESIA, ' ')
+        .replace(/[?!.,;:]/g, ' ')
+        .replace(/\b(voce|vc|tu|agba|assistente|bot|ai|a|o|e|de|da|do|com|pra|para|me|te|se|ta|esta)\b/g, ' ')
+        .replace(/\s+/g, ' ').trim();
+    return resto.length <= 2;
+}
+
+// ── Nome de quem está conversando ─────────────────────────────────
+// Só aceita o que tem cara de nome próprio: precisa vir com inicial
+// maiúscula no texto ORIGINAL (por isso o bruto entra aqui) e não
+// pode ser um cargo. Sem esse cuidado, "sou pesquisador da CONAQ"
+// gravaria "pesquisador da CONAQ" como nome da pessoa.
+const NAO_E_NOME = new Set([
+    'pesquisador','pesquisadora','professor','professora','estudante','aluno','aluna',
+    'lideranca','representante','tecnico','tecnica','coordenador','coordenadora',
+    'quilombola','morador','moradora','jornalista','gestor','gestora','conaq','agba',
+    'de','da','do','das','dos','um','uma','muito','so','apenas','aqui','novo','nova'
+]);
+
+function capturaNome(bruto) {
+    const padroes = [
+        /\bmeu nome (?:e|é|eh)\s+([A-ZÁÀÂÃÉÊÍÓÔÕÚÇ][\wÀ-ÿ]*(?:\s+[A-ZÁÀÂÃÉÊÍÓÔÕÚÇ][\wÀ-ÿ]*){0,2})/,
+        /\bme chamo\s+([A-ZÁÀÂÃÉÊÍÓÔÕÚÇ][\wÀ-ÿ]*(?:\s+[A-ZÁÀÂÃÉÊÍÓÔÕÚÇ][\wÀ-ÿ]*){0,2})/,
+        /\b(?:eu\s+)?sou(?:\s+(?:o|a))?\s+([A-ZÁÀÂÃÉÊÍÓÔÕÚÇ][\wÀ-ÿ]*(?:\s+[A-ZÁÀÂÃÉÊÍÓÔÕÚÇ][\wÀ-ÿ]*){0,2})/,
+        /\baqui (?:e|é|eh)(?:\s+(?:o|a))?\s+([A-ZÁÀÂÃÉÊÍÓÔÕÚÇ][\wÀ-ÿ]*(?:\s+[A-ZÁÀÂÃÉÊÍÓÔÕÚÇ][\wÀ-ÿ]*){0,2})/,
+    ];
+    for (const rx of padroes) {
+        const m = bruto.match(rx);
+        if (!m) continue;
+        const bruto_nome = m[1].trim();
+        const partes = bruto_nome.split(/\s+/).filter(x => !NAO_E_NOME.has(norm(x)));
+        if (!partes.length) return null;
+        const nome = partes[0];
+        if (nome.length < 2 || NAO_E_NOME.has(norm(nome))) return null;
+        return partes.slice(0, 2).join(' ');
+    }
+    return null;
+}
+
+// Apresentação de cargo/vínculo, quando não é um nome próprio.
+function capturaPapel(t) {
+    const m = t.match(/\bsou\s+(?:um |uma |o |a )?(pesquisador[a]?|professor[a]?|estudante|aluno|aluna|lideranca|representante|jornalista|gestor[a]?|tecnic[oa]|coordenador[a]?|quilombola)\b/);
+    return m ? m[1] : null;
+}
+
+// ── A resposta social ─────────────────────────────────────────────
+// Devolve null quando a mensagem tem assunto de dados: aí quem
+// responde são as regras seguintes, como antes.
+function respostaSocial(t, bruto) {
+    const nome = capturaNome(bruto);
+    if (nome) agbaCtx.nome = nome;
+    const papel = capturaPapel(t);
+    const trata = agbaCtx.nome ? ', ' + agbaCtx.nome : '';
+    const hora  = saudacaoDoMomento();
+
+    // 1) Apresentação: "meu nome é Maria", "sou pesquisadora"
+    if (nome || papel) {
+        // O cargo entra sem flexionar género: "uma pessoa pesquisador" seria
+        // agramatical, e não dá para adivinhar o género de quem escreveu.
+        let r = nome
+            ? `${hora}, ${nome}! 👋 Prazer — sou o Àgbá, assistente da Central de Confluência de Dados da CONAQ.`
+            : `${hora}! 👋 Que bom ter você por aqui. Sou o Àgbá, assistente da Central de Confluência de Dados da CONAQ.`;
+        r += ` Leio os dados da pesquisa "Panorama da Educação Escolar Quilombola" (2025–2026) e respondo sobre eles.`;
+        // sugestão puxada para o interesse provável de quem se apresentou
+        const porPapel = {
+            'professor':  ['Como está a presença de professores quilombolas?', 'Como estão os materiais didáticos?'],
+            'professora': ['Como está a presença de professores quilombolas?', 'Como estão os materiais didáticos?'],
+            'estudante':  ['Como está o Ensino Médio?', 'Quantas escolas têm racismo?'],
+            'aluno':      ['Como está o Ensino Médio?', 'Quantas escolas têm racismo?'],
+            'aluna':      ['Como está o Ensino Médio?', 'Quantas escolas têm racismo?'],
+            'lideranca':  ['Como está a consulta à comunidade?', 'Quantas escolas foram fechadas?'],
+            'jornalista': ['Quais estados têm mais racismo?', 'Qual a metodologia da pesquisa?'],
+        };
+        const chave = papel ? norm(papel) : null;
+        const sug = (chave && porPapel[chave]) || ['Quantas escolas têm racismo?', 'Como está a Bahia?'];
+        return r + sugestoes(sug.concat(['O que você pode responder?']));
+    }
+
+    // 2) "tudo bem?", "como você está?"
+    if (/\b(tudo bem|tudo bom|como (voce|vc|tu) (esta|vai|ta)|como vai|beleza|de boa)\b/.test(t) && soCortesia(t)) {
+        return `Tudo bem por aqui${trata}, obrigado por perguntar! 🙂 Estou pronto para consultar os dados da pesquisa. ` +
+               `${hora} — é só me dizer o que você quer saber.` +
+               sugestoes(['Quantas escolas têm racismo?', 'Como está o Ensino Médio?', 'Quais estados têm mais racismo?']);
+    }
+
+    // 3) Saudação pura. Se veio junto de uma pergunta, soCortesia() é
+    //    falso e a mensagem segue para as regras de dados.
+    if (RX_SAUDACAO.test(t)) {
+        if (!soCortesia(t)) return null;
+        return `${hora}${trata}! 👋 Sou o Àgbá, assistente da Central de Confluência de Dados da CONAQ. ` +
+               `Respondo com base nos dados da pesquisa sobre Educação Escolar Quilombola — 522 formulários e 724 escolas em 21 estados.` +
+               sugestoes(['Quantas escolas têm racismo?', 'Como está a Bahia?', 'O que você pode responder?']);
+    }
+
+    // 4) Perguntam o nome de quem conversa
+    if (/\b(qual (e|eh) meu nome|sabe meu nome|lembra de mim|quem sou eu)\b/.test(t)) {
+        return agbaCtx.nome
+            ? `Você é ${agbaCtx.nome} 🙂 — me disse isso aqui mesmo nesta conversa. Posso consultar algum dado para você?`
+            : `Ainda não sei seu nome 🙂 Se quiser, escreva "meu nome é ..." — mas não precisa: pode me perguntar sobre os dados à vontade.`;
+    }
+
+    return null;    // não é conversa social: segue para os dados
+}
+
 function responderAgba(pergunta) {
     const t = aplicaSinonimos(norm(pergunta));
+    // conversa basica primeiro; devolve null se houver assunto de dados
+    const social = respostaSocial(t, String(pergunta || ''));
+    if (social) return social;
     const db = DB;
     const modo = detectaModo(t);
     const pedeRanking = /(qual|quais)\s+(o\s+|a\s+|os\s+|as\s+)?(estado|uf|regiao)/.test(t) || t.includes('ranking') || t.includes('top ') || t.includes('quem tem') || t.includes('compare');
@@ -3313,7 +3718,7 @@ function responderAgba(pergunta) {
 
     // ── E. Total geral / quantas escolas, formulários (NÃO captura "reserva de vagas" etc.) ──
     if ((t.includes('quantas escolas') || t.includes('quantos formularios') || t.includes('total de escolas') || (t.includes('quantos') && t.includes('formulario')))
-        && !/(reserva de vaga|concurso|diretriz|laboratorio|biblioteca|internet|agua potavel|acessibilidade|cozinha|refeitorio|sala de aula|merenda|alimentacao|desrespeito|conselho|gestor|racismo|professor|materia|transporte|fechamento|nucleacao|consulta|gestao|ensino medio|evasao|infraestrutura|relacao)/.test(t)) {
+        && !/(reserva de vaga|concurso|diretriz|laboratorio|biblioteca|internet|agua potavel|acessibilidade|cozinha|refeitorio|sala de aula|merenda|alimentacao|desrespeito|conselho|gestor|racismo|professor|materia|transporte|fechamento|nucleacao|fechada|fecharam|fechou|encerrad|consulta|gestao|ensino medio|evasao|infraestrutura|relacao)/.test(t)) {
         return `📚 A pesquisa reúne ${db.total_formularios} formulários e ${db.total_escolas} escolas analisadas individualmente, coletados entre 2025 e 2026.` +
             sugestoes(['Quantas escolas têm racismo?', 'Como está a Bahia?']);
     }
@@ -3343,15 +3748,19 @@ function responderAgba(pergunta) {
 
     // ── I. Ensino Médio / evasão ──────────────────────────────────────
     if (t.includes('ensino medio') || t.includes('evasao')) {
-        const semEM = db.em_cats['Não há oferta de Ensino Médio no território ou nas proximidades.'] || 0;
+        // Q19 recodificada: a ausencia de oferta virou duas categorias
+        const semEM = (db.em_cats['Sem oferta no território/proximidades'] || 0)
+                    + (db.em_cats['Sem oferta identificada'] || 0);
         return `🎓 ${fmt(modo, p(semEM,db.total_formularios), semEM, db.total_formularios)} territórios não têm oferta de Ensino Médio dentro ou nas proximidades, principal causa de evasão escolar entre jovens quilombolas.` +
             sugestoes(['Como está o Ensino Médio no meu estado?']);
     }
 
     // ── J. Fechamento de escolas ──────────────────────────────────────
-    if (t.includes('fechamento') || t.includes('nucleacao') || t.includes('fechada')) {
-        const naoHouve = db.fech_cats['Não houve fechamento, nucleação ou tranferência de turmas nos últimos 10 anos.'] || 0;
-        const houve = db.total_formularios - naoHouve;
+    if (/(fechamento|nucleacao|fechad[ao]s?|fecharam|fechou|fechar|encerrad[ao]s?)/.test(t)) {
+        // Q14 recodificada: 'Sim' e a unica categoria que afirma fechamento.
+        // Subtrair as demais do total, como se fazia antes, contava como
+        // fechamento tambem quem respondeu 'nao' e 'nao sabe informar'.
+        const houve = db.fech_cats['Sim'] || 0;
         return `🏫 ${fmt(modo, p(houve,db.total_formularios), houve, db.total_formularios)} territórios relataram algum tipo de fechamento, nucleação ou transferência de turmas nos últimos 10 anos.` +
             sugestoes(['Como está o fechamento de escolas na minha região?']);
     }
@@ -3443,7 +3852,8 @@ function responderAgba(pergunta) {
 
     // ── Q. Diretrizes curriculares municipais ───────────────────────────
     if (t.includes('diretriz')) {
-        const semDoc = db.dir_counts['Não há nenhum documento oficial do município que regulamente ou oriente sobre a implementação da Educação Escolar Quilombola.'] || 0;
+        // Q10 recodificada: ausencia de normativa = 'Inexistente'
+        const semDoc = db.dir_counts['Inexistente'] || 0;
         return `📋 ${fmt(modo, p(semDoc,db.total_formularios), semDoc, db.total_formularios)} municípios não possuem nenhum documento oficial (diretrizes, lei ou orientação curricular) sobre Educação Escolar Quilombola.` +
             sugestoes(['Como está o concurso para professores?']);
     }
@@ -3464,10 +3874,8 @@ function responderAgba(pergunta) {
     }
 
     // ── O. Saudação ──────────────────────────────────────────────────
-    if (t.includes('oi') || t.includes('ola') || t.includes('bom dia') || t.includes('boa tarde') || t.includes('boa noite') || /^e ai/.test(t)) {
-        return `Olá! 👋 Sou o Àgbá, assistente da Central de Confluência de Dados da CONAQ. Posso responder perguntas sobre os dados da pesquisa — por exemplo: "Quantas escolas têm racismo?", "Como está a Bahia?", "Quais estados têm mais professores quilombolas?". Você também pode pedir "em %" ou "em números absolutos" para focar o formato da resposta.` +
-            sugestoes(['Como está a Bahia?', 'Quantas escolas têm racismo?', 'Quais estados têm mais professores?']);
-    }
+    // A saudacao passou para respostaSocial(), no topo deste arquivo:
+    // la ela conhece a hora do dia e compara por palavra inteira.
 
     // ── P. Despedida / agradecimento ────────────────────────────────────
     if (/(obrigad|valeu|tchau|ate mais|ate logo|falou|flw)/.test(t)) {
@@ -3558,8 +3966,79 @@ document.addEventListener('DOMContentLoaded', () => {
     runSafe(renderTabela, 'renderTabela');
     runSafe(initMapa, 'initMapa');
     window._chartsReady = true;
-    console.log('✅ All charts initialized successfully');
+    console.log('All charts initialized successfully');
 });
+
+// ── navegação entre seções ──
+// A seção "atual" é a última cujo cabeçalho já passou pelo topo da tela.
+// Usei isto no lugar do IntersectionObserver porque os cabeçalhos são baixos
+// (~80px): eles só cruzariam a faixa de detecção por um instante, e no resto
+// do tempo nenhuma seção ficaria marcada. Aqui sempre há exatamente uma.
+(function(){
+  var nav = document.querySelector('.navsec');
+  if (!nav) return;
+  var faixa = nav.querySelector('.navsec-in') || nav;   // quem rola na horizontal
+  var links = Array.prototype.slice.call(nav.querySelectorAll('a'));
+  var alvos = links.map(function(a){
+    try { return document.querySelector(a.getAttribute('href')); } catch(e) { return null; }
+  });
+  var atual = -1;
+
+  function ativa(i){
+    if (i === atual) return;
+    atual = i;
+    links.forEach(function(a, j){
+      if (j === i) a.classList.add('on'); else a.classList.remove('on');
+    });
+    var a = links[i];
+    // se a barra não couber na largura da tela, traz o item ativo para o centro
+    if (a && faixa.scrollWidth > faixa.clientWidth + 4) {
+      var x = a.offsetLeft - faixa.clientWidth/2 + a.offsetWidth/2;
+      try { faixa.scrollTo({ left: Math.max(0, x), behavior:'smooth' }); }
+      catch(e) { faixa.scrollLeft = Math.max(0, x); }
+    }
+  }
+
+  function medir(){
+    var limite = nav.getBoundingClientRect().height + 24;  // logo abaixo da barra
+    var achou = 0;
+    for (var i = 0; i < alvos.length; i++) {
+      if (alvos[i] && alvos[i].getBoundingClientRect().top <= limite) achou = i;
+    }
+    // no rodapé, marca a última seção
+    if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) {
+      achou = alvos.length - 1;
+    }
+    ativa(achou);
+  }
+
+  // requestAnimationFrame evita recalcular a cada pixel de rolagem
+  var pendente = false;
+  function aoRolar(){
+    if (pendente) return;
+    pendente = true;
+    requestAnimationFrame(function(){ pendente = false; medir(); });
+  }
+  window.addEventListener('scroll', aoRolar, { passive:true });
+  window.addEventListener('resize', aoRolar);
+  medir();
+
+  // botão de voltar ao topo
+  var topo = document.querySelector('.tbtn');
+  if (topo) {
+    topo.addEventListener('click', function(){
+      try { window.scrollTo({ top:0, behavior:'smooth' }); }
+      catch(e) { window.scrollTo(0, 0); }
+    });
+    window.addEventListener('scroll', function(){
+      if (window.scrollY > 700) topo.classList.add('on'); else topo.classList.remove('on');
+    }, { passive:true });
+  }
+})();
+
 </script>
+<button class="tbtn" title="Voltar ao topo" aria-label="Voltar ao topo">↑</button>
+
+</div>
 </body>
 </html>
