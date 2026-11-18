@@ -681,6 +681,51 @@ tbody tr:hover td{background:var(--sel)}
   .est-card.principal b{font-size:28px}
 }
 
+
+/* ---------- LOGOS DE REALIZAÇÃO E APOIO ----------
+   A altura de cada logo vem da variável --h, escrita no próprio <img>:
+   proporções de 1,0 a 3,9 não podem dividir a mesma altura, senão a
+   quadrada some e a larga domina. O valor sai de h = raiz(área/proporção),
+   que iguala a área aparente de todas.
+
+   A base clara existe porque logo escura sobre fundo escuro desaparece —
+   no cabeçalho verde e no rodapé em tema escuro. Recolorir a logo de um
+   parceiro não é alternativa: altera a marca dele. */
+.hero-logos{
+  position:relative;z-index:1;max-width:1384px;margin:22px auto 0;
+  display:flex;gap:16px;align-items:center;flex-wrap:wrap;
+  padding-top:20px;border-top:1px solid rgba(244,239,227,.18);
+}
+.hero-logos img{
+  height:var(--h,44px);width:auto;
+  background:#fffdf8;border-radius:3px;padding:7px 11px;
+}
+
+.creditos{
+  display:flex;flex-wrap:wrap;gap:40px 56px;
+  margin-bottom:28px;padding-bottom:24px;border-bottom:1px solid var(--line);
+}
+.cred-grupo h6{
+  margin:0 0 12px;font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--mute);font-weight:600;
+}
+.cred-faixa{display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+.cred-faixa img{height:var(--h,42px);width:auto}
+/* A base clara só entra quando o fundo é escuro: no tema claro as logos
+   já se leem sobre o papel terroso, e a plaquinha ali seria ruído. */
+:root[data-theme="dark"] .cred-faixa img{
+  background:#fffdf8;border-radius:3px;padding:6px 10px;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]) .cred-faixa img{
+    background:#fffdf8;border-radius:3px;padding:6px 10px;
+  }
+}
+@media (max-width:640px){
+  .creditos{gap:26px 32px}
+  .hero-logos{gap:12px}
+  .hero-logos img,.cred-faixa img{height:calc(var(--h,42px) * .82)}
+}
 </style>
 </head>
 <body>
@@ -697,9 +742,9 @@ tbody tr:hover td{background:var(--sel)}
   </div>
   <div class="hstats" id="heroStats"></div>
   <div class="hero-logos">
-    <img src="CONAQbc.jpeg" alt="CONAQ" onerror="this.style.display='none'">
-    <img src="169343814_166123889136321_2708613905794257662_n.5c918fc1708f4d409dfc.webp" alt="Coletivo Nacional de Educação" onerror="this.style.display='none'">
-  </div>
+  <img src="logo-conaq.png" alt="CONAQ — Coordenação Nacional de Articulação das Comunidades Negras Rurais Quilombolas" style="--h:45px" onerror="this.style.display='none'">
+  <img src="logo-coletivo-educacao.png" alt="Coletivo de Educação da CONAQ" style="--h:62px" onerror="this.style.display='none'">
+</div>
 </div>
 </div><!-- fecha o .ctn para a barra ficar no nivel da pagina -->
 <nav class="navsec" aria-label="Secoes do painel"><div class="navsec-in"><a href="#s-mapa">Mapa</a><a href="#s-territorio">Território</a><a href="#s-medio">Ensino Médio</a><a href="#s-infra">Infraestrutura</a><a href="#s-transporte">Transporte</a><a href="#s-alimentacao">Alimentação</a><a href="#s-docentes">Docentes</a><a href="#s-racismo">Racismo</a><a href="#s-gestao">Gestão</a><a href="#s-comparacoes">Comparações</a><a href="#s-correlacoes">Correlações</a><a href="#s-comparador">Comparador</a><a href="#s-tabela">Tabela</a></div></nav>
@@ -1387,10 +1432,24 @@ tbody tr:hover td{background:var(--sel)}
 
 <!-- FOOTER -->
 <div class="footer">
-  <div class="fl">
-    <img src="CONAQbc.jpeg" alt="CONAQ" onerror="this.style.display='none'">
-    <img src="169343814_166123889136321_2708613905794257662_n.5c918fc1708f4d409dfc.webp" alt="Coletivo Nacional de Educação" onerror="this.style.display='none'">
+  <div class="creditos">
+<div class="cred-grupo">
+  <h6>Realização</h6>
+  <div class="cred-faixa">
+    <img src="logo-conaq.png" alt="CONAQ — Coordenação Nacional de Articulação das Comunidades Negras Rurais Quilombolas" style="--h:39px" loading="lazy" onerror="this.style.display='none'">
+    <img src="logo-coletivo-educacao.png" alt="Coletivo de Educação da CONAQ" style="--h:62px" loading="lazy" onerror="this.style.display='none'">
   </div>
+</div>
+<div class="cred-grupo">
+  <h6>Apoio</h6>
+  <div class="cred-faixa">
+    <img src="logo-malala-fund.png" alt="Malala Fund" style="--h:41px" loading="lazy" onerror="this.style.display='none'">
+    <img src="logo-imaginable-futures.png" alt="Imaginable Futures" style="--h:35px" loading="lazy" onerror="this.style.display='none'">
+    <img src="logo-porticus.png" alt="Porticus" style="--h:38px" loading="lazy" onerror="this.style.display='none'">
+    <img src="logo-seta.png" alt="SETA — Sistema de Educação por uma Transformação Antirracista" style="--h:48px" loading="lazy" onerror="this.style.display='none'">
+  </div>
+</div>
+</div>
   <div class="fcols">
     <div class="fcol">
       <h5>CONAQ</h5>
