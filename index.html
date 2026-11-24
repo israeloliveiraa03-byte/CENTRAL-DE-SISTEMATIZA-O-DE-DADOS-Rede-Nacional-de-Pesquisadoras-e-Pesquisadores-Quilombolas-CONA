@@ -3589,9 +3589,19 @@ function renderTabela() {
         const uagg=desU[uf]||{mat_nao:0,total:1,consulta_nao:0};
         const semMatPct=p(uagg.mat_nao,uagg.total);
         const reg=regMap[uf]||'';
-        const hmR=hm[reg]||{};
-        const fechPct=hmR.fechamento_pct||'–';
-        const dirPct=hmR.sem_dir_pct||'–';
+        // ATENÇÃO: estas duas colunas liam DB.heatmap_reg, que é indexado por
+        // REGIÃO. O resultado era a linha de cada estado exibir o número da sua
+        // região — todos os quatro estados do Centro-Oeste mostravam 20% de
+        // fechamento e 82,2% sem diretrizes, que são os valores do Centro-Oeste,
+        // não os deles. Agora saem da fatia do próprio estado em SD.form_agg,
+        // com os mesmos critérios do mapa de calor, para as duas visualizações
+        // continuarem comparáveis:
+        //   fechamento  = fech 'Sim'
+        //   sem diretriz = Inexistente + Não sabe informar + Referência não municipal
+        const faUF=(SD.form_agg||{})['uf:'+uf];
+        const somaCat=(o,cs)=>!o?0:cs.reduce((s,k)=>s+(o[k]||0),0);
+        const fechPct = faUF ? p(somaCat(faUF.fech,['Sim']), faUF.total) : '–';
+        const dirPct  = faUF ? p(somaCat(faUF.dir,['Inexistente','Não sabe informar','Referência não municipal']), faUF.total) : '–';
         const cNaoPct=p(uagg.consulta_nao||0,uagg.total);
         return `<tr>
             <td><strong>${uf}</strong> <small style="color:var(--mute);font-size:.65rem">(${reg.substring(0,3)})</small></td>
