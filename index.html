@@ -3950,19 +3950,43 @@ function respostaIndicadores(nome, d, modo, extra) {
     return txt;
 }
 
-// Linha extra com fechamento e oferta de EM, a partir de corr_uf (só disponível por UF)
+// Linhas de indicador TERRITORIAL (base = formulários), para UF e para região.
+//
+// As duas medidas de Ensino Médio saem da MESMA estrutura, DB.em_por_uf, que é a
+// que alimenta o gráfico de Ensino Médio por estado. Antes a resposta por UF lia
+// corr_uf e a por região lia heatmap_reg: duas estruturas, duas medidas diferentes,
+// e o usuário que comparasse um estado com a sua região encontrava números
+// incompatíveis. Agora as duas dizem a mesma coisa, com as mesmas palavras, e o
+// Àgbá não depende mais de nenhum agregado pré-calculado que possa defasar.
+//
+//   com oferta    = território com Ensino Médio dentro OU nas proximidades
+//                   (o complemento de "Sem oferta..." da Q19 recodificada)
+//   sem EM dentro = território sem Ensino Médio DENTRO dos seus limites,
+//                   ainda que exista oferta por perto
+function emDoEscopo(ufs) {
+    let total = 0, dentro = 0, sem = 0;
+    for (const uf of ufs) {
+        const d = DB.em_por_uf[uf];
+        if (!d) continue;
+        total += d.total; dentro += d.dentro; sem += d.sem;
+    }
+    return { total, dentro, sem };
+}
+function linhasEM(ufs) {
+    const d = emDoEscopo(ufs);
+    if (!d.total) return '';
+    return `• Com oferta de Ensino Médio, dentro ou nas proximidades: ${p(d.total-d.sem, d.total)}% dos territórios\n` +
+           `• Sem Ensino Médio dentro do território: ${p(d.total-d.dentro, d.total)}% dos territórios`;
+}
 function extraUF(uf) {
-    const corr = DB.corr_uf[uf] || {};
-    let linha = `• Com oferta de Ensino Médio, dentro ou nas proximidades: ${corr.oferta_em_pct ?? 0}% dos territórios`;
-    return linha;
+    return linhasEM([uf]);
 }
 function extraReg(reg) {
     const f = DB.fech_por_reg[reg];
-    const h = DB.heatmap_reg[reg] || {};
+    const ufs = Object.keys(UF_PARA_REGIAO).filter(u => UF_PARA_REGIAO[u] === reg);
     let linha = '';
     if (f) linha += `• Fechamento/nucleação nos últimos 10 anos: ${p(f.sim,f.total)}% dos territórios\n`;
-    linha += `• Sem Ensino Médio dentro do território: ${(h.sem_em_pct ?? 0)}% dos territórios`;
-    return linha;
+    return linha + linhasEM(ufs);
 }
 
 // Motor de respostas: a ORDEM importa — checagens mais específicas (rankings, UF/região)
