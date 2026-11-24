@@ -3887,7 +3887,7 @@ const REGIAO_ALIASES = {
 };
 
 // Memória de curto prazo: último estado/região mencionados, para perguntas de acompanhamento
-const agbaCtx = { uf: null, reg: null };
+const agbaCtx = { uf: null, reg: null, tema: null };
 
 function detectaUF(txtNorm, txtOriginal) {
     // Checagem especial: "Pará" (com acento) só pode ser diferenciado da preposição
@@ -4155,6 +4155,254 @@ function respostaSocial(t, bruto) {
     return null;    // não é conversa social: segue para os dados
 }
 
+// ══════════════════════════════════════════════════════════════
+// RESOLVEDOR DE TEMA + ESCOPO
+//
+// Antes, cada tema tinha o seu próprio bloco e só sabia responder
+// no total nacional; havia um bloco separado, só para
+// infraestrutura, que respondia por UF. Mas os dados já estão
+// fatiados: SD.form_agg e SD.escola_agg guardam uma fatia por UF
+// e por região — as mesmas que alimentam os gráficos quando se
+// usam os filtros do painel.
+//
+// A tabela TEMAS descreve cada assunto UMA vez: de que nível ele
+// é (escola ou território), por quais palavras é chamado, e como
+// tirar o número de uma fatia qualquer. Assim o mesmo código
+// responde no Brasil, num estado ou numa região, e um assunto
+// novo entra como uma linha nova em vez de um bloco novo.
+// ══════════════════════════════════════════════════════════════
+const RUIM = ['Inexistente','Precária','Insuficiente'];
+const soma = (o, cats) => !o ? 0 : cats.reduce((a,c)=>a+(o[c]||0), 0);
+// Escalas de concordância (transporte e alimentação): quem respondeu
+// "não sei" ou "não se aplica" sai da base, não vira discordância.
+function discorda(bloco, item) {
+    const d = (bloco||{})[item] || {};
+    const abs = d['Discordo'] || 0;
+    return { abs, base: abs + (d['Concordo totalmente']||0) + (d['Concordo parcialmente']||0) };
+}
+function infraTema(palavras, chave) {
+    // O id é obrigatório: é por ele que a memória de curto prazo reencontra
+    // o tema quando a pergunta seguinte só muda o escopo ("e no Brasil?").
+    return { id:'infra:'+chave, nivel:'escola', re:palavras, conta: f => ({
+        abs: soma((f.infra||{})[chave], RUIM), base: f.total, unidade:'escolas',
+        desc:`têm ${chave.toLowerCase()} em situação inexistente, precária ou insuficiente` }) };
+}
+function condTransporte(palavras, item) {
+    return { id:'transp:'+item, nivel:'escola', re:palavras, conta: f => {
+        const d = discorda(f.tc, item);
+        return { abs:d.abs, base:d.base, unidade:'escolas com transporte escolar',
+                 desc:`discordam de que "${item.toLowerCase()}"` }; } };
+}
+function itemAlimentacao(palavras, item) {
+    return { id:'alim:'+item, nivel:'escola', re:palavras, conta: f => {
+        const d = discorda(f.alim, item);
+        return { abs:d.abs, base:d.base, unidade:'escolas',
+                 desc:`discordam de que "${item.toLowerCase()}"` }; } };
+}
+// A ordem importa: o primeiro tema cujo padrão casar é o escolhido.
+// "conselho tutelar" tem de cair em órgãos externos, não em conselho
+// escolar — por isso órgãos vem antes.
+const TEMAS = [
+  { id:'orgaos', nivel:'territorio', re:/orgao|orgaos|ministerio publico|defensoria|conselho tutelar|acionar|acionou|judicializ|processo judicial/,
+    conta: f => ({ abs:soma(f.org,['Sim']), base:f.total, unidade:'territórios',
+      desc:'já precisaram acionar órgãos externos para garantir o direito à educação' }) },
+  { id:'racismo', nivel:'escola', re:/racismo|racista|discriminacao|preconceito|injuria racial/,
+    conta: f => ({ abs:(f.rac||{}).sim||0, base:f.total, unidade:'escolas',
+      desc:'relataram algum tipo de racismo',
+      extra: Object.entries(f.racismo_tipos||{}).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1])
+               .map(([k,v])=>`${k} (${v})`).join(', ') }) },
+  { id:'professor', nivel:'escola', re:/professor|professora|docente|corpo docente/,
+    conta: f => ({ abs:soma(f.prof,['Nenhum']), base:f.total, unidade:'escolas',
+      desc:'não têm nenhum(a) professor(a) quilombola no quadro' }) },
+  { id:'material', nivel:'escola', re:/material|materiais|livro|didatico|conteudo quilombola/,
+    conta: f => ({ abs:soma(f.mat,['Não']), base:f.total, unidade:'escolas',
+      desc:'não possuem materiais didáticos que abordem história e cultura quilombola' }) },
+  { id:'conselho', nivel:'escola', re:/conselho escolar|conselho da escola|conselho/,
+    conta: f => ({ abs:soma(f.gest_conselho,['Não']), base:f.total, unidade:'escolas',
+      desc:'relatam que a comunidade NÃO participa do conselho escolar' }) },
+  { id:'gestores', nivel:'escola', re:/escolha de gestor|escolha dos gestor|escolha do gestor|diretor|direcao da escola/,
+    conta: f => ({ abs:soma(f.gest_gestores,['Não']), base:f.total, unidade:'escolas',
+      desc:'relatam que a comunidade NÃO é ouvida na escolha de gestores escolares' }) },
+  { id:'consulta', nivel:'escola', re:/consulta|consultada|gestao democratica|participacao da comunidade|escuta da comunidade|gestao/,
+    conta: f => ({ abs:soma(f.gest_consulta,['Não']), base:f.total, unidade:'escolas',
+      desc:'relatam que a comunidade NÃO é consultada em decisões de gestão escolar' }) },
+  { id:'desrespeito', nivel:'escola', re:/desrespeito|falta de respeito|nao respeita|intoleranc|despreza a cultura/,
+    conta: f => ({ abs:soma(f.des,['Sim']), base:f.total, unidade:'escolas',
+      desc:'relataram desrespeito à cultura e às tradições quilombolas por parte da equipe escolar' }) },
+  { id:'relacao', nivel:'escola', re:/relacao escola|relacao com a comunidade|relacao entre a escola|convivencia/,
+    conta: f => ({ abs:soma(f.rel,['Ruim','Regular']), base:f.total, unidade:'escolas',
+      desc:'têm relação Ruim ou Regular entre os profissionais da escola e a comunidade' }) },
+  infraTema(/biblioteca|acervo|livros na escola/, 'Biblioteca'),
+  infraTema(/laboratorio|informatica|computador/, 'Laboratório de informática'),
+  infraTema(/internet|wifi|wi-fi|conexao/, 'Acesso à internet'),
+  infraTema(/agua potavel|agua|bebedouro/, 'Abastecimento de água potável'),
+  infraTema(/acessibilidade|rampa|cadeirante|deficien/, 'Acessibilidade arquitetônica'),
+  infraTema(/espaco cultural|pratica cultural|praticas culturais|cultural/, 'Espaço para práticas culturais'),
+  infraTema(/espaco esportivo|pratica esportiva|praticas esportivas|quadra|esporte|educacao fisica/, 'Espaço para práticas esportivas'),
+  infraTema(/sala de aula|salas de aula|carteira/, 'Salas de aula'),
+  infraTema(/cozinha|fogao/, 'Cozinha'),
+  infraTema(/refeitorio|lugar para comer/, 'Refeitório'),
+  // Depois dos itens específicos: "como está a infraestrutura?" sem dizer qual
+  // item devolve o panorama dos dez, do pior para o melhor.
+  { id:'infra_geral', nivel:'escola', re:/infraestrutura|infra\b|estrutura da escola|instalacoes|predio/,
+    conta: f => ({ lista: Object.entries(f.infra||{}).map(([k,v])=>[k, soma(v,RUIM)]).sort((a,b)=>b[1]-a[1]),
+      base:f.total, unidade:'escolas',
+      desc:'itens de infraestrutura em situação inexistente, precária ou insuficiente' }) },
+  condTransporte(/estrada|rodovia|caminho|via de acesso/, 'As estradas estão em boas condições'),
+  condTransporte(/seguranca do transporte|transporte seguro|conforto/, 'O transporte é seguro e confortável'),
+  condTransporte(/veiculo|onibus em bom estado|conservacao/, 'O veículo está em bom estado de conservação'),
+  condTransporte(/horario/, 'Os horários de partida e chegada são adequados'),
+  condTransporte(/regularidade|falta o transporte|transporte falta/, 'Há regularidade na oferta do transporte'),
+  condTransporte(/tempo de viagem|tempo dentro|permanencia no veiculo|demora/, 'O tempo de permanência dentro do veículo é adequado'),
+  { id:'transporte', nivel:'escola', re:/transporte|onibus|van|conducao|kombi/,
+    conta: f => {
+      const cats = Object.keys(f.transp||{}).filter(k=>/^Sim/.test(k));
+      return { abs:soma(f.transp,cats), base:f.total, unidade:'escolas',
+        desc:'têm estudantes da comunidade que usam transporte escolar para chegar à escola',
+        extra:`Sem transporte escolar, ausente ou precário: ${soma(f.transp,['Sem transporte escolar (ausente/precário)'])} de ${f.total}.` }; } },
+  itemAlimentacao(/cultura alimentar|merenda|alimentacao|comida|refeicao/, 'A alimentação respeita a cultura alimentar quilombola'),
+  itemAlimentacao(/agricultura familiar|30%|trinta por cento/, 'O mínimo de 30% dos produtos é oriundo da agricultura familiar'),
+  itemAlimentacao(/organico|agroecolog/, 'Prioriza alimentos orgânicos e agroecológicos'),
+  { id:'impactos', nivel:'territorio', re:/impacto|consequencia|depois do fechamento|apos o fechamento|efeito do fechamento/,
+    conta: f => ({ lista: Object.entries(f.imp||{}).filter(([k])=>!/^(Nenhum|Não se aplica|Outro\/não classificado)$/.test(k))
+                     .sort((a,b)=>b[1]-a[1]).slice(0,6),
+      base:f.total, unidade:'territórios', desc:'impactos percebidos após o fechamento ou a nucleação da escola' }) },
+  { id:'fechamento', nivel:'territorio', re:/fechamento|nucleacao|fechad|fecharam|fechou|fechar|encerrad|escola fechou/,
+    conta: f => ({ abs:soma(f.fech,['Sim']), base:f.total, unidade:'territórios',
+      desc:'relataram fechamento da escola ou nucleação de todas as turmas nos últimos 10 anos',
+      extra:'Transferências parciais de turmas e tentativas revertidas são registradas separadamente e não entram neste número.' }) },
+  { id:'demanda', nivel:'territorio', re:/reabertura|reabrir|retorno de turmas|demanda comunitaria|volta da escola/,
+    conta: f => ({ abs:soma(f.dem,['Sim','Sim, parcialmente']), base:f.total, unidade:'territórios',
+      desc:'têm demanda comunitária por reabertura ou retorno de turmas' }) },
+  { id:'diretriz', nivel:'territorio', re:/diretriz|normativa|documento oficial|regulament|lei municipal|orientacao curricular/,
+    conta: f => ({ abs:soma(f.dir,['Inexistente']), base:f.total, unidade:'municípios',
+      desc:'não possuem nenhum documento oficial sobre Educação Escolar Quilombola' }) },
+  { id:'concurso', nivel:'territorio', re:/concurso|reserva de vaga|processo seletivo|pontuacao extra|acao afirmativa|cota/,
+    conta: f => ({ abs:soma(f.conc,['Não']), base:f.total, unidade:'municípios',
+      desc:'não possuem concurso específico, reserva de vagas ou pontuação extra para professores(as) quilombolas' }) },
+  { id:'ensino_medio', nivel:'territorio', re:/ensino medio|oferta de ensino|segundo grau/,
+    conta: f => {
+      const t = f.total, sem = soma(f.em,['Sem oferta no território/proximidades','Sem oferta identificada']);
+      const dentro = soma(f.em,['Dentro','Dentro e fora']);
+      return { abs:t-sem, base:t, unidade:'territórios',
+        desc:'têm oferta de Ensino Médio dentro ou nas proximidades',
+        extra:`Sem Ensino Médio dentro do território: ${p(t-dentro,t)}% (${t-dentro} de ${t}).` }; } },
+  { id:'motivos', nivel:'territorio', re:/motivo|causas da evasao|por que param|por que parar/,
+    conta: f => ({ lista: Object.entries(f.mot||{}).filter(([k])=>!/^(Não se aplica|Outro\/não classificado)$/.test(k))
+                     .sort((a,b)=>b[1]-a[1]), base:f.total, unidade:'territórios',
+      desc:'motivos de interrupção dos estudos no Ensino Médio mais citados' }) },
+  { id:'evasao', nivel:'territorio', re:/evasao|abandono|param de estudar|parar de estudar|interrupcao dos estudos|deixam de estudar/,
+    conta: f => {
+      const apl = f.total - soma(f.ev,['Não se aplica']);
+      return { abs:soma(f.ev,['Alguns param de estudar','A maioria para de estudar']), base:apl,
+        unidade:'territórios onde a pergunta se aplica',
+        desc:'relatam que jovens param de estudar por não ter Ensino Médio no território' }; } },
+  { id:'avaliacao', nivel:'territorio', re:/avaliacao da qualidade|como avaliam|qualidade da educacao|avaliam a educacao|nota da educacao/,
+    conta: f => ({ abs:soma(f.aval,['Ruim','Péssima']), base:f.total, unidade:'territórios',
+      desc:'avaliam a Educação Escolar Quilombola do município como Ruim ou Péssima',
+      extra:'Distribuição: ' + ['Excelente','Boa','Regular','Ruim','Péssima']
+              .map(k=>`${k} ${soma(f.aval,[k])}`).join(' · ') }) },
+  { id:'familias', nivel:'territorio', re:/familia|quantas familias|tamanho do territorio|populacao do territorio/,
+    conta: f => ({ lista: Object.entries(f.fam||{}).sort((a,b)=>b[1]-a[1]),
+      base:f.total, unidade:'territórios', desc:'estimativa de famílias por território' }) },
+];
+
+// ── "Você quis dizer...": tolerância a erro de digitação ──────────
+// O vocabulário é extraído dos PRÓPRIOS padrões da tabela acima, em vez
+// de ser uma segunda lista escrita à mão: assim um tema novo já nasce
+// tolerante a erro de digitação, sem nada para manter em sincronia.
+const VOCABULARIO = (() => {
+    const v = [];
+    for (const tema of TEMAS)
+        for (const alt of tema.re.source.split('|'))
+            if (/^[a-z][a-z ]{3,}$/.test(alt)) v.push({ palavra: alt, tema });
+    return v;
+})();
+// Distância de Levenshtein: quantas letras precisam ser trocadas,
+// inseridas ou apagadas para uma palavra virar a outra.
+function distancia(a, b) {
+    if (a === b) return 0;
+    if (Math.abs(a.length - b.length) > 2) return 99;
+    let linha = Array.from({length: b.length + 1}, (_, i) => i);
+    for (let i = 1; i <= a.length; i++) {
+        let ant = linha[0]; linha[0] = i;
+        for (let j = 1; j <= b.length; j++) {
+            const tmp = linha[j];
+            linha[j] = Math.min(linha[j] + 1, linha[j-1] + 1, ant + (a[i-1] === b[j-1] ? 0 : 1));
+            ant = tmp;
+        }
+    }
+    return linha[b.length];
+}
+function temaAproximado(txt) {
+    const palavras = txt.split(/[^a-z0-9]+/).filter(w => w.length >= 4);
+    let melhor = null;
+    for (const w of palavras)
+        for (const { palavra, tema } of VOCABULARIO) {
+            const limite = palavra.length <= 6 ? 1 : 2;   // palavra curta, menos folga
+            let d = distancia(w, palavra);
+            // Segunda chance por prefixo: erros de plural e de desinência passam
+            // de duas letras ("profesores" -> "professor" dá 3) mas começam
+            // igual. Seis letras em comum já é um sinal forte.
+            if (d > limite && w.length >= 6 && palavra.length >= 6 && w.slice(0,6) === palavra.slice(0,6)) d = limite;
+            if (d <= limite && (!melhor || d < melhor.d)) melhor = { d, palavra, tema, escrito: w };
+        }
+    return melhor;
+}
+
+function detectaTema(txt) {
+    for (const tema of TEMAS) if (tema.re.test(txt)) return tema;
+    return null;
+}
+function temaPorId(id) { return TEMAS.find(x => x.id === id) || null; }
+function fatiaDe(nivel, escopo) {
+    const base = nivel === 'territorio' ? SD.form_agg : SD.escola_agg;
+    if (!escopo || escopo.tipo === 'nacional') return base['all'];
+    return base[(escopo.tipo === 'uf' ? 'uf:' : 'reg:') + escopo.nome] || null;
+}
+function escopoDaPergunta(txt, original) {
+    if (/\b(brasil|nacional|no pais|em todo o pais|no total geral)\b/.test(txt)) return { tipo:'nacional' };
+    const uf = detectaUF(txt, original);
+    if (uf) return { tipo:'uf', nome:uf };
+    const reg = detectaRegiao(txt);
+    if (reg) return { tipo:'reg', nome:reg };
+    return null;
+}
+// Só herda o que ficou na memória quando a pergunta sinaliza
+// continuidade ("e no Maranhão?", "e lá?", "e em %?"). Sem esse
+// cuidado, "como está o racismo?" depois de uma pergunta sobre a
+// Bahia passaria a responder só a Bahia, sem avisar.
+const MARCA_CONTINUIDADE = /(^|\s)(e|ai|la|ali|nele|nela|neles|nessa|nesse|desse|dessa|mesmo|tambem|idem|agora)(\s|$|\?)/;
+
+// "1 de 1 escolas" soa errado; singulariza o substantivo quando a base é 1.
+const SINGULAR = { 'territórios':'território', 'escolas':'escola', 'municípios':'município' };
+function unid(n, u) {
+    return n === 1 ? u.replace(/^(territórios|escolas|municípios)/, m => SINGULAR[m]) : u;
+}
+function respostaDeTema(tema, escopo, modo) {
+    const f = fatiaDe(tema.nivel, escopo);
+    if (!f || !f.total) return null;
+    const d = tema.conta(f);
+    const onde = !escopo || escopo.tipo === 'nacional' ? ''
+               : (escopo.tipo === 'uf' ? `${escopo.nome} — ` : `Região ${escopo.nome} — `);
+    let txt;
+    if (d.lista) {
+        // Lista vazia É uma resposta. Devolver null aqui fazia a pergunta cair
+        // no relatório geral do estado, como se o assunto não existisse.
+        if (!d.lista.length)
+            return `${onde}nenhum caso registrado — ${d.desc} (base: ${d.base} ${unid(d.base, d.unidade)}).`;
+        txt = `${onde}${d.desc} (base: ${d.base} ${unid(d.base, d.unidade)}):\n` +
+              d.lista.map(([k,v]) => `• ${k}: ${fmt(modo, p(v,d.base), v, d.base)}`).join('\n');
+    } else {
+        // Aqui o substantivo fica no plural mesmo com base 1 ("1 de 1 escolas"),
+        // para concordar com o verbo de d.desc. O singular só entra depois do
+        // número, em "base: 1 território".
+        txt = `${onde}${fmt(modo, p(d.abs,d.base), d.abs, d.base)} ${d.unidade} ${d.desc}.`;
+        if (d.extra) txt += `\n${d.extra}`;
+    }
+    return txt.charAt(0).toUpperCase() + txt.slice(1);
+}
+
 function responderAgba(pergunta) {
     const t = aplicaSinonimos(norm(pergunta));
     // conversa basica primeiro; devolve null se houver assunto de dados
@@ -4162,6 +4410,12 @@ function responderAgba(pergunta) {
     if (social) return social;
     const db = DB;
     const modo = detectaModo(t);
+    // Dois guardas nomeados: o resolvedor de tema (bloco C0) roda antes das
+    // perguntas de correlação e de total, e precisa saber reconhecê-las para
+    // não roubá-las — "relação entre racismo e professor" contém dois temas.
+    const ehCorrelacao = (t.includes('correlacao') || t.includes('relacao entre') || t.includes('relacionado') || /\b(causa|influencia)\b/.test(t) || t.includes('tambem tem mais') || t.includes('ligacao entre'));
+    const ehTotais = ((t.includes('quantas escolas') || t.includes('quantos formularios') || t.includes('total de escolas') || (t.includes('quantos') && t.includes('formulario')))
+        && !/(reserva de vaga|concurso|diretriz|laboratorio|biblioteca|internet|agua potavel|acessibilidade|cozinha|refeitorio|sala de aula|merenda|alimentacao|desrespeito|conselho|gestor|racismo|professor|materia|transporte|fechamento|nucleacao|fechada|fecharam|fechou|encerrad|consulta|gestao|ensino medio|evasao|infraestrutura|relacao)/.test(t));
     const pedeRanking = /(qual|quais)\s+(o\s+|a\s+|os\s+|as\s+)?(estado|uf|regiao)/.test(t) || t.includes('ranking') || t.includes('top ') || t.includes('quem tem') || t.includes('compare');
     const pedeMenos = /(menos|menor|menores)/.test(t);
     const pedeMais  = /(mais|maior|maiores|pior|piores)/.test(t);
@@ -4197,7 +4451,7 @@ function responderAgba(pergunta) {
               fonte: () => Object.entries(db.prof_por_uf).map(([u,d])=>({u, abs:d['Nenhum']||0, n:d.total})) },
             { kw:['racismo'], titulo:'de escolas com relatos de racismo',
               fonte: () => Object.entries(db.rac_por_uf).map(([u,d])=>({u, abs:d.sim||0, n:d.total})) },
-            { kw:['material'], titulo:'de escolas SEM materiais didáticos quilombolas',
+            { kw:['material','materiais'], titulo:'de escolas SEM materiais didáticos quilombolas',
               fonte: () => Object.entries(db.uf_agg).map(([u,d])=>({u, abs:d.mat_nao||0, n:d.total})) },
             { kw:['consulta'], titulo:'de escolas onde a comunidade NÃO é consultada',
               fonte: () => Object.entries(db.uf_agg).map(([u,d])=>({u, abs:d.consulta_nao||0, n:d.total})) },
@@ -4231,49 +4485,41 @@ function responderAgba(pergunta) {
     }
 
 
-    // ── C0. Indicador específico + UF/região juntos (ex: "biblioteca em Tocantins") ──
-    // Verificado ANTES do resumo geral de UF/região para não "engolir" a pergunta fina.
-    {
-        const ufMencionada = detectaUF(t, pergunta);
-        const regMencionada = detectaRegiao(t);
-        const temIndicadorFino = /(biblioteca|laboratorio|internet|agua potavel|acessibilidade|espaco cultural|espaco esportivo|sala de aula|salas de aula|cozinha|refeitorio|alimentacao|merenda|desrespeito|estrada)/.test(t);
-        if ((ufMencionada || regMencionada) && temIndicadorFino) {
-            // Reusa as funções de indicador fino mais abaixo, mas filtrando pelo escopo: aqui
-            // calculamos diretamente a partir de SD (slices por UF/região) quando disponível,
-            // ou avisamos que o detalhamento fino só está disponível nacionalmente.
-            const escopoNome = ufMencionada || regMencionada;
-            const escopoTipo = ufMencionada ? 'uf' : 'reg';
-            const sliceKey = escopoTipo === 'uf' ? `uf:${escopoNome}` : `reg:${escopoNome}`;
-            const slice = (typeof SD !== 'undefined' && SD.escola_agg) ? SD.escola_agg[sliceKey] : null;
-            if (slice && slice.infra) {
-                const TEMA_MAP = {
-                    'biblioteca':'Biblioteca', 'laboratorio':'Laboratório de informática',
-                    'internet':'Acesso à internet', 'agua potavel':'Abastecimento de água potável',
-                    'acessibilidade':'Acessibilidade arquitetônica', 'espaco cultural':'Espaço para práticas culturais',
-                    'espaco esportivo':'Espaço para práticas esportivas', 'sala de aula':'Salas de aula',
-                    'salas de aula':'Salas de aula', 'cozinha':'Cozinha', 'refeitorio':'Refeitório',
-                };
-                for (const [kw, chave] of Object.entries(TEMA_MAP)) {
-                    if (t.includes(kw)) {
-                        const d = slice.infra[chave] || {};
-                        const ruim = (d['Inexistente']||0)+(d['Precária']||0)+(d['Insuficiente']||0);
-                        const total = slice.total || 0;
-                        if (escopoTipo === 'uf') { agbaCtx.uf = escopoNome; agbaCtx.reg = UF_PARA_REGIAO[escopoNome]; }
-                        else agbaCtx.reg = escopoNome;
-                        return `${escopoNome} — ${chave}: ${fmt(modo, p(ruim,total), ruim, total)} escolas com infraestrutura inexistente, precária ou insuficiente.` +
-                            sugestoes([`Como está ${escopoNome} em geral?`, `Como está o racismo em ${escopoNome}?`]);
-                    }
-                }
+    // ── C0. TEMA + ESCOPO ────────────────────────────────────────────
+    // Resolvido ANTES do relatório completo de UF/região: senão
+    // "racismo na Bahia" seria engolido pelo resumo do estado.
+    // Também é aqui que a memória de curto prazo é usada — e ela só
+    // entra quando a pergunta sinaliza continuidade.
+    // Sem !pedeRanking: se a pergunta fosse um ranking, o bloco B acima já
+    // teria respondido e retornado. Chegar aqui significa que nenhum tema de
+    // ranking casou, e aí é melhor responder o tema do que não responder nada.
+    if (!ehCorrelacao && !ehTotais) {
+        const escopoDito = escopoDaPergunta(t, pergunta);
+        const temaDito   = detectaTema(t);
+        const continua   = MARCA_CONTINUIDADE.test(t);
+        const lembrado   = agbaCtx.uf  ? { tipo:'uf',  nome:agbaCtx.uf }
+                         : agbaCtx.reg ? { tipo:'reg', nome:agbaCtx.reg } : null;
+        const tema   = temaDito  || (continua && agbaCtx.tema ? temaPorId(agbaCtx.tema) : null);
+        const escopo = escopoDito || (continua ? lembrado : null);
+        if (tema) {
+            const txt = respostaDeTema(tema, escopo, modo);
+            if (txt) {
+                agbaCtx.tema = tema.id;
+                if (escopo && escopo.tipo === 'uf')  { agbaCtx.uf = escopo.nome; agbaCtx.reg = UF_PARA_REGIAO[escopo.nome]; }
+                else if (escopo && escopo.tipo === 'reg') { agbaCtx.reg = escopo.nome; agbaCtx.uf = null; }
+                else if (escopo && escopo.tipo === 'nacional') { agbaCtx.uf = null; agbaCtx.reg = null; }
+                const sug = (escopo && escopo.tipo !== 'nacional')
+                    ? [`Como está ${escopo.tipo === 'uf' ? escopo.nome : 'a região ' + escopo.nome} em geral?`, 'E no Brasil?']
+                    : ['Como está a Bahia?', 'Quais estados têm mais racismo?'];
+                return txt + sugestoes(sug);
             }
-            // Sem slice detalhado disponível: orienta o usuário e mostra o dado nacional do tema
-            // (cai naturalmente para os blocos de indicador fino mais abaixo, que respondem em nível nacional)
         }
     }
 
     // ── C. Pergunta sobre UF específica ──────────────────────────────
     const uf = detectaUF(t, pergunta);
     if (uf && db.uf_agg[uf]) {
-        agbaCtx.uf = uf; agbaCtx.reg = UF_PARA_REGIAO[uf];
+        agbaCtx.uf = uf; agbaCtx.reg = UF_PARA_REGIAO[uf]; agbaCtx.tema = null;
         const d = db.uf_agg[uf];
         const esc = db.esc_por_uf[uf] || 0;
         const form = db.form_por_uf[uf] || 0;
@@ -4291,7 +4537,7 @@ function responderAgba(pergunta) {
     // ── D. Pergunta sobre região específica ──────────────────────────
     const reg = detectaRegiao(t);
     if (reg && db.reg_agg[reg]) {
-        agbaCtx.reg = reg;
+        agbaCtx.reg = reg; agbaCtx.uf = null; agbaCtx.tema = null;
         const r = db.reg_agg[reg];
         return `Região ${reg}: ${r.total} escolas analisadas.\n` +
                respostaIndicadores(reg, r, modo, extraReg(reg)) +
@@ -4299,7 +4545,7 @@ function responderAgba(pergunta) {
     }
 
     // ── D2. Correlação entre dois indicadores ────────────────────────
-    if (t.includes('correlacao') || t.includes('relacao entre') || t.includes('relacionado') || /\b(causa|influencia)\b/.test(t) || t.includes('tambem tem mais') || t.includes('ligacao entre')) {
+    if (ehCorrelacao) {
         const PARES_CONHECIDOS = [
             { chaves: ['racismo','professor'], nome1:'racismo', nome2:'ausência de professores quilombolas',
               dados: CORR_DATA.rac_prof_scatter, campo1:'racismo', campo2:'sem_prof',
@@ -4329,153 +4575,16 @@ function responderAgba(pergunta) {
     }
 
     // ── E. Total geral / quantas escolas, formulários (NÃO captura "reserva de vagas" etc.) ──
-    if ((t.includes('quantas escolas') || t.includes('quantos formularios') || t.includes('total de escolas') || (t.includes('quantos') && t.includes('formulario')))
-        && !/(reserva de vaga|concurso|diretriz|laboratorio|biblioteca|internet|agua potavel|acessibilidade|cozinha|refeitorio|sala de aula|merenda|alimentacao|desrespeito|conselho|gestor|racismo|professor|materia|transporte|fechamento|nucleacao|fechada|fecharam|fechou|encerrad|consulta|gestao|ensino medio|evasao|infraestrutura|relacao)/.test(t)) {
+    if (ehTotais) {
         return `A pesquisa reúne ${db.total_formularios} formulários e ${db.total_escolas} escolas analisadas individualmente, coletados entre 2025 e 2026.` +
             sugestoes(['Quantas escolas têm racismo?', 'Como está a Bahia?']);
     }
 
-    // ── F. Racismo geral ──────────────────────────────────────────────
-    if (t.includes('racismo')) {
-        const racT = db.racismo_total.sim;
-        const tipos = Object.entries(db.tipos_racismo).sort((a,b)=>b[1]-a[1]);
-        return `${fmt(modo, p(racT,db.total_escolas), racT, db.total_escolas)} escolas relataram algum tipo de racismo.\n` +
-            `Tipos mais comuns: ` + tipos.map(([k,v])=>`${k} (${v})`).join(', ') + '.' +
-            sugestoes(['Quais estados têm mais racismo?', 'Racismo em %']);
-    }
-
-    // ── G. Professores quilombolas geral ──────────────────────────────
-    if (t.includes('professor')) {
-        const sem = db.prof_counts['Nenhum'] || 0;
-        return `${fmt(modo, p(sem,db.total_escolas), sem, db.total_escolas)} escolas não têm nenhum professor quilombola em seu quadro.` +
-            sugestoes(['Quais estados têm mais escolas sem professor?', 'Quais estados têm menos escolas sem professor?']);
-    }
-
-    // ── H. Materiais didáticos ──────────────────────────────────────
-    if (t.includes('material') || t.includes('materiais')) {
-        const sem = db.mat_counts['Não'] || 0;
-        return `${fmt(modo, p(sem,db.total_escolas), sem, db.total_escolas)} escolas não possuem materiais didáticos que abordem cultura e história quilombola.` +
-            sugestoes(['Quais estados têm mais escolas sem materiais?']);
-    }
-
-    // ── I. Ensino Médio / evasão ──────────────────────────────────────
-    if (t.includes('ensino medio') || t.includes('evasao')) {
-        // Q19 recodificada: a ausencia de oferta virou duas categorias
-        const semEM = (db.em_cats['Sem oferta no território/proximidades'] || 0)
-                    + (db.em_cats['Sem oferta identificada'] || 0);
-        return `${fmt(modo, p(semEM,db.total_formularios), semEM, db.total_formularios)} territórios não têm oferta de Ensino Médio dentro ou nas proximidades. Entre os motivos de interrupção dos estudos citados na Q21, os mais frequentes são trabalho (231) e distância/transporte (201).` +
-            sugestoes(['Como está o Ensino Médio no meu estado?']);
-    }
-
-    // ── J. Fechamento de escolas ──────────────────────────────────────
-    if (/(fechamento|nucleacao|fechad[ao]s?|fecharam|fechou|fechar|encerrad[ao]s?)/.test(t)) {
-        // Q14 recodificada: 'Sim' e a unica categoria que afirma fechamento.
-        // Subtrair as demais do total, como se fazia antes, contava como
-        // fechamento tambem quem respondeu 'nao' e 'nao sabe informar'.
-        const houve = db.fech_cats['Sim'] || 0;
-        return `${fmt(modo, p(houve,db.total_formularios), houve, db.total_formularios)} territórios relataram fechamento da escola ou nucleação de todas as turmas nos últimos 10 anos. Transferências parciais de turmas e tentativas revertidas são registradas em variáveis próprias da Base Mestre e não entram neste número.` +
-            sugestoes(['Como está o fechamento de escolas na minha região?']);
-    }
-
-    // ── K. Consulta / gestão democrática (3 sub-indicadores) ──────────
-    if (t.includes('escolha de gestor') || t.includes('escolha dos gestor')) {
-        const semGest = db.gest_counts.gestores['Não'] || 0;
-        return `${fmt(modo, p(semGest,db.total_escolas), semGest, db.total_escolas)} escolas relatam que a comunidade NÃO é ouvida na escolha de gestores escolares.` +
-            sugestoes(['Como está a consulta comunitária?', 'Como está o conselho escolar?']);
-    }
-    if (t.includes('conselho escolar') || t.includes('conselho')) {
-        const semCons = db.gest_counts.conselho['Não'] || 0;
-        return `${fmt(modo, p(semCons,db.total_escolas), semCons, db.total_escolas)} escolas relatam que a comunidade NÃO participa do conselho escolar.` +
-            sugestoes(['Como está a consulta comunitária?']);
-    }
-    if (t.includes('consulta') || t.includes('gestao')) {
-        const semCons = db.gest_counts.consulta['Não'] || 0;
-        return `${fmt(modo, p(semCons,db.total_escolas), semCons, db.total_escolas)} escolas relatam que a comunidade quilombola NÃO é consultada em decisões de gestão escolar.` +
-            sugestoes(['Quais estados têm menos consulta comunitária?']);
-    }
-
-    // ── L. Transporte (geral + condição específica das estradas) ──────
-    if (t.includes('estrada')) {
-        const d = db.transp_cond['As estradas estão em boas condições'] || {};
-        const discordo = d['Discordo'] || 0;
-        const base = (d['Concordo totalmente']||0) + (d['Concordo parcialmente']||0) + discordo;
-        return `${fmt(modo, p(discordo,base), discordo, base)} escolas com transporte escolar relatam que as estradas NÃO estão em boas condições.`;
-    }
-    if (t.includes('transporte')) {
-        const discordo = db.transp_cond['As estradas estão em boas condições']?.['Discordo'] || 0;
-        const base = (db.transp_cond['As estradas estão em boas condições']?.['Concordo totalmente']||0) +
-                     (db.transp_cond['As estradas estão em boas condições']?.['Concordo parcialmente']||0) + discordo;
-        return `${fmt(modo, p(discordo,base), discordo, base)} escolas com transporte escolar relatam que as estradas NÃO estão em boas condições.`;
-    }
-
-    // ── M. Infraestrutura — tabela com todos os itens individuais ─────
-    // Cada item de db.infra tem categorias: Adequada / Insuficiente / Precária / Inexistente / Não sei / Não se aplica
-    const INFRA_TEMAS = [
-        { kw: ['laboratorio','lab de informatica','lab. de informatica'], chave: 'Laboratório de informática', desc: 'não possuem laboratório de informática' },
-        { kw: ['biblioteca'], chave: 'Biblioteca', desc: 'não possuem biblioteca' },
-        { kw: ['internet','acesso a internet','wifi'], chave: 'Acesso à internet', desc: 'não possuem acesso à internet adequado' },
-        { kw: ['agua potavel','agua'], chave: 'Abastecimento de água potável', desc: 'não possuem abastecimento de água potável adequado' },
-        { kw: ['acessibilidade'], chave: 'Acessibilidade arquitetônica', desc: 'não possuem acessibilidade arquitetônica adequada' },
-        { kw: ['espaco cultural','pratica cultural','praticas culturais'], chave: 'Espaço para práticas culturais', desc: 'não possuem espaço para práticas culturais' },
-        { kw: ['espaco esportivo','pratica esportiva','praticas esportivas','quadra'], chave: 'Espaço para práticas esportivas', desc: 'não possuem espaço para práticas esportivas' },
-        { kw: ['sala de aula','salas de aula'], chave: 'Salas de aula', desc: 'não possuem salas de aula adequadas' },
-        { kw: ['cozinha'], chave: 'Cozinha', desc: 'não possuem cozinha adequada' },
-        { kw: ['refeitorio'], chave: 'Refeitório', desc: 'não possuem refeitório adequado' },
-    ];
-    for (const tema of INFRA_TEMAS) {
-        if (tema.kw.some(k => t.includes(k))) {
-            const d = db.infra[tema.chave] || {};
-            const ruim = (d['Inexistente']||0) + (d['Precária']||0) + (d['Insuficiente']||0);
-            return `${fmt(modo, p(ruim,db.total_escolas), ruim, db.total_escolas)} escolas têm ${tema.chave.toLowerCase()} em situação inexistente, precária ou insuficiente.` +
-                sugestoes(['Como está a infraestrutura geral?', 'Quais estados têm mais escolas sem racismo?']);
-        }
-    }
-    // Infraestrutura geral (sem item específico) — usa laboratório como indicador-síntese
-    if (t.includes('infraestrutura') || t.includes('infra')) {
-        const lab = db.infra['Laboratório de informática'] || {};
-        const inex = lab['Inexistente'] || 0;
-        return `${fmt(modo, p(inex,db.total_escolas), inex, db.total_escolas)} escolas não possuem laboratório de informática.\n` +
-            `Você pode perguntar também sobre itens específicos: biblioteca, internet, água potável, acessibilidade, salas de aula, cozinha, refeitório, espaço cultural ou esportivo.` +
-            sugestoes(['Como está a biblioteca?', 'Como está o acesso à internet?']);
-    }
-
-    // ── N. Alimentação escolar / merenda ───────────────────────────────
-    if (t.includes('alimentacao') || t.includes('merenda')) {
-        const d = db.alim['A alimentação respeita a cultura alimentar quilombola'] || {};
-        const discordo = d['Discordo'] || 0;
-        const base = (d['Concordo totalmente']||0) + (d['Concordo parcialmente']||0) + discordo;
-        return `${fmt(modo, p(discordo,base), discordo, base)} escolas relatam que a alimentação escolar NÃO respeita a cultura alimentar quilombola.` +
-            sugestoes(['Como está a infraestrutura da cozinha?']);
-    }
-
-    // ── O. Desrespeito à cultura (separado de racismo) ──────────────────
-    if (t.includes('desrespeito')) {
-        const sim = db.des_counts['Sim'] || 0;
-        return `${fmt(modo, p(sim,db.total_escolas), sim, db.total_escolas)} escolas relataram situações de desrespeito à cultura e tradições quilombolas por parte da equipe escolar.` +
-            sugestoes(['Como está o racismo nas escolas?', 'Como está a relação escola-comunidade?']);
-    }
-
-    // ── P. Relação escola-comunidade ────────────────────────────────────
-    if (t.includes('relacao escola') || (t.includes('relacao') && t.includes('comunidade'))) {
-        const ruim = (db.rel_counts['Ruim']||0) + (db.rel_counts['Regular']||0);
-        return `${fmt(modo, p(ruim,db.total_escolas), ruim, db.total_escolas)} escolas têm relação Ruim ou Regular entre profissionais da escola e a comunidade quilombola.` +
-            sugestoes(['Como está o desrespeito à cultura?']);
-    }
-
-    // ── Q. Diretrizes curriculares municipais ───────────────────────────
-    if (t.includes('diretriz')) {
-        // Q10 recodificada: ausencia de normativa = 'Inexistente'
-        const semDoc = db.dir_counts['Inexistente'] || 0;
-        return `${fmt(modo, p(semDoc,db.total_formularios), semDoc, db.total_formularios)} municípios não possuem nenhum documento oficial (diretrizes, lei ou orientação curricular) sobre Educação Escolar Quilombola.` +
-            sugestoes(['Como está o concurso para professores?']);
-    }
-
-    // ── R. Concurso / reserva de vagas para professores quilombolas ────
-    if (t.includes('reserva de vaga') || t.includes('concurso')) {
-        const semMecanismo = db.conc_counts['Não'] || 0;
-        return `${fmt(modo, p(semMecanismo,db.total_formularios), semMecanismo, db.total_formularios)} municípios não possuem concurso específico, reserva de vagas ou pontuação extra para professores(as) quilombolas.` +
-            sugestoes(['Como está a presença de professores quilombolas?']);
-    }
+    // Os blocos de tema que havia aqui (racismo, professores, materiais,
+    // Ensino Médio, fechamento, gestão, transporte, infraestrutura,
+    // alimentação, desrespeito, relação, diretrizes e concurso) foram
+    // substituídos pela tabela TEMAS e pelo bloco C0, que respondem os
+    // mesmos assuntos em qualquer escopo.
 
     // ── N. Pergunta sobre o próprio assistente / ajuda ──────────────────
     if (t.includes('quem e voce') || t.includes('o que voce faz') || t === 'ajuda' || t.includes('o que posso perguntar') || t.includes('como voce funciona') || t.includes('o que voce e')) {
@@ -4523,6 +4632,25 @@ function responderAgba(pergunta) {
     }
     if (t.includes('o que significa quilombola') || (t.includes('significa') && t.includes('quilombola'))) {
         return `Quilombolas são comunidades formadas, em sua maioria, por descendentes de povos africanos escravizados que resistiram à escravidão e construíram territórios próprios — os quilombos —, preservando até hoje suas tradições culturais, sociais e religiosas.`;
+    }
+
+    // ── Quase-acerto: a pergunta não casou com nenhum padrão, mas alguma
+    // palavra dela está a uma ou duas letras de um assunto conhecido. Em vez
+    // de devolver a lista inteira de assuntos, responde o mais próximo e diz
+    // em voz alta o que entendeu, para o usuário poder corrigir.
+    if (!ehCorrelacao && !ehTotais) {
+        const perto = temaAproximado(t);
+        if (perto) {
+            const esc = escopoDaPergunta(t, pergunta)
+                     || (agbaCtx.uf ? { tipo:'uf', nome:agbaCtx.uf }
+                      : agbaCtx.reg ? { tipo:'reg', nome:agbaCtx.reg } : null);
+            const txt = respostaDeTema(perto.tema, esc, modo);
+            if (txt) {
+                agbaCtx.tema = perto.tema.id;
+                return `Entendi "${perto.escrito}" como "${perto.palavra}". Se não era isso, me diga de outro jeito.\n\n` + txt +
+                    sugestoes(['Como está a Bahia?', 'O que posso perguntar?']);
+            }
+        }
     }
 
     // ── Fallback: nenhuma regra reconheceu a pergunta ───────────────────
